@@ -1,0 +1,12 @@
+[
+  {"webvtt-dash-drm":                "http://www.kaltura.com/p/2122821/playManifest/entryId/0_4hrqtrf7/format/mpegdash/manifest.mpd"},
+  {"cat-clear":       "http://cfvod.kaltura.com/dasha/p/1851571/sp/185157100/serveFlavor/entryId/1_aegxx56o/v/1/flavorId/1_,aope8b8c,ygii4ciz,/forceproxy/true/name/a.mp4.urlset/manifest.mpd"},
+  {"count-dash-drm":  "http://cdnapi.kaltura.com/p/1851571/sp/185157100/playManifest/entryId/0_uafvpmv8/format/mpegdash/protocol/http/uiConfId/31956421/a/a.mpd"},
+  {"count-dash-clear": "http://cfvod.kaltura.com/dasha/p/1851571/sp/185157100/serveFlavor/entryId/0_7xgt6xfm/v/2/flavorId/0_uzum8idx/forceproxy/true/name/a.mp4/manifest.mpd"},
+  {"kaltura":         "http://cdnapi.kaltura.com/p/243342/sp/24334200/playManifest/entryId/1_sf5ovm7u/flavorIds/1_d2uwy7vv,1_jl7y56al/format/applehttp/protocol/http/a.m3u8"},
+  {"kaltura-2":       "http://cdnbakmi.kaltura.com/p/1758922/sp/175892200/playManifest/entryId/0_ksthpwh8/format/applehttp/tags/ipad/protocol/http/f/a.m3u8"},
+  {"elephants-hls": "https://playertest.longtailvideo.com/adaptive/eleph-audio/playlist.m3u8"},
+  {"bipbopall":       "http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8"},
+  {"bipbop_4x3":      "http://devimages.apple.com/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8"},
+  {"bipbop_16x9":     "http://devimages.apple.com/streaming/examples/bipbop_16x9/bipbop_16x9_variant.m3u8"}
+]
