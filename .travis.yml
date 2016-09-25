@@ -17,7 +17,7 @@ before_cache:
 script:
   - ./gradlew dtglib:build dtgapp:build
 before_deploy:
-	- mv dtglib/build/intermediates/bundles/release/classes.jar dtglib-$TRAVIS_TAG.jar
+  - mv dtglib/build/intermediates/bundles/release/classes.jar dtglib-$TRAVIS_TAG.jar
 deploy:
   provider: releases
   draft: false
