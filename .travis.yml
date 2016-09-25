@@ -16,6 +16,17 @@ before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 script:
   - ./gradlew dtglib:build dtgapp:build
+before_deploy:
+	- mv dtglib/build/intermediates/bundles/release/classes.jar dtglib-$TRAVIS_TAG.jar
+deploy:
+  provider: releases
+  draft: false
+  skip_cleanup: true
+  file:
+    - dtglib-$TRAVIS_TAG.jar
+  on:
+    tags: true
+  api-key: $GH_TOKEN
 notifications:
   email:
     recipients:
