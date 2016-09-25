@@ -14,20 +14,6 @@
 
     <LinearLayout
         android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <Switch
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Wifi"
-            android:id="@+id/switch_wifi"
-            android:checked="true"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content">
 

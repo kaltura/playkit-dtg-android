@@ -43,7 +43,6 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
     private ViewGroup mPlayerContainer;
     private boolean mPlayerDetached;
     private Item mSelectedItem;
-    private ArrayList<Item> mContentItems;
 
     private ContentManager mContentManager;
 
@@ -56,7 +55,6 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
             return playbackURL;
         }
     };
-    private DownloadStateListener mDownloadStateListener;
 
 
     @Override
@@ -73,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
         mPlayerContainer = (ViewGroup) findViewById(R.id.layout_player_container);
 
         mContentManager = ContentManager.getInstance(this);
-        mDownloadStateListener = new DownloadStateListener() {
+        DownloadStateListener downloadStateListener = new DownloadStateListener() {
             @Override
             public void onDownloadComplete(DownloadItem item) {
 
@@ -127,21 +125,9 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
                 trackSelector.setSelectedTracks(DownloadItem.TrackType.VIDEO, Collections.singletonList(minVideo));
             }
         };
-        mContentManager.addDownloadStateListener(mDownloadStateListener);
+        mContentManager.addDownloadStateListener(downloadStateListener);
         mContentManager.start();
-
-//        final WifiManager wifiManager = (WifiManager)this.getSystemService(WIFI_SERVICE);
-//        Switch wifiSwitch = (Switch) findViewById(R.id.switch_wifi);
-//        assert wifiSwitch != null;
-//        wifiSwitch.setChecked(wifiManager.isWifiEnabled());
-//        wifiSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                wifiManager.setWifiEnabled(isChecked);
-//            }
-//        });
-
-
+        
         setButtonAction(R.id.btn_download, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -291,14 +277,12 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
         KPPlayerConfig config;
         String flavorId;
         String contentUrl;
-        //        String localPath;
         String name;
 
-        public Item(KPPlayerConfig config, String flavorId, String contentUrl, String name) {
+        Item(KPPlayerConfig config, String flavorId, String contentUrl, String name) {
             this.config = config;
             this.flavorId = flavorId;
             this.contentUrl = contentUrl;
-//            this.localPath = localPath;
             this.name = name;
         }
 
@@ -308,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
             return name + " - " + status;
         }
 
-        public boolean isDownloaded() {
+        boolean isDownloaded() {
 
             DownloadItem item = findDownloadItem();
 
@@ -336,9 +320,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
 
         String itemsString = Utilities.readAssetToString(this, "content.json");
 
-        mContentItems = new ArrayList<>();
-//        mContentMap = new HashMap<>();
-
+        ArrayList<Item> contentItems = new ArrayList<>();
 
         try {
             JSONObject content = new JSONObject(itemsString);
@@ -357,7 +339,6 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
                     continue;
                 }
                 config.setEntryId(entryId);
-                String localPath = getString(jsonItem, "localPath");
                 String remoteUrl = getString(jsonItem, "remoteUrl");
                 String flavorId = getString(jsonItem, "flavorId");
 
@@ -367,8 +348,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
 
                 Item item = new Item(config, flavorId, remoteUrl, key);
 
-                mContentItems.add(item);
-//                mContentMap.put(entryId, mContentItems.size()-1);
+                contentItems.add(item);
             }
 
         } catch (JSONException e) {
@@ -378,7 +358,7 @@ public class MainActivity extends AppCompatActivity implements KPErrorEventListe
         Spinner spinner = (Spinner) findViewById(R.id.spn_content);
         assert spinner != null;
 
-        ArrayAdapter<Item> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, mContentItems);
+        ArrayAdapter<Item> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, contentItems);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
