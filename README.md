@@ -1,9 +1,8 @@
-# playkit-dtg-android
-PlayKit DTG - Download To Go
+# PlayKit DTG - Download To Go
 
-## Download DASH & HLS to you Android application and watch it offline
+Kaltura PlayKit DTG is an Android library that enables downloading MPEG-DASH and HLS streams for offline viewing.
 
-* Support tracks selection for audio/captions
-* Widevine modular DRM for offline
+* Track selection for video/audio/captions
+* Widevine modular DRM
 
 Documentation: https://vpaas.kaltura.com/documentation/Mobile-Video-Player-SDKs/Android-DTG.html
