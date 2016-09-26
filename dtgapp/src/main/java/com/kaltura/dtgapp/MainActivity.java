@@ -30,21 +30,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-
-
-
 
 
 @SuppressLint("Assert")
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "DTGAPP";
+    private static final String TAG = "DTGApp";
 
-    private static final HashMap<String, String> sContentItems = new HashMap<>();
-    
     JSONObject getTestData() {
         try {
             return new JSONObject().put("one", 1).put("two", 2).put("cloud", "☁︎");
@@ -98,8 +92,7 @@ public class MainActivity extends AppCompatActivity {
     SpinnerItem getSelectedItem() {
         Spinner itemSpinner = (Spinner) findViewById(R.id.spinner_item);
         assert itemSpinner != null;
-        SpinnerItem spinnerItem = (SpinnerItem) itemSpinner.getSelectedItem();
-        return spinnerItem;
+        return (SpinnerItem) itemSpinner.getSelectedItem();
     }
 
     private JSONArray getTestItems() throws IOException, JSONException {
@@ -107,13 +100,15 @@ public class MainActivity extends AppCompatActivity {
         try {
             is = getResources().getAssets().open("items.json");
             byte[] buffer = new byte[is.available()];
-            is.read(buffer);
-            return new JSONArray(new String(buffer));
+            if (is.read(buffer) > 0) {
+                return new JSONArray(new String(buffer));
+            }
         } finally {
             if (is != null) {
                 is.close();
             }
         }
+        return null;
     }
 
 
@@ -220,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
         itemSpinner.setAdapter(itemAdapter);
 
         try {
-            JSONArray items = null;
+            JSONArray items;
             items = getTestItems();
             for (int i=0, n=items.length(); i < n; i++) {
                 JSONObject jo = items.getJSONObject(i);
