@@ -38,6 +38,11 @@ class DownloadTask implements Parcelable {
         return "<DownloadTask id='" + taskId + "' url='" + url + "' target='" + targetFile + "'>";
     }
 
+    private boolean createParentDir(File targetFile) {
+        File parent = targetFile.getParentFile();
+        return parent.mkdirs() || parent.isDirectory();
+    }
+    
     void download(Listener listener) {
 
         URL url = this.url;
@@ -45,7 +50,11 @@ class DownloadTask implements Parcelable {
         Log.d(TAG, "Task " + taskId + ": download " + url + " to " + targetFile);
         
         // Create parent dir if needed
-        targetFile.getParentFile().mkdirs();
+        if (!createParentDir(targetFile)) {
+            Log.e(TAG, "Can't create parent dir");
+            listener.onTaskProgress(taskId, State.ERROR, 0);
+            return;
+        }
         
         listener.onTaskProgress(taskId, State.IN_PROGRESS, 0);
         long remoteFileSize;
@@ -60,7 +69,7 @@ class DownloadTask implements Parcelable {
             remoteFileSize = -1;
         }
 
-        long localFileSize = targetFile.length();
+        long localFileSize = targetFile.exists() ? targetFile.length() : 0;
 
         // finish before even starting, if file is already complete.
         if (localFileSize == remoteFileSize) {
@@ -70,7 +79,9 @@ class DownloadTask implements Parcelable {
         } else if (localFileSize > remoteFileSize) {
             // This is really odd. Delete and try again.
             Log.w(TAG, "Target file is longer than remote. Deleting the target.");
-            targetFile.delete();
+            if (!targetFile.delete()) {
+                Log.w(TAG, "Can't delete targetFile");
+            }
             localFileSize = 0;
         }
 
@@ -169,18 +180,18 @@ class DownloadTask implements Parcelable {
         }
     }
 
-    public DownloadTask(URL url, File targetFile) {
+    DownloadTask(URL url, File targetFile) {
         this.url = url;
         this.targetFile = targetFile;
         this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
     }
 
-    public DownloadTask(String url, String targetFile) throws MalformedURLException {
+    DownloadTask(String url, String targetFile) throws MalformedURLException {
         this(new URL(url), new File(targetFile));
     }
 
     @SuppressLint("ParcelClassLoader")
-    protected DownloadTask(Parcel in) throws MalformedURLException {
+    private DownloadTask(Parcel in) throws MalformedURLException {
         this(in.readBundle());
     }
 
@@ -188,11 +199,11 @@ class DownloadTask implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         Bundle bundle = toBundle();
 
-        dest.writeBundle(bundle);   // TODO: maybe optimize 
+        dest.writeBundle(bundle); 
     }
 
     @NonNull
-    Bundle toBundle() {
+    private Bundle toBundle() {
         Bundle bundle = new Bundle();
         bundle.putString("itemId", itemId);
         bundle.putString("targetFile", targetFile.toString());
@@ -222,7 +233,7 @@ class DownloadTask implements Parcelable {
         }
     };
     
-    DownloadTask(Bundle bundle) throws MalformedURLException {
+    private DownloadTask(Bundle bundle) throws MalformedURLException {
         this(bundle.getString("url"), bundle.getString("targetFile"));
         this.itemId = bundle.getString("itemId");
     }
