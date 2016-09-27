@@ -62,7 +62,7 @@ class ClearDownloadProvider implements DownloadProvider {
             
             int pendingCount = -1;
             if (newState == DownloadTask.State.COMPLETED) {
-                mDatabase.deleteFinishedDownloadsInDB(downloadTask);
+                mDatabase.markTaskAsComplete(downloadTask);
                 pendingCount = mDatabase.countPendingFiles(itemId);
                 Log.i(TAG, "Pending tasks for item: " + pendingCount);
             }
@@ -296,6 +296,9 @@ class ClearDownloadProvider implements DownloadProvider {
     }
 
     void addDownloadTasksToDB(ClearDownloadItem item, List<DownloadTask> tasks) {
+        
+        // Filter-out things that are already 
+        
         mDatabase.addDownloadTasksToDB(item, tasks);
     }
 
@@ -331,10 +334,11 @@ class ClearDownloadProvider implements DownloadProvider {
         mDownloadStateListener.onDownloadStart(item);
         
         // Read download tasks from db
-        ArrayList<DownloadTask> chunksToDownload = mDatabase.readDownloadTasksFromDB(itemId);
+        ArrayList<DownloadTask> chunksToDownload = mDatabase.readPendingDownloadTasksFromDB(itemId);
 
         if (chunksToDownload.isEmpty()) {
             mDatabase.updateItemState(itemId, DownloadState.COMPLETED);
+            mDownloadStateListener.onDownloadComplete(item);
             return DownloadState.COMPLETED;
         } else {
             int size = chunksToDownload.size();
@@ -374,7 +378,7 @@ class ClearDownloadProvider implements DownloadProvider {
         ClearDownloadItem clearDownloadItem = (ClearDownloadItem) item;
         ArrayList<DownloadTask> downloadTasks;
         if (clearDownloadItem != null) {
-            downloadTasks = mDatabase.readDownloadTasksFromDB(clearDownloadItem.getItemId());
+            downloadTasks = mDatabase.readPendingDownloadTasksFromDB(clearDownloadItem.getItemId());
             if (downloadTasks.size() > 0) {
 
                 sendServiceRequest(ClearDownloadService.ACTION_PAUSE_DOWNLOAD, null, item.getItemId());

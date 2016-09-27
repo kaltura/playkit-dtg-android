@@ -60,6 +60,7 @@ class Database {
     static final String COL_TRACK_LANGUAGE = "TrackLanguage";
     static final String COL_TRACK_BITRATE = "TrackBitrate";
     static final String COL_TRACK_REL_ID = "TrackRelativeId";
+    static final String COL_FILE_COMPLETE = "FileComplete";
 
     private final SQLiteOpenHelper mHelper;
     private final SQLiteDatabase mDatabase;
@@ -87,7 +88,9 @@ class Database {
                         TBL_DOWNLOAD_FILES,
                         COL_ITEM_ID, "TEXT NOT NULL REFERENCES " + TBL_ITEMS + "(" + COL_ITEM_ID + ") ON DELETE CASCADE",
                         COL_FILE_URL, "TEXT NOT NULL",
-                        COL_TARGET_FILE, "TEXT NOT NULL"
+                        COL_TARGET_FILE, "TEXT NOT NULL",
+                        COL_TRACK_REL_ID, "TEXT",
+                        COL_FILE_COMPLETE, "INTEGER NOT NULL DEFAULT 0"
                 ));
                 db.execSQL(Utils.createUniqueIndex(TBL_DOWNLOAD_FILES, COL_ITEM_ID, COL_FILE_URL));
 
@@ -116,6 +119,10 @@ class Database {
                 if (newVersion == 2) {
                     // Upgrade 1 -> 2: Track table was missing
                     createTrackTable(db);
+                    
+                    // Add columns to download items
+                    db.execSQL("ALTER TABLE " + TBL_DOWNLOAD_FILES + " ADD COLUMN " + COL_FILE_COMPLETE + " INTEGER NOT NULL DEFAULT 0");
+                    db.execSQL("ALTER TABLE " + TBL_DOWNLOAD_FILES + " ADD COLUMN " + COL_TRACK_REL_ID + " TEXT");
                 }
                 
                 db.setTransactionSuccessful();
@@ -175,10 +182,10 @@ class Database {
                     try {
                         long rowid = db.insertWithOnConflict(TBL_DOWNLOAD_FILES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
                         if (rowid <= 0) {
-                            Log.d(TAG, "Warning: task not added:" + task.url);
+                            Log.d(TAG, "Warning: task not added:" + task.targetFile);
                         }
                     } catch (SQLException e) {
-                        Log.e(TAG, "Failed to INSERT task: " + task.url, e);
+                        Log.e(TAG, "Failed to INSERT task: " + task.targetFile, e);
                     }
                 }
                 return true;
@@ -186,7 +193,7 @@ class Database {
         });
     }
 
-    ArrayList<DownloadTask> readDownloadTasksFromDB(final String itemId) {
+    ArrayList<DownloadTask> readPendingDownloadTasksFromDB(final String itemId) {
 
         final ArrayList<DownloadTask> downloadTasks = new ArrayList<>();
 
@@ -195,7 +202,7 @@ class Database {
 
         try {
             cursor = db.query(TBL_DOWNLOAD_FILES, new String[]{COL_FILE_URL, COL_TARGET_FILE},
-                    COL_ITEM_ID + "==?", new String[]{itemId}, null, null, "ROWID");
+                    COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0", new String[]{itemId}, null, null, "ROWID");
 
             while (cursor.moveToNext()) {
                 String url = cursor.getString(0);
@@ -216,15 +223,17 @@ class Database {
         return downloadTasks;
     }
 
-    void deleteFinishedDownloadsInDB(final DownloadTask... downloadTasks) {
-
+    void markTaskAsComplete(final DownloadTask downloadTask) {
+        
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
-                for (DownloadTask downloadTask : downloadTasks) {
-                    db.delete(TBL_DOWNLOAD_FILES, COL_FILE_URL + "==? AND " + COL_TARGET_FILE + "==?",
-                            new String[]{downloadTask.url.toExternalForm(), downloadTask.targetFile.getAbsolutePath()});
-                }
+                ContentValues values = new ContentValues();
+                values.put(COL_FILE_COMPLETE, 1);
+                
+                db.updateWithOnConflict(TBL_DOWNLOAD_FILES, values, COL_TARGET_FILE + "==?",
+                        new String[]{downloadTask.targetFile.getAbsolutePath()},
+                        SQLiteDatabase.CONFLICT_IGNORE);
                 return true;
             }
         });
@@ -276,8 +285,11 @@ class Database {
             @Override
             public boolean execute(SQLiteDatabase db) {
                 db.delete(TBL_ITEMS, COL_ITEM_ID + "=?", new String[]{item.getItemId()});
-//                db.delete(TBL_DOWNLOAD_FILES, COL_ITEM_ID + "=?", new String[]{item.getItemId()});
-                return true;// TODO: 14/09/2016 sanity: make sure corresponding entries in related tables are removed 
+                
+                // There's an "on delete cascade" between TBL_ITEMS and TBL_DOWNLOAD_FILES,
+                // but it wasn't active in the previous schema.
+                db.delete(TBL_DOWNLOAD_FILES, COL_ITEM_ID + "=?", new String[]{item.getItemId()});
+                return true; 
             }
         });
     }
@@ -290,7 +302,6 @@ class Database {
                 values.put(COL_ITEM_STATE, itemState.name());
 
                 db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
-
 
                 return true;
             }
@@ -489,7 +500,7 @@ class Database {
 
         try {
             cursor = db.rawQuery("SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
-                    " WHERE " + COL_ITEM_ID + "==?", new String[]{itemId});
+                    " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0", new String[]{itemId});
 
             if (cursor.moveToFirst()) {
                 count = cursor.getInt(0);
