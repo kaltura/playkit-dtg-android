@@ -151,7 +151,7 @@ class ClearDownloadItem implements DownloadItem {
     @Override
     public TrackSelector getTrackSelector() {
         
-        if (!mPlaybackPath.endsWith(".mpd")) {
+        if (mPlaybackPath==null || !mPlaybackPath.endsWith(".mpd")) {
             Log.w(TAG, "Track selection is only supported for dash");
             return null;
         }

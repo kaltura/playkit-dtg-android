@@ -158,17 +158,18 @@ public class MainActivity extends AppCompatActivity {
                     // Pre-download interactive track selection
                     // Select second audio track, if there are at least 2.
                     DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
-                    List<DownloadItem.Track> audioTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO);
-                    if (audioTracks.size() >= 2) {
-                        trackSelector.setSelectedTracks(DownloadItem.TrackType.AUDIO, Collections.singletonList(audioTracks.get(1)));
-                    }
+                    if (trackSelector != null) {
+                        List<DownloadItem.Track> audioTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO);
+                        if (audioTracks.size() >= 2) {
+                            trackSelector.setSelectedTracks(DownloadItem.TrackType.AUDIO, Collections.singletonList(audioTracks.get(1)));
+                        }
 
-                    try {
-                        trackSelector.apply();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        try {
+                            trackSelector.apply();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
-
 
                 } else {
                     uiLog("Failed loading metadata for " + item.getItemId() + ": " + error);
