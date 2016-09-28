@@ -1,4 +1,5 @@
-<LinearLayout xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout
+              xmlns:tools="http://schemas.android.com/tools"
               android:orientation="vertical" xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -117,6 +118,31 @@
                 android:text="Read"
                 android:id="@+id/button_read_app_data"
                 />
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:clickable="false"
+                android:focusable="false"
+                android:checked="true"/>
+
+            <EditText
+                android:layout_width="76dp"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:id="@+id/custom_action"
+                android:hint="Action"/>
+
+            <Button
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Do"
+                android:id="@+id/button_do_action"
+                android:layout_weight="1"/>
+
         </LinearLayout>
     </HorizontalScrollView>
 

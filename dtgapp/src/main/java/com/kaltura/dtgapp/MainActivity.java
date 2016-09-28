@@ -411,6 +411,20 @@ public class MainActivity extends AppCompatActivity {
                 log.setText("");
             }
         });
+        
+        setButtonAction(R.id.button_do_action, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EditText editText = (EditText) findViewById(R.id.custom_action);
+                String action = editText.getText().toString();
+                doCustomAction(action);
+            }
+        });
+    }
+
+    private void doCustomAction(String action) {
+        String itemId = getSelectedItem().itemId;
+        DownloadItem item = ContentManager.getInstance(this).findItem(itemId);
     }
 
     @Override
