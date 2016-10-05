@@ -331,6 +331,7 @@ class ClearDownloadProvider implements DownloadProvider {
         
         ClearDownloadItem item = findItemImpl(itemId);
 
+        item.setState(DownloadState.IN_PROGRESS);
         mDownloadStateListener.onDownloadStart(item);
         
         // Read download tasks from db

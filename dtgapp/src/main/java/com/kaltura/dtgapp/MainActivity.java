@@ -137,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDownloadStart(DownloadItem item) {
                 Log.d(TAG, "onDownloadStart: " + item.getItemId() + "; " + item.getDownloadedSizeBytes()/1024);
+                uiLog(item);
             }
 
             @Override
@@ -289,7 +290,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 SpinnerItem spinner = getSelectedItem();
-                contentManager.findItem(spinner.itemId).pauseDownload();
+
+                DownloadItem item = contentManager.findItem(spinner.itemId);
+                if (item!=null) {
+                    item.pauseDownload();
+                }
             }
         });
 
