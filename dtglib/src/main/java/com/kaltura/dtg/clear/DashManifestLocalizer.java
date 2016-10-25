@@ -106,6 +106,8 @@ class DashManifestLocalizer {
         int representationIndex = -1;
         int adaptationSetIndex = -1;
         
+        String currentRepresentationId = null;
+        
         int eventType;
         while ((eventType = mParser.next()) != XmlPullParser.END_DOCUMENT) {
             switch (eventType) {
@@ -116,6 +118,7 @@ class DashManifestLocalizer {
 
                         adaptationSetIndex++;
                         representationIndex = -1;
+                        currentRepresentationId = null;
                         
                         if (!shouldKeepAdaptationSet(adaptationSetIndex)) {
                             skipSubtree();
@@ -126,6 +129,7 @@ class DashManifestLocalizer {
                     if (mParser.getName().equals(REPRESENTATION_TAG)) {
 
                         representationIndex++;
+                        currentRepresentationId = mParser.getAttributeValue(null, "id");
                         
                         if (!shouldKeepRepresentation(adaptationSetIndex, representationIndex)) {
                             skipSubtree();
@@ -140,7 +144,7 @@ class DashManifestLocalizer {
                             handleSegmentTemplate();
                             break;
                         case BASE_URL_TAG:
-                            handleBaseURL(""+adaptationSetIndex);
+                            handleBaseURL(currentRepresentationId);
                             break;
                         default:
                             copyTagAttributes();
