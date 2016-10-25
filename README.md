@@ -25,7 +25,7 @@ The simplest way to get up and running is by using JitPack’s Maven repository.
 2) Add the dependency:
 
 	dependencies {
-	    compile 'com.github.kaltura:playkit-dtg-android:v2.0.0'
+	    compile 'com.kaltura:playkit-dtg-android:v2.0.0'
 	}
 
 Replace v2.0.0 with the latest release.
