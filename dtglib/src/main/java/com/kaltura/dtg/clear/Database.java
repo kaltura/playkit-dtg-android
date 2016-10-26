@@ -179,6 +179,7 @@ class Database {
                     values.put(COL_ITEM_ID, item.getItemId());
                     values.put(COL_FILE_URL, task.url.toExternalForm());
                     values.put(COL_TARGET_FILE, task.targetFile.getAbsolutePath());
+                    values.put(COL_TRACK_REL_ID, task.trackRelativeId);
                     try {
                         long rowid = db.insertWithOnConflict(TBL_DOWNLOAD_FILES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
                         if (rowid <= 0) {
@@ -492,15 +493,20 @@ class Database {
         return items;
     }
     
-    int countPendingFiles(String itemId) {
+    int countPendingFiles(String itemId, @Nullable String trackId) {
 
         SQLiteDatabase db = mDatabase;
         Cursor cursor = null;
         int count = 0;
 
         try {
-            cursor = db.rawQuery("SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
-                    " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0", new String[]{itemId});
+            if (trackId != null) {
+                cursor = db.rawQuery("SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
+                        " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0 AND " + COL_TRACK_REL_ID + "=?", new String[]{itemId, trackId});
+            } else {
+                cursor = db.rawQuery("SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
+                        " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0", new String[]{itemId});
+            }
 
             if (cursor.moveToFirst()) {
                 count = cursor.getInt(0);
@@ -512,6 +518,8 @@ class Database {
 
         return count;
     }
+    
+    
 
     void addTracks(final ClearDownloadItem item, final List<DashTrack> availableTracks, final List<DashTrack> selectedTracks) {
         doTransaction(new Transaction() {

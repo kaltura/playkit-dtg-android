@@ -32,6 +32,7 @@ class DownloadTask implements Parcelable {
     final URL url;
     final File targetFile;
     String itemId;
+    String trackRelativeId;
 
     @Override
     public String toString() {

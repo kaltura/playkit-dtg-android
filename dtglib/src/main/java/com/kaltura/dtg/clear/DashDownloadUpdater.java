@@ -71,7 +71,16 @@ class DashDownloadUpdater extends DashDownloader {
     }
     
     List<DashTrack> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {
-        // TODO: 13/09/2016 Only DOWNLOADED 
-        return mSelectedTracks.get(type);
+
+        List<DashTrack> downloadedTracks = new ArrayList<>();
+        
+        for (DashTrack dashTrack : mSelectedTracks.get(type)) {
+            
+            if (mItem.getProvider().countPendingFiles(mItem.getItemId(), dashTrack.getRelativeId()) == 0) {
+                downloadedTracks.add(dashTrack);
+            }
+        }
+        
+        return downloadedTracks;
     }
 }

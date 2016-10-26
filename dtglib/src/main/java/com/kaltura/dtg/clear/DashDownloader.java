@@ -77,7 +77,7 @@ abstract class DashDownloader {
             AdaptationSet adaptationSet = mCurrentPeriod.adaptationSets.get(track.getAdaptationIndex());
             Representation representation = adaptationSet.representations.get(track.getRepresentationIndex());
             
-            createDownloadTasks(representation);
+            createDownloadTasks(representation, track);
         }
 
         if (AppBuildConfig.DEBUG) {
@@ -85,7 +85,7 @@ abstract class DashDownloader {
         }
     }
 
-    private void createDownloadTasks(Representation representation) throws MalformedURLException {
+    private void createDownloadTasks(Representation representation, @NonNull DashTrack dashTrack) throws MalformedURLException {
         if (representation == null){
             return;
         }
@@ -94,7 +94,7 @@ abstract class DashDownloader {
         RangedUri initializationUri = representation.getInitializationUri();
         
         if (initializationUri != null) {
-            addTask(initializationUri, "init-" + reprId + ".mp4");
+            addTask(initializationUri, "init-" + reprId + ".mp4", dashTrack.getRelativeId());
         }
 
         if (representation instanceof Representation.MultiSegmentRepresentation) {
@@ -104,14 +104,14 @@ abstract class DashDownloader {
             int lastSegmentNum = rep.getLastSegmentNum(periodDurationUs);
             for (int segmentNum = rep.getFirstSegmentNum(); segmentNum <= lastSegmentNum; segmentNum++) {
                 RangedUri url = rep.getSegmentUrl(segmentNum);
-                addTask(url, "seg-" + reprId + "-" + segmentNum + ".m4s");
+                addTask(url, "seg-" + reprId + "-" + segmentNum + ".m4s", dashTrack.getRelativeId());
             }
         
         } else if (representation instanceof Representation.SingleSegmentRepresentation) {
             Representation.SingleSegmentRepresentation rep = (Representation.SingleSegmentRepresentation) representation;
             if (rep.format.mimeType.equalsIgnoreCase("text/vtt")) {
                 RangedUri url = rep.getIndex().getSegmentUrl(0);
-                addTask(url, reprId + ".vtt");
+                addTask(url, reprId + ".vtt", dashTrack.getRelativeId());
             }
         }
         
@@ -190,9 +190,10 @@ abstract class DashDownloader {
     }
 
 
-    void addTask(RangedUri url, String file) throws MalformedURLException {
+    void addTask(RangedUri url, String file, String trackId) throws MalformedURLException {
         File targetFile = new File(mTargetDir, file);
         DownloadTask task = new DownloadTask(new URL(url.getUriString()), targetFile);
+        task.trackRelativeId = trackId;
         mDownloadTasks.add(task);
     }
 

@@ -63,7 +63,7 @@ class ClearDownloadProvider implements DownloadProvider {
             int pendingCount = -1;
             if (newState == DownloadTask.State.COMPLETED) {
                 mDatabase.markTaskAsComplete(downloadTask);
-                pendingCount = mDatabase.countPendingFiles(itemId);
+                pendingCount = countPendingFiles(itemId, null);
                 Log.i(TAG, "Pending tasks for item: " + pendingCount);
             }
 
@@ -553,6 +553,10 @@ class ClearDownloadProvider implements DownloadProvider {
 
     void updateTracksInDB(String itemId, Map<DownloadItem.TrackType, List<DashTrack>> tracksMap, DashDownloader.TrackState state) {
         mDatabase.updateTracksState(itemId, DashDownloader.flattenTrackList(tracksMap), state);
+    }
+
+    int countPendingFiles(String itemId, @Nullable String trackId) {
+        return mDatabase.countPendingFiles(itemId, trackId);
     }
 }
 
