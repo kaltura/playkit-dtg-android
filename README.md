@@ -30,5 +30,6 @@ The simplest way to get up and running is by using JitPack’s Maven repository.
 
 Replace v2.0.0 with the latest release.
 
-JitPack provides more options and information.
+JitPack provides more options and information: https://jitpack.io/#com.kaltura/playkit-dtg-android
+
 
