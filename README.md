@@ -1,4 +1,4 @@
-[![](https://jitpack.io/v/com.kaltura/playkit-dtg-android.svg)](https://jitpack.io/#com.kaltura/playkit-dtg-android)
+[![](https://jitpack.io/v/com.kaltura/playkit-dtg-android.svg)](https://jitpack.io/#com.kaltura/playkit-dtg-android) [![Travis](https://img.shields.io/travis/kaltura/playkit-dtg-android.svg)](https://travis-ci.org/kaltura/playkit-dtg-android)
 
 # PlayKit DTG - Download To Go
 
