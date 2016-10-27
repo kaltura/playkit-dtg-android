@@ -3,6 +3,7 @@ package com.kaltura.dtg.clear;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.dtg.DownloadItem;
@@ -11,14 +12,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Created by noamt on 13/09/2016.
  */
 class DashTrack implements DownloadItem.Track {
-    public static final String ORIGINAL_ADAPTATION_SET_INDEX = "originalAdaptationSetIndex";
-    public static final String ORIGINAL_REPRESENTATION_INDEX = "originalRepresentationIndex";
+    private static final String ORIGINAL_ADAPTATION_SET_INDEX = "originalAdaptationSetIndex";
+    private static final String ORIGINAL_REPRESENTATION_INDEX = "originalRepresentationIndex";
     private static final String TAG = "DashTrack";
     private int adaptationIndex;
     private int representationIndex;
@@ -141,5 +143,33 @@ class DashTrack implements DownloadItem.Track {
 
     public int getRepresentationIndex() {
         return representationIndex;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DashTrack dashTrack = (DashTrack) o;
+        return adaptationIndex == dashTrack.adaptationIndex &&
+                representationIndex == dashTrack.representationIndex &&
+                bitrate == dashTrack.bitrate &&
+                type == dashTrack.type &&
+                TextUtils.equals(language, dashTrack.language);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(new Object[]{adaptationIndex, representationIndex, type, language, bitrate});
+    }
+
+    @Override
+    public String toString() {
+        return "DashTrack{" +
+                "adaptationIndex=" + adaptationIndex +
+                ", representationIndex=" + representationIndex +
+                ", type=" + type +
+                ", language='" + language + '\'' +
+                ", bitrate=" + bitrate +
+                '}';
     }
 }
