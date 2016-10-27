@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by noamt on 13/09/2016.
@@ -20,6 +21,9 @@ class DashDownloadUpdater extends DashDownloader {
     private static final String TAG = "DashDownloadCreator";
 
     private ClearDownloadItem mItem;
+
+    private Map<DownloadItem.TrackType, List<DashTrack>> mOriginalSelectedTracks;
+    private boolean mTrackSelectionChanged;
 
 
     DashDownloadUpdater(ClearDownloadItem item) throws IOException {
@@ -31,6 +35,7 @@ class DashDownloadUpdater extends DashDownloader {
 
         mSelectedTracks = new HashMap<>();
         mAvailableTracks = new HashMap<>();
+        mOriginalSelectedTracks = new HashMap<>();
         
         for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
             List<DashTrack> availableTracks = mItem.getProvider().readTracksFromDB(item.getItemId(), type, null);
@@ -38,16 +43,40 @@ class DashDownloadUpdater extends DashDownloader {
 
             List<DashTrack> selectedTracks = mItem.getProvider().readTracksFromDB(item.getItemId(), type, TrackState.SELECTED);
             mSelectedTracks.put(type, selectedTracks);
+            mOriginalSelectedTracks.put(type, selectedTracks);
         }
-
     }
-    
+
+    @Override
+    void setSelectedTracks(@NonNull DownloadItem.TrackType type, @NonNull List<DashTrack> tracks) {
+        mTrackSelectionChanged = true;
+        super.setSelectedTracks(type, tracks);
+    }
+
     ClearDownloadItem getItem() {
         return mItem;
     }
 
     void apply() throws IOException {
         // Update Track table
+        if (!mTrackSelectionChanged) {
+            // No change
+            return;
+        }
+
+        Map<DownloadItem.TrackType, List<DashTrack>> tracksToUnselect = new HashMap<>();
+        for (DownloadItem.TrackType trackType : DownloadItem.TrackType.values()) {
+            List<DashTrack> unselect = new ArrayList<>();
+            for (DashTrack dashTrack : mOriginalSelectedTracks.get(trackType)) {
+                if (! mSelectedTracks.get(trackType).contains(dashTrack)) {
+                    unselect.add(dashTrack);
+                }
+            }
+            
+            tracksToUnselect.put(trackType, unselect);
+        }
+        
+        mItem.getProvider().updateTracksInDB(mItem.getItemId(), tracksToUnselect, TrackState.NOT_SELECTED);
         mItem.getProvider().updateTracksInDB(mItem.getItemId(), mSelectedTracks, TrackState.SELECTED);
 
         // Add DownloadTasks
