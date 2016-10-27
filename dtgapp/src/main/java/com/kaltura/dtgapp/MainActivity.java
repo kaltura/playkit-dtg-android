@@ -130,7 +130,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onProgressChange(DownloadItem item, long downloadedBytes) {
-                long percent = 100 * downloadedBytes / item.getEstimatedSizeBytes();
+                long estimatedSizeBytes = item.getEstimatedSizeBytes();
+                long percent = estimatedSizeBytes > 0 ? 100 * downloadedBytes / estimatedSizeBytes : 0;
                 Log.d(TAG, "onProgressChange: " + item.getItemId() + "; " + percent + "; " + item.getDownloadedSizeBytes()/1024);
             }
 
@@ -430,6 +431,10 @@ public class MainActivity extends AppCompatActivity {
     private void doCustomAction(String action) {
         String itemId = getSelectedItem().itemId;
         DownloadItem item = ContentManager.getInstance(this).findItem(itemId);
+
+        DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
+        List<DownloadItem.Track> downloadedTracks = trackSelector.getDownloadedTracks(DownloadItem.TrackType.AUDIO);
+        Log.d(TAG, "downloadedTracks=" + downloadedTracks);
     }
 
     @Override
