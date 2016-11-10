@@ -84,6 +84,12 @@ class Database {
                         COL_ITEM_PLAYBACK_PATH, "TEXT"
                 ));
 
+                createFilesTable(db);
+
+                createTrackTable(db);
+            }
+
+            private void createFilesTable(SQLiteDatabase db) {
                 db.execSQL(Utils.createTable(
                         TBL_DOWNLOAD_FILES,
                         COL_ITEM_ID, "TEXT NOT NULL REFERENCES " + TBL_ITEMS + "(" + COL_ITEM_ID + ") ON DELETE CASCADE",
@@ -93,8 +99,6 @@ class Database {
                         COL_FILE_COMPLETE, "INTEGER NOT NULL DEFAULT 0"
                 ));
                 db.execSQL(Utils.createUniqueIndex(TBL_DOWNLOAD_FILES, COL_ITEM_ID, COL_FILE_URL));
-
-                createTrackTable(db);
             }
 
             private void createTrackTable(SQLiteDatabase db) {
@@ -120,9 +124,14 @@ class Database {
                     // Upgrade 1 -> 2: Track table was missing
                     createTrackTable(db);
                     
-                    // Add columns to download items
-                    db.execSQL("ALTER TABLE " + TBL_DOWNLOAD_FILES + " ADD COLUMN " + COL_FILE_COMPLETE + " INTEGER NOT NULL DEFAULT 0");
-                    db.execSQL("ALTER TABLE " + TBL_DOWNLOAD_FILES + " ADD COLUMN " + COL_TRACK_REL_ID + " TEXT");
+                    // recreate Files table
+                    db.execSQL("DROP INDEX IF EXISTS unique_Files_ItemID_FileURL");
+                    db.execSQL("ALTER TABLE " + TBL_DOWNLOAD_FILES + " RENAME TO OLD_" + TBL_DOWNLOAD_FILES);
+                    createFilesTable(db);
+                    
+                    db.execSQL("INSERT INTO " + TBL_DOWNLOAD_FILES + "(" + COL_ITEM_ID + "," + COL_FILE_URL + "," + COL_TARGET_FILE + ") " +
+                            "SELECT ItemID, FileURL, TargetFile FROM Files");
+                    db.execSQL("DROP TABLE OLD_" + TBL_DOWNLOAD_FILES);
                 }
                 
                 db.setTransactionSuccessful();
