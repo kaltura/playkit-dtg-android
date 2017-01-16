@@ -3,6 +3,7 @@ package com.kaltura.dtg;
 import android.content.Context;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -195,6 +196,9 @@ class ContentManagerImp extends ContentManager {
 
     @Override
     public List<DownloadItem> getDownloads(DownloadState... states) {
+        if (mProvider == null) {
+            return new ArrayList<>();
+        }
         return mProvider.getDownloads(states);
     }
 
