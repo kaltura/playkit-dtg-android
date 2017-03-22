@@ -831,8 +831,8 @@ public class MediaPresentationDescriptionParser extends DefaultHandler
         for (int i = 0; i < contentProtections.size(); i++) {
           // If contains returned false (no complete match), but find a matching schemeUriId, then
           // the MPD contains inconsistent ContentProtection data.
-          Assertions.checkState(
-              !contentProtections.get(i).schemeUriId.equals(contentProtection.schemeUriId));
+          //Assertions.checkState(
+          //    !contentProtections.get(i).schemeUriId.equals(contentProtection.schemeUriId));
         }
         contentProtections.add(contentProtection);
       }
