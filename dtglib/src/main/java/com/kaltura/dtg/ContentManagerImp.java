@@ -119,7 +119,7 @@ class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public void start() {
+    public void start(final OnStartedListener onStartedListener) {
 
         if (mStarted) {
             return;
@@ -127,13 +127,21 @@ class ContentManagerImp extends ContentManager {
 
         mProvider = DownloadProviderFactory.getProvider(mContext);
         mProvider.setDownloadStateListener(mDownloadStateRelay);
-        mProvider.start();
+        mProvider.start(new OnStartedListener() {
+                            @Override
+                            public void onStarted() {
+                                // Resume all downloads that were in progress on stop.
+                                List < DownloadItem > downloads = getDownloads(DownloadState.IN_PROGRESS);
+                                for (DownloadItem download : downloads) {
+                                    download.startDownload();
+                                }
+                                
+                                if (onStartedListener != null) {
+                                    onStartedListener.onStarted();
+                                }
+                            }
+                        });
 
-        // Resume all downloads that were in progress on stop.
-        List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
-        for (DownloadItem download : downloads) {
-            download.startDownload();
-        }
 
         mStarted = true;
     }

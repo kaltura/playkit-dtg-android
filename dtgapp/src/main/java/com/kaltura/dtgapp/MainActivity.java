@@ -202,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         
-        contentManager.start();
+        contentManager.start(null);
 
         setButtonAction(R.id.totalStorageSize, new View.OnClickListener() {
             @Override

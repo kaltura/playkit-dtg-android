@@ -2,6 +2,9 @@ package com.kaltura.dtg.clear;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -34,6 +37,76 @@ class DownloadTask implements Parcelable {
     String itemId;
     String trackRelativeId;
 
+    private Listener listener;  // this is the service
+
+    class ProgressReporter extends Thread {
+        private Handler handler;
+        private Looper myLooper;
+
+        private void report(DownloadTask.State state, int newBytes) {
+            if (listener == null) {
+                Log.w(TAG, "Discarding a progress report, there's no listener");
+                return;
+            }
+            Message msg = Message.obtain();
+            msg.what = state.ordinal();
+            msg.arg1 = newBytes;
+            msg.obj = DownloadTask.this;
+            handler.sendMessage(msg);
+        }
+        
+        private void quit() {
+            Log.d(TAG, "Quitting Looper");
+            myLooper.quit();
+        }
+
+        @Override
+        public void run() {
+            Looper.prepare();
+            
+            myLooper = Looper.myLooper();
+
+            handler = new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    
+                    if (msg.what == -1) {
+                        Looper.myLooper().quit();
+                    }
+                    
+                    DownloadTask.State state;
+                    switch (msg.what) {
+                        case 0:
+                            state = DownloadTask.State.IDLE;
+                            break;
+                        case 1:
+                            state = DownloadTask.State.IN_PROGRESS;
+                            break;
+                        case 2:
+                            state = DownloadTask.State.COMPLETED;
+                            break;
+                        case 3:
+                            state = DownloadTask.State.STOPPED;
+                            break;
+                        case 4:
+                            state = DownloadTask.State.ERROR;
+                            break;
+                        default:
+                            return;
+                    }
+
+                    listener.onTaskProgress(DownloadTask.this, state, msg.arg1);
+                }
+            };
+
+            Looper.loop();
+            
+            Log.d(TAG, "Looper quited");
+        }
+    }
+
+    private ProgressReporter progressReporter = new ProgressReporter();
+
     @Override
     public String toString() {
         return "<DownloadTask id='" + taskId + "' url='" + url + "' target='" + targetFile + "'>";
@@ -44,7 +117,9 @@ class DownloadTask implements Parcelable {
         return parent.mkdirs() || parent.isDirectory();
     }
     
-    void download(Listener listener) {
+    void download() {
+        
+//        progressReporter.start();
 
         URL url = this.url;
         File targetFile = this.targetFile;
@@ -53,17 +128,17 @@ class DownloadTask implements Parcelable {
         // Create parent dir if needed
         if (!createParentDir(targetFile)) {
             Log.e(TAG, "Can't create parent dir");
-            listener.onTaskProgress(taskId, State.ERROR, 0);
+            reportProgress(State.ERROR, 0);
             return;
         }
-        
-        listener.onTaskProgress(taskId, State.IN_PROGRESS, 0);
+
+        reportProgress(State.IN_PROGRESS, 0);
         long remoteFileSize;
         try {
             remoteFileSize = Utils.httpHeadGetLength(url);
         } catch (InterruptedIOException e) {
             Log.d(TAG, "Task " + taskId + " interrupted (1)");
-            listener.onTaskProgress(taskId, State.STOPPED, 0);
+            reportProgress(State.STOPPED, 0);
             return;
         } catch (IOException e) {
             Log.e(TAG, "HEAD request failed for " + url, e);
@@ -75,7 +150,7 @@ class DownloadTask implements Parcelable {
         // finish before even starting, if file is already complete.
         if (localFileSize == remoteFileSize) {
             // We're done.
-            listener.onTaskProgress(taskId, State.COMPLETED, 0);
+            reportProgress(State.COMPLETED, 0);
             return;
         } else if (localFileSize > remoteFileSize) {
             // This is really odd. Delete and try again.
@@ -136,7 +211,7 @@ class DownloadTask implements Parcelable {
 
                 if (progressReportBytes > 0 && progressReportCounter >= PROGRESS_REPORT_COUNT) {
                     Log.v(TAG, "progressReportBytes:" + progressReportBytes + "; progressReportCounter:" + progressReportCounter);
-                    listener.onTaskProgress(taskId, State.IN_PROGRESS, progressReportBytes);
+                    reportProgress(State.IN_PROGRESS, progressReportBytes);
                     progressReportBytes = 0;
                     progressReportCounter = 0;
                 }
@@ -161,16 +236,32 @@ class DownloadTask implements Parcelable {
 
             // Maybe some bytes are still waiting to be reported
             if (progressReportBytes > 0) {
-                listener.onTaskProgress(taskId, State.IN_PROGRESS, progressReportBytes);
+                reportProgress(State.IN_PROGRESS, progressReportBytes);
             }
             if (stopReason != null) {
-                listener.onTaskProgress(taskId, stopReason, 0);
+                reportProgress(stopReason, 0);
             }
+            
+//            progressReporter.quit();
         }
     }
+
+    private void reportProgress(final State state, final int newBytes) {
+        Log.d(TAG, "progress: " + state + ", " + newBytes);
+//        progressReporter.report(state, newBytes);
+        listener.onTaskProgress(this, state, newBytes);
+    }
     
+    public void setListener(Listener listener) {
+        this.listener = listener;
+    }
+
+    public Listener getListener() {
+        return listener;
+    }
+
     interface Listener {
-        void onTaskProgress(String taskId, State newState, int newBytes);
+        void onTaskProgress(DownloadTask task, State newState, int newBytes);
     }
     
     enum State {

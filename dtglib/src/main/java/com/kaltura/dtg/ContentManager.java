@@ -34,7 +34,7 @@ public abstract class ContentManager {
      * Start the download manager. Starts all downloads that were in IN_PROGRESS state when the 
      * manager was stopped. Add listeners before calling this method.
      */
-    public abstract void start();
+    public abstract void start(OnStartedListener onStartedListener);
 
     /**
      * Pause all downloads (set their state to PAUSE and stop downloading).
@@ -105,4 +105,8 @@ public abstract class ContentManager {
      * @return
      */
     public abstract File getLocalFile(String itemId);
+
+    public interface OnStartedListener {
+        void onStarted();
+    }
 }

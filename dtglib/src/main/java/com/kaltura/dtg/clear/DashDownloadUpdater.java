@@ -38,10 +38,10 @@ class DashDownloadUpdater extends DashDownloader {
         mOriginalSelectedTracks = new HashMap<>();
         
         for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
-            List<DashTrack> availableTracks = mItem.getProvider().readTracksFromDB(item.getItemId(), type, null);
+            List<DashTrack> availableTracks = mItem.getService().readTracksFromDB(item.getItemId(), type, null);
             mAvailableTracks.put(type, availableTracks);
 
-            List<DashTrack> selectedTracks = mItem.getProvider().readTracksFromDB(item.getItemId(), type, TrackState.SELECTED);
+            List<DashTrack> selectedTracks = mItem.getService().readTracksFromDB(item.getItemId(), type, TrackState.SELECTED);
             mSelectedTracks.put(type, selectedTracks);
             mOriginalSelectedTracks.put(type, selectedTracks);
         }
@@ -76,16 +76,16 @@ class DashDownloadUpdater extends DashDownloader {
             tracksToUnselect.put(trackType, unselect);
         }
         
-        mItem.getProvider().updateTracksInDB(mItem.getItemId(), tracksToUnselect, TrackState.NOT_SELECTED);
-        mItem.getProvider().updateTracksInDB(mItem.getItemId(), mSelectedTracks, TrackState.SELECTED);
+        mItem.getService().updateTracksInDB(mItem.getItemId(), tracksToUnselect, TrackState.NOT_SELECTED);
+        mItem.getService().updateTracksInDB(mItem.getItemId(), mSelectedTracks, TrackState.SELECTED);
 
         // Add DownloadTasks
         createDownloadTasks();
-        mItem.getProvider().addDownloadTasksToDB(mItem, new ArrayList<>(mDownloadTasks));
+        mItem.getService().addDownloadTasksToDB(mItem, new ArrayList<>(mDownloadTasks));
         
         // Update item size
         mItem.setEstimatedSizeBytes(getEstimatedDownloadSize());
-        mItem.getProvider().updateItemInfoInDB(mItem, Database.COL_ITEM_ESTIMATED_SIZE);
+        mItem.getService().updateItemInfoInDB(mItem, Database.COL_ITEM_ESTIMATED_SIZE);
         
 
         // Update localized manifest
@@ -105,7 +105,7 @@ class DashDownloadUpdater extends DashDownloader {
         
         for (DashTrack dashTrack : mSelectedTracks.get(type)) {
             
-            if (mItem.getProvider().countPendingFiles(mItem.getItemId(), dashTrack.getRelativeId()) == 0) {
+            if (mItem.getService().countPendingFiles(mItem.getItemId(), dashTrack.getRelativeId()) == 0) {
                 downloadedTracks.add(dashTrack);
             }
         }

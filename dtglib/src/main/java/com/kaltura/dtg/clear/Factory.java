@@ -9,6 +9,8 @@ import com.kaltura.dtg.DownloadProvider;
  */
 public class Factory {
     public static DownloadProvider getProvider(Context context) {
-        return new ClearDownloadProvider(context);
+        return new DefaultProviderProxy(context);
     }
+    
+    
 }

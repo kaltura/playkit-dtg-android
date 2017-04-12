@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface DownloadProvider {
 
-    void start();
+    void start(ContentManager.OnStartedListener listener);
 
     void stop();
 
@@ -44,5 +44,6 @@ public interface DownloadProvider {
 
 
     void updateItemState(String itemId, DownloadState state);
+
 }
 

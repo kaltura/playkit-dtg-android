@@ -2,134 +2,608 @@ package com.kaltura.dtg.clear;
 
 import android.app.Service;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
-import android.support.v4.content.LocalBroadcastManager;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.kaltura.android.exoplayer.hls.Variant;
+import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadState;
+import com.kaltura.dtg.DownloadStateListener;
+import com.kaltura.dtg.Utils;
+
+import org.greenrobot.eventbus.EventBus;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
+public class ClearDownloadService extends Service {
 
-// Implementation note: a service class must be public.
-public class ClearDownloadService extends Service implements DownloadTask.Listener {
-
-    private static final String TAG = "ClearDownloadService";
-
-    private static final int MAX_CONCURRENT_DOWNLOADS = 1;
-    static final String ACTION_NOTIFY_DOWNLOAD_PROGRESS = "com.kaltura.dtg.ACTION_NOTIFY_DOWNLOAD_PROGRESS";
-    static final String ACTION_DOWNLOAD = "com.kaltura.dtg.ACTION_DOWNLOAD";
-    static final String ACTION_START_SERVICE = "com.kaltura.dtg.ACTION_START_SERVICE";
-    static final String EXTRA_DOWNLOAD_TASKS = "com.kaltura.dtg.EXTRA_DOWNLOAD_TASKS";
-    static final String EXTRA_DOWNLOAD_TASK_ID = "com.kaltura.dtg.EXTRA_DOWNLOAD_TASK_ID";
-    static final String EXTRA_DOWNLOAD_TASK_STATE = "com.kaltura.dtg.EXTRA_DOWNLOAD_TASK_STATE";
-    static final String EXTRA_DOWNLOAD_TASK_NEW_BYTES = "com.kaltura.dtg.EXTRA_DOWNLOAD_TASK_NEW_BYTES";
-    static final String EXTRA_ITEM_ID = "com.kaltura.dtg.EXTRA_ITEM_ID";
-    static final String ACTION_PAUSE_DOWNLOAD = "com.kaltura.dtg.ACTION_PAUSE_DOWNLOAD";
-    static final String ACTION_RESUME_DOWNLOAD = "com.kaltura.dtg.ACTION_RESUME_DOWNLOAD";
-
-    private ExecutorService mExecutor;
-    private ItemFutureMap futureMap = new ItemFutureMap();
-
-    public ClearDownloadService() {
-        super();
-    }
-
-    @Override
-    public void onTaskProgress(String taskId, DownloadTask.State newState, int newBytes) {
-        Log.v(TAG, "onTaskProgress:" + taskId + "; newBytes=" + newBytes);
-        Intent intent = new Intent(ACTION_NOTIFY_DOWNLOAD_PROGRESS);
-        intent.putExtra(EXTRA_DOWNLOAD_TASK_ID, taskId);
-        intent.putExtra(EXTRA_DOWNLOAD_TASK_STATE, newState.ordinal());
-        intent.putExtra(EXTRA_DOWNLOAD_TASK_NEW_BYTES, newBytes);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-    }
+    private final EventBus bus = EventBus.getDefault();
+    
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        if (intent == null) {
-            Log.d(TAG, "Intent is null!");
-            return START_NOT_STICKY;
-        }
+        Log.d(TAG, "thread:" + Thread.currentThread().getName());
+        
+        // The ONLY command is "start".
 
-        // common argument
-        ArrayList<DownloadTask> chunks = intent.getParcelableArrayListExtra(EXTRA_DOWNLOAD_TASKS);
-
-        // optional
-        String itemId = intent.getStringExtra(EXTRA_ITEM_ID);
-
-        String action = intent.getAction();
-        Log.d(TAG, "onStartCommand(action=" + action + ", itemId=" + itemId + 
-                ", chunks.size=" + (chunks==null ? 0 : chunks.size())+ ")");
-
-        switch (action) {
-            
-            case ACTION_START_SERVICE:
-                break;
-            
-            case ACTION_DOWNLOAD:
-                if (chunks == null) {
-                    break;
-                }
-                for (DownloadTask task : chunks) {
-                    task.itemId = itemId;
-                    FutureTask future = futureTask(itemId, task);
-                    mExecutor.execute(future);
-                    futureMap.add(itemId, future);
-                }
-                break;
-            
-            case ACTION_PAUSE_DOWNLOAD:
-                if (itemId != null) {
-                    futureMap.cancelItem(itemId);
-                } else {
-                    futureMap.cancelAll();
-                }
-                // Maybe add PAUSE_ALL with mExecutor.purge(); and remove futures
-                break;
-
-            case ACTION_RESUME_DOWNLOAD:
-                // TODO: only resume requested tasks, but that's more complicated.
-                //    mExecutor.resume();
-                break;
-            default:
-                Log.w(TAG, "Unknown intent action: " + action);
-        }
+        start();
 
         return START_NOT_STICKY;
     }
 
     @Override
-    public void onCreate() {
-        super.onCreate();
-
-        mExecutor = Executors.newFixedThreadPool(MAX_CONCURRENT_DOWNLOADS);
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
-
-        Log.d(TAG, "onDestroy()");
-
-        mExecutor.shutdownNow();
-        mExecutor = null;
+        
+        bus.post(new ServiceStopped(this));
     }
 
-    @Override
+    static final String TAG = "ClearDownloadService";
+    private static final int MAX_CONCURRENT_DOWNLOADS = 2;
+    private Database database;
+    private File downloadsDir;
+    private boolean started;
+
+    //    private final File mDbFile;
+    private DownloadStateListener downloadStateListener;
+    
+//    private Map<String, DownloadTask> mTaskMap;
+
+    private ExecutorService mExecutor = Executors.newFixedThreadPool(MAX_CONCURRENT_DOWNLOADS);
+    private ItemFutureMap futureMap = new ItemFutureMap();
+
+
+
+    private Handler listenerHandler = null;
+
+    private HandlerThread listenerThread = null;
+
+    public void startListenerThread(){
+        listenerThread = new HandlerThread("DownloadStateListener");
+        listenerThread.start();
+        listenerHandler = new Handler(listenerThread.getLooper());
+    }
+
+    void pauseItemDownload(String itemId) {
+        if (itemId != null) {
+            futureMap.cancelItem(itemId);
+        } else {
+            futureMap.cancelAll();
+        }
+        // Maybe add PAUSE_ALL with mExecutor.purge(); and remove futures
+    }
+
+    void downloadChunks(ArrayList<DownloadTask> chunks, String itemId) {
+        if (chunks == null) {
+            return;
+        }
+        for (DownloadTask task : chunks) {
+            task.itemId = itemId;
+            FutureTask future = futureTask(itemId, task);
+            mExecutor.execute(future);
+            futureMap.add(itemId, future);
+        }
+    }
+    private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
+
+        @Override
+        public void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes) {
+            String itemId = task.itemId;
+            final ClearDownloadItem item = findItemImpl(itemId);
+            if (item == null) {
+                Log.e(TAG, "Can't find item by id: " + itemId + "; taskId: " + task.taskId);
+                return;
+            }
+            
+            int pendingCount = -1;
+            if (newState == DownloadTask.State.COMPLETED) {
+                database.markTaskAsComplete(task);
+                pendingCount = countPendingFiles(itemId, null);
+                Log.i(TAG, "Pending tasks for item: " + pendingCount);
+            }
+
+            if (newState == DownloadTask.State.ERROR) {
+                item.setBroken(true);
+            }
+
+            final long totalBytes = item.incDownloadBytes(newBytes);
+            updateItemInfoInDB(item, Database.COL_ITEM_DOWNLOADED_SIZE);
+
+            if (pendingCount == 0) {
+                // We finished the last (or only) chunk of the item.
+                database.setDownloadFinishTime(itemId);
+
+                // TODO: revisit this "broken" notion.
+                if (item.isBroken()) {
+                    item.setState(DownloadState.PAUSED);
+                    database.updateItemState(item.getItemId(), DownloadState.PAUSED);
+                    listenerHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            downloadStateListener.onDownloadStop(item);
+                        }
+                    });
+                } else {
+                    item.setState(DownloadState.COMPLETED);
+                    database.updateItemState(item.getItemId(), DownloadState.COMPLETED);
+                    listenerHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            downloadStateListener.onDownloadComplete(item);
+                        }
+                    });
+                }
+            } else {
+                listenerHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        downloadStateListener.onProgressChange(item, totalBytes);
+                    }
+                });
+            }
+        }
+    };
+
+    void updateItemInfoInDB(ClearDownloadItem item, String... columns) {
+        database.updateItemInfo(item, columns);
+    }
+    
+    private void assertStarted() {
+        if (!started) {
+            throw new IllegalStateException("Service not started");
+        }
+    }
+
+    public void start() {
+
+        Log.d(TAG, "start()");
+
+        File dataDir = new File(getFilesDir(), "dtg/clear");
+        dataDir.mkdirs();
+        if (!dataDir.isDirectory()) {
+            Log.e(TAG, "Failed to create provider data directory " + dataDir);
+            throw new IllegalStateException("Can't continue without the data directory, " + dataDir);
+        }
+
+        File extFilesDir = getExternalFilesDir(null);
+        if (extFilesDir != null) {
+            downloadsDir = new File(extFilesDir, "dtg/clear");
+            downloadsDir.mkdirs();
+            if (!downloadsDir.isDirectory()) {
+                Log.e(TAG, "Failed to create provider downloads directory " + downloadsDir);
+                throw new IllegalStateException("Can't continue without the downloads directory, " + downloadsDir);
+            }
+
+        } else {
+            downloadsDir = dataDir;
+        }
+
+        File dbFile = new File(dataDir, "downloads.db");
+
+        database = new Database(dbFile, this);
+
+        startListenerThread();
+        
+        started = true;
+
+        bus.post(new ServiceStarted(this));
+
+    }
+
+    public void stop() {
+        
+        Log.d(TAG, "stop()");
+        
+        if (started) {
+
+            // close db
+            database.close();
+            database = null;
+            
+            started = false;
+            
+            stopSelf();
+        }
+    }
+
+    public void loadItemMetadata(final DownloadItem item) {
+        assertStarted();
+        
+        final ClearDownloadItem clearItem = (ClearDownloadItem) item;
+
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    downloadMetadata(clearItem);
+                    clearItem.setState(DownloadState.INFO_LOADED);
+                    updateItemInfoInDB(clearItem,
+                            Database.COL_ITEM_STATE, Database.COL_ITEM_ESTIMATED_SIZE,
+                            Database.COL_ITEM_PLAYBACK_PATH);
+                    downloadStateListener.onDownloadMetadata(item, null);
+
+                } catch (IOException e) {
+                    Log.e(TAG, "Failed to download metadata for " + clearItem.getItemId(), e);
+                    downloadStateListener.onDownloadMetadata(item, e);
+                }
+            }
+        }.start();
+    }
+
+    public File getItemDataDir(String itemId) {
+        assertStarted();
+
+        return new File(downloadsDir, "items/" + itemId + "/data");    // TODO: make sure name is safe.
+    }
+
+    private void downloadMetadata(ClearDownloadItem item) throws IOException {
+
+        File itemDataDir = getItemDataDir(item.getItemId());
+        String contentURL = item.getContentURL();
+        if (contentURL.startsWith("widevine")) {
+            contentURL = contentURL.replaceFirst("widevine", "http");
+        }
+        
+        URL url = new URL(contentURL);
+        String path = url.getPath().toLowerCase();
+        if (path.endsWith(".m3u8")) {
+            downloadMetadataHLS(item, itemDataDir);
+        } else if (path.endsWith(".mpd")) {
+            downloadMetadataDash(item, itemDataDir);
+        } else {
+            downloadMetadataSimple(url, item, itemDataDir);
+        }
+    }
+
+    private void downloadMetadataDash(ClearDownloadItem item, File itemDataDir) throws IOException {
+
+        final DashDownloader dashDownloader = new DashDownloadCreator(item.getContentURL(), itemDataDir);
+
+        DownloadItem.TrackSelector trackSelector = dashDownloader.getTrackSelector();
+        
+        item.setTrackSelector(trackSelector);
+        
+        downloadStateListener.onTracksAvailable(item, trackSelector);
+        
+        dashDownloader.apply();
+
+        item.setTrackSelector(null);
+
+
+        List<DashTrack> availableTracks = dashDownloader.getAvailableTracks();
+        List<DashTrack> selectedTracks = dashDownloader.getSelectedTracks();
+        
+        database.addTracks(item, availableTracks, selectedTracks);
+
+        long estimatedDownloadSize = dashDownloader.getEstimatedDownloadSize();
+        item.setEstimatedSizeBytes(estimatedDownloadSize);
+
+        LinkedHashSet<DownloadTask> downloadTasks = dashDownloader.getDownloadTasks();
+        Log.d(TAG, "tasks:" + downloadTasks);
+
+        item.setPlaybackPath(dashDownloader.getPlaybackPath());
+
+        addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
+    }
+
+    private void downloadMetadataSimple(URL url, ClearDownloadItem item, File itemDataDir) throws IOException {
+
+        long length = Utils.httpHeadGetLength(url);
+
+        File targetFile = new File(itemDataDir, url.getPath());
+        DownloadTask downloadTask = new DownloadTask(url, targetFile);
+
+        item.setEstimatedSizeBytes(length);
+        item.setPlaybackPath(url.getPath().substring(1));
+
+        ArrayList<DownloadTask> downloadTasks = new ArrayList<>(1);
+        downloadTasks.add(downloadTask);
+
+        addDownloadTasksToDB(item, downloadTasks);
+    }
+
+    void addDownloadTasksToDB(ClearDownloadItem item, List<DownloadTask> tasks) {
+        
+        // Filter-out things that are already 
+        
+        database.addDownloadTasksToDB(item, tasks);
+    }
+
+    private void downloadMetadataHLS(ClearDownloadItem item, File itemDataDir) throws IOException {
+        HLSParser hlsParser = new HLSParser(item, itemDataDir);
+
+
+        hlsParser.parseMaster();
+
+        // Select best bitrate
+        TreeSet<Variant> sortedVariants = hlsParser.getSortedVariants();
+        Variant selectedVariant = sortedVariants.first();   // first == highest bitrate
+        hlsParser.selectVariant(selectedVariant);
+
+        hlsParser.parseVariant();
+        ArrayList<DownloadTask> chunks = hlsParser.createDownloadTasks();
+        item.setEstimatedSizeBytes(hlsParser.getEstimatedSizeBytes());
+
+        // set playback path the the relative url path, excluding the leading slash.
+        item.setPlaybackPath(hlsParser.getPlaybackPath());
+
+        addDownloadTasksToDB(item, chunks);
+        // TODO: handle db insertion errors
+
+    }
+
+    
+    public DownloadState startDownload(final String itemId) {
+        assertStarted();
+        
+        final ClearDownloadItem item = findItemImpl(itemId);
+
+        item.setState(DownloadState.IN_PROGRESS);
+        
+        listenerHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                downloadStateListener.onDownloadStart(item);
+            }
+        });
+        
+        // Read download tasks from db
+        ArrayList<DownloadTask> chunksToDownload = database.readPendingDownloadTasksFromDB(itemId);
+
+        if (chunksToDownload.isEmpty()) {
+            database.updateItemState(itemId, DownloadState.COMPLETED);
+            
+            listenerHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    downloadStateListener.onDownloadComplete(item);
+                }
+            });
+            
+        } else {
+            downloadChunks(chunksToDownload, itemId);
+            database.updateItemState(itemId, DownloadState.IN_PROGRESS);
+        }
+        
+        return item.getState();
+    }
+
+//    private void sendServiceRequest(@NonNull String action, @Nullable ArrayList<DownloadTask> downloadTasks, @Nullable String itemId) {
+//        Intent intent = new Intent(mContext, ClearDownloadService.class);
+//
+//        intent.setAction(action);
+//        if (downloadTasks != null) {
+//            intent.putParcelableArrayListExtra(ClearDownloadService.EXTRA_DOWNLOAD_TASKS, downloadTasks);
+//            for (DownloadTask downloadTask : downloadTasks) {
+//                mTaskMap.put(downloadTask.taskId, downloadTask);
+//            }
+//        }
+//        if (itemId != null) {
+//            intent.putExtra(ClearDownloadService.EXTRA_ITEM_ID, itemId);
+//        }
+//        mContext.startService(intent);
+//    }
+
+    
+    public void pauseDownload(DownloadItem item) {
+        assertStarted();
+
+        final ClearDownloadItem clearDownloadItem = (ClearDownloadItem) item;
+        ArrayList<DownloadTask> downloadTasks;
+        if (clearDownloadItem != null) {
+            downloadTasks = database.readPendingDownloadTasksFromDB(clearDownloadItem.getItemId());
+            if (downloadTasks.size() > 0) {
+
+                pauseItemDownload(item.getItemId());
+
+                clearDownloadItem.setState(DownloadState.PAUSED);
+                database.updateItemState(clearDownloadItem.getItemId(), DownloadState.PAUSED);
+                
+                listenerHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        downloadStateListener.onDownloadPause(clearDownloadItem);
+                    }
+                });
+            }
+        }
+    }
+
+        public void resumeDownload(DownloadItem item) {
+        assertStarted();
+
+        // resume should be considered as download start
+
+        DownloadState itemState = startDownload(item.getItemId());
+        ((ClearDownloadItem) item).updateItemState(itemState);
+    }
+
+    
+    public void removeItem(DownloadItem item) {
+        assertStarted();
+
+        if (item == null) {
+            return;
+        }
+        pauseDownload(item);
+        deleteItemFiles(item.getItemId());
+        database.removeItemFromDB((ClearDownloadItem) item);
+    }
+
+
+    private void deleteItemFiles(String item) {
+        String path = downloadsDir + "/items/" + item;
+        File file = new File(path);
+
+        Utils.deleteRecursive(file);
+    }
+
+    private ClearDownloadItem findItemImpl(String itemId) {
+
+        // TODO: cache items in memory?
+        
+        ClearDownloadItem item = database.findItemInDB(itemId);
+        if (item != null) {
+            item.setProvider(this);
+        }
+                
+        return item;
+    }
+
+    /**
+     * Find and return an item.
+     *
+     * @return An item identified by itemId, or null if not found.
+     */
+    
+    public DownloadItem findItem(String itemId) {
+        assertStarted();
+
+        return findItemImpl(itemId);
+    }
+
+    
+    public long getDownloadedItemSize(@Nullable String itemId) {
+        return database.getDownloadedItemSize(itemId);
+    }
+
+    
+    public DownloadItem createItem(String itemId, String contentURL) {
+        assertStarted();
+
+        ClearDownloadItem item = findItemImpl(itemId);
+        // If item already exists, return null.
+        if (item != null) {
+            return null;    // don't create, DON'T return db item.
+        }
+
+        if (contentURL == null) {
+            Log.e(TAG, "Can't add item with contentURL==null");
+            return null;
+        }
+
+        item = new ClearDownloadItem(itemId, contentURL);
+        item.setState(DownloadState.NEW);
+        item.setAddedTime(System.currentTimeMillis());
+        File itemDataDir = getItemDataDir(itemId);
+        itemDataDir.mkdirs();
+        if (!itemDataDir.isDirectory()) {
+            Log.e(TAG, "Failed to create item data directory " + itemDataDir);
+            throw new IllegalStateException("Can't continue without item data directory, " + itemDataDir);
+        }
+
+        item.setDataDir(itemDataDir.getAbsolutePath());
+
+        database.addItemToDB(item, itemDataDir);
+
+        item.setProvider(this);
+        return item;
+    }
+
+    
+    public void updateItemState(String itemId, DownloadState state) {
+        assertStarted();
+
+        database.updateItemState(itemId, state);
+    }
+
+    
+    public List<DownloadItem> getDownloads(DownloadState[] states) {
+        assertStarted();
+
+        ArrayList<? extends DownloadItem> items = database.readItemsFromDB(states);
+
+        for (DownloadItem item : items) {
+            ((ClearDownloadItem)item).setProvider(this);
+        }
+
+        return Collections.unmodifiableList(items);
+    }
+    
+    public String getPlaybackURL(String itemId) {
+        File localFile = getLocalFile(itemId);
+        if (localFile == null) {
+            return null;
+        }
+        return Uri.fromFile(localFile).toString();
+    }
+    
+    
+    public File getLocalFile(String itemId) {
+        assertStarted();
+
+        ClearDownloadItem item = findItemImpl(itemId);
+        if (item == null) {
+            return null;
+        }
+
+        String playbackPath = item.getPlaybackPath();
+        if (playbackPath == null) {
+            return null;
+        }
+
+        return new File(item.getDataDir(), playbackPath);
+    }
+    
+    
+    public void dumpState() {
+    }
+
+    
+    public void setDownloadStateListener(DownloadStateListener listener) {
+        if (listener == null) {
+            listener = DownloadStateListener.noopListener;
+        }
+        downloadStateListener = listener;
+    }
+
+    
+    public long getEstimatedItemSize(String itemId) {
+        assertStarted();
+
+        return database.getEstimatedItemSize(itemId);
+    }
+    
+    List<DashTrack> readTracksFromDB(String itemId, DownloadItem.TrackType trackType, DashDownloader.TrackState state) {
+        return database.readTracks(itemId, trackType, state);
+    }
+
+    void updateTracksInDB(String itemId, Map<DownloadItem.TrackType, List<DashTrack>> tracksMap, DashDownloader.TrackState state) {
+        database.updateTracksState(itemId, DashDownloader.flattenTrackList(tracksMap), state);
+    }
+
+    int countPendingFiles(String itemId, @Nullable String trackId) {
+        return database.countPendingFiles(itemId, trackId);
+    }
+
+    @Nullable
     public IBinder onBind(Intent intent) {
         return null;
     }
 
-    
     private FutureTask futureTask(final String itemId, final DownloadTask task) {
+        task.setListener(mDownloadTaskListener);
         Callable<Void> callable = new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                task.download(ClearDownloadService.this);
+                task.download();
                 return null;
             }
         };
@@ -139,5 +613,21 @@ public class ClearDownloadService extends Service implements DownloadTask.Listen
                 futureMap.remove(itemId, this);
             }
         };
+    }
+
+    static class ServiceStarted {
+        ClearDownloadService service;
+    
+        ServiceStarted(ClearDownloadService service) {
+            this.service = service;
+        }
+    }
+
+    static class ServiceStopped {
+        ClearDownloadService service;
+    
+        ServiceStopped(ClearDownloadService service) {
+            this.service = service;
+        }
     }
 }

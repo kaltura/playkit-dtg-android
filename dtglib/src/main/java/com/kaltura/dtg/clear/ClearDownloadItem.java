@@ -1,5 +1,7 @@
 package com.kaltura.dtg.clear;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.kaltura.dtg.DownloadItem;
@@ -11,13 +13,13 @@ import java.util.Date;
 /**
  * Created by noamt on 30/05/2016.
  */
-class ClearDownloadItem implements DownloadItem {
+class ClearDownloadItem implements DownloadItem, Parcelable {
 
     private static final String TAG = "ClearDownloadItem";
     private final String mItemId;
     private final String mContentURL;
 
-    private ClearDownloadProvider mProvider;
+    private ClearDownloadService mProvider;
     private DownloadState mState = DownloadState.NEW;
     private long mAddedTime;
     private long mFinishedTime;
@@ -34,6 +36,48 @@ class ClearDownloadItem implements DownloadItem {
         this.mItemId = itemId;
         this.mContentURL = contentURL;
     }
+
+    private ClearDownloadItem(Parcel in) {
+        mItemId = in.readString();
+        mContentURL = in.readString();
+        mAddedTime = in.readLong();
+        mFinishedTime = in.readLong();
+        mEstimatedSizeBytes = in.readLong();
+        mDownloadedSizeBytes = in.readLong();
+        mBroken = in.readByte() != 0;
+        mDataDir = in.readString();
+        mPlaybackPath = in.readString();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mItemId);
+        dest.writeString(mContentURL);
+        dest.writeLong(mAddedTime);
+        dest.writeLong(mFinishedTime);
+        dest.writeLong(mEstimatedSizeBytes);
+        dest.writeLong(mDownloadedSizeBytes);
+        dest.writeByte((byte) (mBroken ? 1 : 0));
+        dest.writeString(mDataDir);
+        dest.writeString(mPlaybackPath);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<ClearDownloadItem> CREATOR = new Creator<ClearDownloadItem>() {
+        @Override
+        public ClearDownloadItem createFromParcel(Parcel in) {
+            return new ClearDownloadItem(in);
+        }
+
+        @Override
+        public ClearDownloadItem[] newArray(int size) {
+            return new ClearDownloadItem[size];
+        }
+    };
 
     @Override
     public String toString() {
@@ -69,7 +113,7 @@ class ClearDownloadItem implements DownloadItem {
         mPlaybackPath = playbackPath;
     }
     
-    void setProvider(ClearDownloadProvider provider) {
+    void setProvider(ClearDownloadService provider) {
         this.mProvider = provider;
     }
 
@@ -110,8 +154,8 @@ class ClearDownloadItem implements DownloadItem {
     @Override
     public void startDownload() {
         mBroken = false;
-        DownloadState state = mProvider.startDownload(this.getItemId());
-        this.setState(state);
+        mProvider.startDownload(this.getItemId());
+//        this.setState(state);
     }
 
     @Override
@@ -178,7 +222,7 @@ class ClearDownloadItem implements DownloadItem {
         mTrackSelector = trackSelector;
     }
 
-    ClearDownloadProvider getProvider() {
+    ClearDownloadService getService() {
         return mProvider;
     }
 }
