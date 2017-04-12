@@ -1,12 +1,9 @@
 package com.kaltura.dtg.clear;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -24,7 +21,7 @@ import java.net.URL;
 /**
  * Created by noamt on 5/13/15.
  */
-class DownloadTask implements Parcelable {
+class DownloadTask {
     static final String TAG = "DownloadTask";
     private static final int HTTP_READ_TIMEOUT_MS = 10000;
     private static final int HTTP_CONNECT_TIMEOUT_MS = 15000;
@@ -282,18 +279,6 @@ class DownloadTask implements Parcelable {
         this(new URL(url), new File(targetFile));
     }
 
-    @SuppressLint("ParcelClassLoader")
-    private DownloadTask(Parcel in) throws MalformedURLException {
-        this(in.readBundle());
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        Bundle bundle = toBundle();
-
-        dest.writeBundle(bundle); 
-    }
-
     @NonNull
     private Bundle toBundle() {
         Bundle bundle = new Bundle();
@@ -303,28 +288,6 @@ class DownloadTask implements Parcelable {
         return bundle;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    public static final Creator<DownloadTask> CREATOR = new Creator<DownloadTask>() {
-        @Override
-        public DownloadTask createFromParcel(Parcel in) {
-            try {
-                return new DownloadTask(in);
-            } catch (MalformedURLException e) {
-                Log.e(TAG, "Can't create DownloadTask from bundle", e);
-                return null;
-            }
-        }
-
-        @Override
-        public DownloadTask[] newArray(int size) {
-            return new DownloadTask[size];
-        }
-    };
-    
     private DownloadTask(Bundle bundle) throws MalformedURLException {
         this(bundle.getString("url"), bundle.getString("targetFile"));
         this.itemId = bundle.getString("itemId");

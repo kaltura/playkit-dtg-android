@@ -1,7 +1,5 @@
 package com.kaltura.dtg.clear;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
 
 import com.kaltura.dtg.DownloadItem;
@@ -13,7 +11,7 @@ import java.util.Date;
 /**
  * Created by noamt on 30/05/2016.
  */
-class ClearDownloadItem implements DownloadItem, Parcelable {
+class ClearDownloadItem implements DownloadItem {
 
     private static final String TAG = "ClearDownloadItem";
     private final String mItemId;
@@ -36,48 +34,6 @@ class ClearDownloadItem implements DownloadItem, Parcelable {
         this.mItemId = itemId;
         this.mContentURL = contentURL;
     }
-
-    private ClearDownloadItem(Parcel in) {
-        mItemId = in.readString();
-        mContentURL = in.readString();
-        mAddedTime = in.readLong();
-        mFinishedTime = in.readLong();
-        mEstimatedSizeBytes = in.readLong();
-        mDownloadedSizeBytes = in.readLong();
-        mBroken = in.readByte() != 0;
-        mDataDir = in.readString();
-        mPlaybackPath = in.readString();
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mItemId);
-        dest.writeString(mContentURL);
-        dest.writeLong(mAddedTime);
-        dest.writeLong(mFinishedTime);
-        dest.writeLong(mEstimatedSizeBytes);
-        dest.writeLong(mDownloadedSizeBytes);
-        dest.writeByte((byte) (mBroken ? 1 : 0));
-        dest.writeString(mDataDir);
-        dest.writeString(mPlaybackPath);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    public static final Creator<ClearDownloadItem> CREATOR = new Creator<ClearDownloadItem>() {
-        @Override
-        public ClearDownloadItem createFromParcel(Parcel in) {
-            return new ClearDownloadItem(in);
-        }
-
-        @Override
-        public ClearDownloadItem[] newArray(int size) {
-            return new ClearDownloadItem[size];
-        }
-    };
 
     @Override
     public String toString() {
