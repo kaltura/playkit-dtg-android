@@ -224,24 +224,22 @@ public class ClearDownloadService extends Service {
         }
     }
 
-    public void loadItemMetadata(final DownloadItem item) {
+    public void loadItemMetadata(final ClearDownloadItem item) {
         assertStarted();
-        
-        final ClearDownloadItem clearItem = (ClearDownloadItem) item;
 
         new Thread() {
             @Override
             public void run() {
                 try {
-                    downloadMetadata(clearItem);
-                    clearItem.setState(DownloadState.INFO_LOADED);
-                    updateItemInfoInDB(clearItem,
+                    downloadMetadata(item);
+                    item.setState(DownloadState.INFO_LOADED);
+                    updateItemInfoInDB(item,
                             Database.COL_ITEM_STATE, Database.COL_ITEM_ESTIMATED_SIZE,
                             Database.COL_ITEM_PLAYBACK_PATH);
                     downloadStateListener.onDownloadMetadata(item, null);
 
                 } catch (IOException e) {
-                    Log.e(TAG, "Failed to download metadata for " + clearItem.getItemId(), e);
+                    Log.e(TAG, "Failed to download metadata for " + item.getItemId(), e);
                     downloadStateListener.onDownloadMetadata(item, e);
                 }
             }
@@ -386,41 +384,40 @@ public class ClearDownloadService extends Service {
         return item.getState();
     }
 
-    public void pauseDownload(DownloadItem item) {
+    public void pauseDownload(final ClearDownloadItem item) {
         assertStarted();
 
-        final ClearDownloadItem clearDownloadItem = (ClearDownloadItem) item;
         ArrayList<DownloadTask> downloadTasks;
-        if (clearDownloadItem != null) {
-            downloadTasks = database.readPendingDownloadTasksFromDB(clearDownloadItem.getItemId());
+        if (item != null) {
+            downloadTasks = database.readPendingDownloadTasksFromDB(item.getItemId());
             if (downloadTasks.size() > 0) {
 
                 pauseItemDownload(item.getItemId());
 
-                clearDownloadItem.setState(DownloadState.PAUSED);
-                database.updateItemState(clearDownloadItem.getItemId(), DownloadState.PAUSED);
+                item.setState(DownloadState.PAUSED);
+                database.updateItemState(item.getItemId(), DownloadState.PAUSED);
                 
                 listenerHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        downloadStateListener.onDownloadPause(clearDownloadItem);
+                        downloadStateListener.onDownloadPause(item);
                     }
                 });
             }
         }
     }
 
-    public void resumeDownload(DownloadItem item) {
+    public void resumeDownload(ClearDownloadItem item) {
         assertStarted();
 
         // resume should be considered as download start
 
         DownloadState itemState = startDownload(item.getItemId());
-        ((ClearDownloadItem) item).updateItemState(itemState);
+        item.updateItemState(itemState);
     }
 
     
-    public void removeItem(DownloadItem item) {
+    public void removeItem(ClearDownloadItem item) {
         assertStarted();
 
         if (item == null) {
@@ -428,7 +425,7 @@ public class ClearDownloadService extends Service {
         }
         pauseDownload(item);
         deleteItemFiles(item.getItemId());
-        database.removeItemFromDB((ClearDownloadItem) item);
+        database.removeItemFromDB(item);
     }
 
 
@@ -457,7 +454,7 @@ public class ClearDownloadService extends Service {
      * @return An item identified by itemId, or null if not found.
      */
     
-    public DownloadItem findItem(String itemId) {
+    public ClearDownloadItem findItem(String itemId) {
         assertStarted();
 
         return findItemImpl(itemId);
@@ -469,7 +466,7 @@ public class ClearDownloadService extends Service {
     }
 
     
-    public DownloadItem createItem(String itemId, String contentURL) {
+    public ClearDownloadItem createItem(String itemId, String contentURL) {
         assertStarted();
 
         ClearDownloadItem item = findItemImpl(itemId);
@@ -509,13 +506,13 @@ public class ClearDownloadService extends Service {
     }
 
     
-    public List<DownloadItem> getDownloads(DownloadState[] states) {
+    public List<ClearDownloadItem> getDownloads(DownloadState[] states) {
         assertStarted();
 
-        ArrayList<? extends DownloadItem> items = database.readItemsFromDB(states);
+        ArrayList<ClearDownloadItem> items = database.readItemsFromDB(states);
 
-        for (DownloadItem item : items) {
-            ((ClearDownloadItem)item).setProvider(this);
+        for (ClearDownloadItem item : items) {
+            item.setProvider(this);
         }
 
         return Collections.unmodifiableList(items);

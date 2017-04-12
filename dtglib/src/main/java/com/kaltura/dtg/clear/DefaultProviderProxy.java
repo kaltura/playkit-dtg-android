@@ -24,8 +24,9 @@ class DefaultProviderProxy implements DownloadProvider {
 
     private ClearDownloadService service;
     private DownloadStateListener listener;
-    
+
     private ContentManager.OnStartedListener onStartedListener;
+    
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
@@ -63,7 +64,7 @@ class DefaultProviderProxy implements DownloadProvider {
 
     @Override
     public void loadItemMetadata(DownloadItem item) {
-        service.loadItemMetadata(item);
+        service.loadItemMetadata((ClearDownloadItem) item);
     }
 
     @Override
@@ -73,17 +74,17 @@ class DefaultProviderProxy implements DownloadProvider {
 
     @Override
     public void pauseDownload(DownloadItem item) {
-        service.pauseDownload(item);
+        service.pauseDownload((ClearDownloadItem) item);
     }
 
     @Override
     public void resumeDownload(DownloadItem item) {
-        service.resumeDownload(item);
+        service.resumeDownload((ClearDownloadItem) item);
     }
 
     @Override
     public void removeItem(DownloadItem item) {
-        service.removeItem(item);
+        service.removeItem((ClearDownloadItem) item);
     }
 
     @Override
@@ -102,7 +103,7 @@ class DefaultProviderProxy implements DownloadProvider {
     }
 
     @Override
-    public List<DownloadItem> getDownloads(DownloadState[] states) {
+    public List<? extends DownloadItem> getDownloads(DownloadState[] states) {
         return service.getDownloads(states);
     }
 

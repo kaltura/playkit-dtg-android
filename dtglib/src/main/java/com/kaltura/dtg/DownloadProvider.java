@@ -30,7 +30,7 @@ public interface DownloadProvider {
 
     DownloadItem createItem(String itemId, String contentURL);
 
-    List<DownloadItem> getDownloads(DownloadState[] states);
+    List<? extends DownloadItem> getDownloads(DownloadState[] states);
 
     String getPlaybackURL(String itemId);
 
