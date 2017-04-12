@@ -1,7 +1,10 @@
 package com.kaltura.dtg.clear;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -11,10 +14,6 @@ import com.kaltura.dtg.DownloadProvider;
 import com.kaltura.dtg.DownloadState;
 import com.kaltura.dtg.DownloadStateListener;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 import java.io.File;
 import java.util.List;
 
@@ -22,51 +21,39 @@ class DefaultProviderProxy implements DownloadProvider {
 
     private static final String TAG = "DefaultProviderProxy";
     private Context context;
-    private EventBus bus = EventBus.getDefault();
-    private boolean started;
+
     private ClearDownloadService service;
     private DownloadStateListener listener;
-//    private final CountDownLatch serviceStartLock = new CountDownLatch(1);
     
     private ContentManager.OnStartedListener onStartedListener;
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            service = ((ClearDownloadService.LocalBinder) binder).getService();
+            service.setDownloadStateListener(listener);
+            onStartedListener.onStarted();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            DefaultProviderProxy.this.service = null;
+        }
+    };
 
     DefaultProviderProxy(Context context) {
-        this.context = context;
+        this.context = context.getApplicationContext();
     }
     
-    @Subscribe(threadMode = ThreadMode.ASYNC)
-    void on(ClearDownloadService.ServiceStarted service) {
-        Log.d(TAG, "*** ServiceStarted");
-        this.service = service.service;
-        this.service.setDownloadStateListener(listener);
-        if (this.onStartedListener != null) {
-            this.onStartedListener.onStarted();
-        }
-//        serviceStartLock.countDown();
-    }
-
-    @Subscribe(threadMode = ThreadMode.ASYNC)
-    void on(ClearDownloadService.ServiceStopped service) {
-        Log.w(TAG, "Service stopped");
-        this.service = service.service;
-    }
-
     @Override
     public void start(ContentManager.OnStartedListener startedListener) {
         
         this.onStartedListener = startedListener;
-        
-        bus.register(this);
 
-        if (!started) {
+        Intent intent = new Intent(context, ClearDownloadService.class);
 
-            Intent intent = new Intent(context, ClearDownloadService.class);
+        Log.d(TAG, "*** Starting service");
 
-            intent.setAction("start");
-
-            Log.d(TAG, "*** Starting service");
-            context.startService(intent);
-        }
+        context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -151,6 +138,4 @@ class DefaultProviderProxy implements DownloadProvider {
     public void updateItemState(String itemId, DownloadState state) {
         service.updateItemState(itemId, state);
     }
-
-    
 }

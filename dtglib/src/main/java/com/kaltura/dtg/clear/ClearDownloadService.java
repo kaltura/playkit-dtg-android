@@ -3,6 +3,7 @@ package com.kaltura.dtg.clear;
 import android.app.Service;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -14,8 +15,6 @@ import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadState;
 import com.kaltura.dtg.DownloadStateListener;
 import com.kaltura.dtg.Utils;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,26 +32,36 @@ import java.util.concurrent.FutureTask;
 
 public class ClearDownloadService extends Service {
 
-    private final EventBus bus = EventBus.getDefault();
-    
+    class LocalBinder extends Binder {
+        ClearDownloadService getService() {
+            return ClearDownloadService.this;
+        }
+    }
+
+    private LocalBinder localBinder = new LocalBinder();
+
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-
-        Log.d(TAG, "thread:" + Thread.currentThread().getName());
-        
-        // The ONLY command is "start".
-
-        start();
-
-        return START_NOT_STICKY;
+    public void onCreate() {
+        Log.d(TAG, "*** onCreate");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        
-        bus.post(new ServiceStopped(this));
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        Log.d(TAG, "*** onBind");
+        start();
+        return localBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        stop();
+        return super.onUnbind(intent);
     }
 
     static final String TAG = "ClearDownloadService";
@@ -61,11 +70,8 @@ public class ClearDownloadService extends Service {
     private File downloadsDir;
     private boolean started;
 
-    //    private final File mDbFile;
     private DownloadStateListener downloadStateListener;
     
-//    private Map<String, DownloadTask> mTaskMap;
-
     private ExecutorService mExecutor = Executors.newFixedThreadPool(MAX_CONCURRENT_DOWNLOADS);
     private ItemFutureMap futureMap = new ItemFutureMap();
 
@@ -202,9 +208,6 @@ public class ClearDownloadService extends Service {
         startListenerThread();
         
         started = true;
-
-        bus.post(new ServiceStarted(this));
-
     }
 
     public void stop() {
@@ -218,8 +221,6 @@ public class ClearDownloadService extends Service {
             database = null;
             
             started = false;
-            
-            stopSelf();
         }
     }
 
@@ -385,23 +386,6 @@ public class ClearDownloadService extends Service {
         return item.getState();
     }
 
-//    private void sendServiceRequest(@NonNull String action, @Nullable ArrayList<DownloadTask> downloadTasks, @Nullable String itemId) {
-//        Intent intent = new Intent(mContext, ClearDownloadService.class);
-//
-//        intent.setAction(action);
-//        if (downloadTasks != null) {
-//            intent.putParcelableArrayListExtra(ClearDownloadService.EXTRA_DOWNLOAD_TASKS, downloadTasks);
-//            for (DownloadTask downloadTask : downloadTasks) {
-//                mTaskMap.put(downloadTask.taskId, downloadTask);
-//            }
-//        }
-//        if (itemId != null) {
-//            intent.putExtra(ClearDownloadService.EXTRA_ITEM_ID, itemId);
-//        }
-//        mContext.startService(intent);
-//    }
-
-    
     public void pauseDownload(DownloadItem item) {
         assertStarted();
 
@@ -426,7 +410,7 @@ public class ClearDownloadService extends Service {
         }
     }
 
-        public void resumeDownload(DownloadItem item) {
+    public void resumeDownload(DownloadItem item) {
         assertStarted();
 
         // resume should be considered as download start
@@ -593,11 +577,6 @@ public class ClearDownloadService extends Service {
         return database.countPendingFiles(itemId, trackId);
     }
 
-    @Nullable
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
     private FutureTask futureTask(final String itemId, final DownloadTask task) {
         task.setListener(mDownloadTaskListener);
         Callable<Void> callable = new Callable<Void>() {
@@ -613,21 +592,5 @@ public class ClearDownloadService extends Service {
                 futureMap.remove(itemId, this);
             }
         };
-    }
-
-    static class ServiceStarted {
-        ClearDownloadService service;
-    
-        ServiceStarted(ClearDownloadService service) {
-            this.service = service;
-        }
-    }
-
-    static class ServiceStopped {
-        ClearDownloadService service;
-    
-        ServiceStopped(ClearDownloadService service) {
-            this.service = service;
-        }
     }
 }
