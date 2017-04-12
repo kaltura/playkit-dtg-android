@@ -1,4 +1,6 @@
 [
+  {"sintel-short-dash": "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_9bwuo813/format/mpegdash/protocol/http/a.mpd"},
+  {"sintel-full-dash": "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_w9zx2eti/format/mpegdash/protocol/http/a.mpd"},
   {"webvtt-dash-drm":                "http://www.kaltura.com/p/2122821/playManifest/entryId/0_4hrqtrf7/format/mpegdash/manifest.mpd"},
   {"cat-clear":       "http://cfvod.kaltura.com/dasha/p/1851571/sp/185157100/serveFlavor/entryId/1_aegxx56o/v/1/flavorId/1_,aope8b8c,ygii4ciz,/forceproxy/true/name/a.mp4.urlset/manifest.mpd"},
   {"count-dash-drm":  "http://cdnapi.kaltura.com/p/1851571/sp/185157100/playManifest/entryId/0_uafvpmv8/format/mpegdash/protocol/http/uiConfId/31956421/a/a.mpd"},
