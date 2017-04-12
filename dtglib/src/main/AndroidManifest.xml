@@ -2,12 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.kaltura.dtg" >
 
-    <application android:allowBackup="true">
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application>
         <service
             android:name=".clear.ClearDownloadService"
             android:enabled="true"
             android:exported="false" >
         </service>
     </application>
-
+    
 </manifest>
