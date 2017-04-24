@@ -11,25 +11,11 @@ Documentation: https://vpaas.kaltura.com/documentation/Mobile-Video-Player-SDKs/
 
 ## Setup
 
-The simplest way to get up and running is by using JitPack’s Maven repository.
-
-1) Add JitPack’s repository to the top-level build.gradle:
-
-	allprojects {
-		repositories {
-			...
-			maven { url "https://jitpack.io" }
-		}
-	}
-
-2) Add the dependency:
+Add build.gradle dependency:
 
 	dependencies {
-	    compile 'com.kaltura:playkit-dtg-android:v2.0.0'
+		compile 'com.kaltura.dtg:dtglib:2.1.0'
 	}
 
-Replace v2.0.0 with the latest release.
 
-JitPack provides more options and information: https://jitpack.io/#com.kaltura/playkit-dtg-android
-
-
+Replace `2.1.0` with the latest release.
