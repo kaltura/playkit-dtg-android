@@ -1,6 +1,9 @@
 package com.kaltura.dtgapp;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -18,6 +21,7 @@ import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadState;
 import com.kaltura.dtg.DownloadStateListener;
+import com.kaltura.dtg.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,6 +32,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -96,22 +101,56 @@ public class MainActivity extends AppCompatActivity {
         return (SpinnerItem) itemSpinner.getSelectedItem();
     }
 
-    private JSONArray getTestItems() throws IOException, JSONException {
-        InputStream is = null;
-        try {
-            is = getResources().getAssets().open("items.json");
-            byte[] buffer = new byte[is.available()];
-            if (is.read(buffer) > 0) {
-                return new JSONArray(new String(buffer));
-            }
-        } finally {
-            if (is != null) {
-                is.close();
+    private void loadTestItems(final ArrayAdapter<SpinnerItem> itemAdapter) {
+
+        Intent intent = getIntent();
+        if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {
+            final Uri uri = intent.getData();
+
+            new AsyncTask<Void, Void, byte[]>() {
+                @Override
+                protected byte[] doInBackground(Void... params) {
+                    try {
+                        return Utils.downloadToFile(new URL(uri.toString()), new File(getFilesDir(), "last.dtglist.json"), 10000);
+                    } catch (IOException e) {
+                        return null;
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(byte[] bytes) {
+                    addTestItems(bytes, itemAdapter);
+                }
+            }.execute();
+        } else {
+            try {
+                InputStream inputStream = getResources().getAssets().open("items.json");
+                byte[] buffer = new byte[inputStream.available()];
+                if (inputStream.read(buffer) > 0) {
+                    addTestItems(buffer, itemAdapter);
+                }
+            } catch (IOException e) {
             }
         }
-        return null;
     }
 
+    private void addTestItems(byte[] buffer, ArrayAdapter<SpinnerItem> itemAdapter) {
+        
+        try {
+            JSONArray items = new JSONArray(new String(buffer));
+
+            for (int i=0, n=items.length(); i < n; i++) {
+                JSONObject jo = items.getJSONObject(i);
+                String id = jo.keys().next();
+                String url = jo.getString(id);
+                itemAdapter.add(new SpinnerItem(id, url));
+            }
+            
+        } catch (JSONException e) {
+            Log.e(TAG, "Error reading items.json, spinner will be empty", e);
+        }
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -195,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
                 
                 List<DownloadItem.Track> audioTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO);
                 if (audioTracks.size() > 0) {
-                    List<DownloadItem.Track> selection = new ArrayList<DownloadItem.Track>();
+                    List<DownloadItem.Track> selection = new ArrayList<>();
                     selection.add(audioTracks.get(0));
                     if (audioTracks.size() > 1) {
                         selection.add(audioTracks.get(audioTracks.size()-1));
@@ -211,7 +250,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         
-        contentManager.start(null);
+        contentManager.start(new ContentManager.OnStartedListener() {
+            @Override
+            public void onStarted() {
+                Log.d(TAG, "Service started");
+            }
+        });
 
         setButtonAction(R.id.totalStorageSize, new View.OnClickListener() {
             @Override
@@ -226,20 +270,7 @@ public class MainActivity extends AppCompatActivity {
         assert itemSpinner != null;
         itemSpinner.setAdapter(itemAdapter);
 
-        try {
-            JSONArray items;
-            items = getTestItems();
-            for (int i=0, n=items.length(); i < n; i++) {
-                JSONObject jo = items.getJSONObject(i);
-                String id = jo.keys().next();
-                String url = jo.getString(id);
-                itemAdapter.add(new SpinnerItem(id, url));
-            }
-        } catch (RuntimeException rte) {
-            throw rte;
-        } catch (Exception e) {
-            Log.e(TAG, "Error reading items.json, spinner will be empty", e);
-        }
+        loadTestItems(itemAdapter);
 
         setButtonAction(R.id.button_new_item, new View.OnClickListener() {
             @Override
@@ -436,6 +467,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private void doCustomAction(String action) {
         String itemId = getSelectedItem().itemId;
