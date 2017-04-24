@@ -2,7 +2,7 @@
     <string name="app_name">DTGApp</string>
 
     <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_version">Version</string>
     <string name="item_title">Item</string>
 
     <string name="title_activity_video">VideoActivity</string>

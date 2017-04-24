@@ -16,12 +16,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.kaltura.dtg.ContentManager;
-import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.DownloadState;
-import com.kaltura.dtg.DownloadStateListener;
-import com.kaltura.dtg.Utils;
+import com.kaltura.dtg.*;
+import com.kaltura.dtg.BuildConfig;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -493,7 +491,8 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_version) {
+            Toast.makeText(this, "Version " + BuildConfig.VERSION_NAME, Toast.LENGTH_LONG).show();
             return true;
         }
 
