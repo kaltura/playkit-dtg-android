@@ -26,7 +26,7 @@ class DefaultProviderProxy implements DownloadProvider {
     private DownloadStateListener listener;
 
     private ContentManager.OnStartedListener onStartedListener;
-    
+    private int maxConcurrentDownloads;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
@@ -41,7 +41,6 @@ class DefaultProviderProxy implements DownloadProvider {
             DefaultProviderProxy.this.service = null;
         }
     };
-    private int maxConcurrentDownloads;
 
     DefaultProviderProxy(Context context) {
         this.context = context.getApplicationContext();

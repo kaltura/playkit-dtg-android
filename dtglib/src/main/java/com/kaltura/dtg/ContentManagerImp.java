@@ -13,26 +13,7 @@ import java.util.List;
 class ContentManagerImp extends ContentManager {
 
 
-    private int maxConcurrentDownloads;
-
-    public static ContentManager getInstance(Context context) {
-        if (sInstance == null) {
-            synchronized (ContentManager.class) {
-                if (sInstance == null) {
-                    sInstance = new ContentManagerImp(context);
-                }
-            }
-        }
-        return sInstance;
-    }
-
-
     private static ContentManager sInstance;
-    private Context context;
-    private DownloadProvider provider;
-    private File itemsDir;
-    private boolean started;
-    
     private final HashSet<DownloadStateListener> stateListeners = new HashSet<>(1);
     private final DownloadStateListener downloadStateRelay = new DownloadStateListener() {
 
@@ -87,8 +68,11 @@ class ContentManagerImp extends ContentManager {
             }
         }
     };
-    
-    
+    private int maxConcurrentDownloads;
+    private Context context;
+    private DownloadProvider provider;
+    private File itemsDir;
+    private boolean started;
     private ContentManagerImp(Context context) {
         this.context = context.getApplicationContext();
         File filesDir = this.context.getFilesDir();
@@ -99,6 +83,17 @@ class ContentManagerImp extends ContentManager {
         itemsDir.mkdirs();
         
         AppBuildConfig.init(context);
+    }
+    
+    public static ContentManager getInstance(Context context) {
+        if (sInstance == null) {
+            synchronized (ContentManager.class) {
+                if (sInstance == null) {
+                    sInstance = new ContentManagerImp(context);
+                }
+            }
+        }
+        return sInstance;
     }
     
 

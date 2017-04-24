@@ -32,86 +32,16 @@ import java.util.concurrent.FutureTask;
 
 public class DefaultDownloadService extends Service {
 
-    class LocalBinder extends Binder {
-        DefaultDownloadService getService() {
-            return DefaultDownloadService.this;
-        }
-    }
-
-    private LocalBinder localBinder = new LocalBinder();
-
-
-    @Override
-    public void onCreate() {
-        Log.d(TAG, "*** onCreate");
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        Log.d(TAG, "*** onBind");
-        start();
-        return localBinder;
-    }
-
-    @Override
-    public boolean onUnbind(Intent intent) {
-        stop();
-        return super.onUnbind(intent);
-    }
-
     static final String TAG = "DefaultDownloadService";
-
-    public void setMaxConcurrentDownloads(int maxConcurrentDownloads) {
-        this.maxConcurrentDownloads = maxConcurrentDownloads;
-    }
-
+    private LocalBinder localBinder = new LocalBinder();
     private int maxConcurrentDownloads = 1;
     private Database database;
     private File downloadsDir;
     private boolean started;
-
     private DownloadStateListener downloadStateListener;
-    
     private ExecutorService mExecutor = Executors.newFixedThreadPool(maxConcurrentDownloads);
     private ItemFutureMap futureMap = new ItemFutureMap();
-
-
-
     private Handler listenerHandler = null;
-
-    private HandlerThread listenerThread = null;
-
-    public void startListenerThread(){
-        listenerThread = new HandlerThread("DownloadStateListener");
-        listenerThread.start();
-        listenerHandler = new Handler(listenerThread.getLooper());
-    }
-
-    void pauseItemDownload(String itemId) {
-        if (itemId != null) {
-            futureMap.cancelItem(itemId);
-        } else {
-            futureMap.cancelAll();
-        }
-        // Maybe add PAUSE_ALL with mExecutor.purge(); and remove futures
-    }
-
-    void downloadChunks(ArrayList<DownloadTask> chunks, String itemId) {
-        if (chunks == null) {
-            return;
-        }
-        for (DownloadTask task : chunks) {
-            task.itemId = itemId;
-            FutureTask future = futureTask(itemId, task);
-            mExecutor.execute(future);
-            futureMap.add(itemId, future);
-        }
-    }
     private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
 
         @Override
@@ -171,17 +101,72 @@ public class DefaultDownloadService extends Service {
             }
         }
     };
+    private HandlerThread listenerThread = null;
+
+    @Override
+    public void onCreate() {
+        Log.d(TAG, "*** onCreate");
+    }
+    
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        Log.d(TAG, "*** onBind");
+        start();
+        return localBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        stop();
+        return super.onUnbind(intent);
+    }
+
+    public void setMaxConcurrentDownloads(int maxConcurrentDownloads) {
+        this.maxConcurrentDownloads = maxConcurrentDownloads;
+    }
+
+    public void startListenerThread(){
+        listenerThread = new HandlerThread("DownloadStateListener");
+        listenerThread.start();
+        listenerHandler = new Handler(listenerThread.getLooper());
+    }
+
+    void pauseItemDownload(String itemId) {
+        if (itemId != null) {
+            futureMap.cancelItem(itemId);
+        } else {
+            futureMap.cancelAll();
+        }
+        // Maybe add PAUSE_ALL with mExecutor.purge(); and remove futures
+    }
+
+    void downloadChunks(ArrayList<DownloadTask> chunks, String itemId) {
+        if (chunks == null) {
+            return;
+        }
+        for (DownloadTask task : chunks) {
+            task.itemId = itemId;
+            FutureTask future = futureTask(itemId, task);
+            mExecutor.execute(future);
+            futureMap.add(itemId, future);
+        }
+    }
 
     void updateItemInfoInDB(DefaultDownloadItem item, String... columns) {
         database.updateItemInfo(item, columns);
     }
-    
+
     private void assertStarted() {
         if (!started) {
             throw new IllegalStateException("Service not started");
         }
     }
-
+    
     public void start() {
 
         Log.d(TAG, "start()");
@@ -353,7 +338,6 @@ public class DefaultDownloadService extends Service {
 
     }
 
-    
     public DownloadState startDownload(final String itemId) {
         assertStarted();
         
@@ -421,7 +405,6 @@ public class DefaultDownloadService extends Service {
         item.updateItemState(itemState);
     }
 
-    
     public void removeItem(DefaultDownloadItem item) {
         assertStarted();
 
@@ -432,7 +415,6 @@ public class DefaultDownloadService extends Service {
         deleteItemFiles(item.getItemId());
         database.removeItemFromDB(item);
     }
-
 
     private void deleteItemFiles(String item) {
         String path = downloadsDir + "/items/" + item;
@@ -465,12 +447,10 @@ public class DefaultDownloadService extends Service {
         return findItemImpl(itemId);
     }
 
-    
     public long getDownloadedItemSize(@Nullable String itemId) {
         return database.getDownloadedItemSize(itemId);
     }
 
-    
     public DefaultDownloadItem createItem(String itemId, String contentURL) {
         assertStarted();
 
@@ -503,14 +483,12 @@ public class DefaultDownloadService extends Service {
         return item;
     }
 
-    
     public void updateItemState(String itemId, DownloadState state) {
         assertStarted();
 
         database.updateItemState(itemId, state);
     }
 
-    
     public List<DefaultDownloadItem> getDownloads(DownloadState[] states) {
         assertStarted();
 
@@ -522,7 +500,7 @@ public class DefaultDownloadService extends Service {
 
         return Collections.unmodifiableList(items);
     }
-    
+
     public String getPlaybackURL(String itemId) {
         File localFile = getLocalFile(itemId);
         if (localFile == null) {
@@ -530,7 +508,6 @@ public class DefaultDownloadService extends Service {
         }
         return Uri.fromFile(localFile).toString();
     }
-    
     
     public File getLocalFile(String itemId) {
         assertStarted();
@@ -548,10 +525,8 @@ public class DefaultDownloadService extends Service {
         return new File(item.getDataDir(), playbackPath);
     }
     
-    
     public void dumpState() {
     }
-
     
     public void setDownloadStateListener(DownloadStateListener listener) {
         if (listener == null) {
@@ -560,17 +535,16 @@ public class DefaultDownloadService extends Service {
         downloadStateListener = listener;
     }
 
-    
     public long getEstimatedItemSize(String itemId) {
         assertStarted();
 
         return database.getEstimatedItemSize(itemId);
     }
-    
+
     List<DashTrack> readTracksFromDB(String itemId, DownloadItem.TrackType trackType, DashDownloader.TrackState state) {
         return database.readTracks(itemId, trackType, state);
     }
-
+    
     void updateTracksInDB(String itemId, Map<DownloadItem.TrackType, List<DashTrack>> tracksMap, DashDownloader.TrackState state) {
         database.updateTracksState(itemId, DashDownloader.flattenTrackList(tracksMap), state);
     }
@@ -594,5 +568,11 @@ public class DefaultDownloadService extends Service {
                 futureMap.remove(itemId, this);
             }
         };
+    }
+
+    class LocalBinder extends Binder {
+        DefaultDownloadService getService() {
+            return DefaultDownloadService.this;
+        }
     }
 }
