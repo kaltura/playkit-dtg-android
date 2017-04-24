@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -121,12 +122,18 @@ public class MainActivity extends AppCompatActivity {
 
 
         final ContentManager contentManager = ContentManager.getInstance(this);
+
+        final HashMap<String, Long> downloadStartTime = new HashMap<>();
+
         contentManager.setMaxConcurrentDownloads(2);
         
         contentManager.addDownloadStateListener(new DownloadStateListener() {
             @Override
             public void onDownloadComplete(DownloadItem item) {
-                Log.d(TAG, "onDownloadComplete: " + item.getItemId() + "; " + item.getDownloadedSizeBytes()/1024);
+                long startTime = downloadStartTime.remove(item.getItemId());
+                long downloadTime = System.currentTimeMillis() - startTime;
+                Log.d(TAG, "onDownloadComplete: " + item.getItemId() + "; " + item.getDownloadedSizeBytes()/1024 + "; " + downloadTime/1000f);
+                uiLog("Downloaded " + item.getItemId() + " in " + downloadTime/1000f + " seconds");
             }
 
             @Override
@@ -138,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onDownloadStart(DownloadItem item) {
+                downloadStartTime.put(item.getItemId(), System.currentTimeMillis());
                 Log.d(TAG, "onDownloadStart: " + item.getItemId() + "; " + item.getDownloadedSizeBytes()/1024);
                 uiLog(item);
             }
