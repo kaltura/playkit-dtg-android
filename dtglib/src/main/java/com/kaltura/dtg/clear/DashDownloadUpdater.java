@@ -20,13 +20,13 @@ class DashDownloadUpdater extends DashDownloader {
 
     private static final String TAG = "DashDownloadCreator";
 
-    private ClearDownloadItem mItem;
+    private DefaultDownloadItem mItem;
 
     private Map<DownloadItem.TrackType, List<DashTrack>> mOriginalSelectedTracks;
     private boolean mTrackSelectionChanged;
 
 
-    DashDownloadUpdater(ClearDownloadItem item) throws IOException {
+    DashDownloadUpdater(DefaultDownloadItem item) throws IOException {
         super(item.getContentURL(), new File(item.getDataDir()));
         mItem = item;
 
@@ -53,7 +53,7 @@ class DashDownloadUpdater extends DashDownloader {
         super.setSelectedTracks(type, tracks);
     }
 
-    ClearDownloadItem getItem() {
+    DefaultDownloadItem getItem() {
         return mItem;
     }
 

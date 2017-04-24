@@ -249,11 +249,11 @@ class Database {
         });
     }
 
-    ClearDownloadItem findItemInDB(String itemId) {
+    DefaultDownloadItem findItemInDB(String itemId) {
 
         SQLiteDatabase db = mDatabase;
         Cursor cursor = null;
-        ClearDownloadItem item = null;
+        DefaultDownloadItem item = null;
 
         try {
             cursor = db.query(TBL_ITEMS,
@@ -271,7 +271,7 @@ class Database {
         return item;
     }
 
-    void addItemToDB(final ClearDownloadItem item, final File itemDataDir) {
+    void addItemToDB(final DefaultDownloadItem item, final File itemDataDir) {
 
         doTransaction(new Transaction() {
             @Override
@@ -289,7 +289,7 @@ class Database {
         });
     }
 
-    void removeItemFromDB(final ClearDownloadItem item) {
+    void removeItemFromDB(final DefaultDownloadItem item) {
 
         doTransaction(new Transaction() {
             @Override
@@ -384,7 +384,7 @@ class Database {
         }
     }
 
-    void updateItemInfo(final ClearDownloadItem item, final String[] columns) {
+    void updateItemInfo(final DefaultDownloadItem item, final String[] columns) {
         if (columns==null || columns.length == 0) {
             throw new IllegalArgumentException("columns.length must be >0");
         }
@@ -429,14 +429,14 @@ class Database {
         });
     }
 
-    private ClearDownloadItem readItem(Cursor cursor) {
+    private DefaultDownloadItem readItem(Cursor cursor) {
         String[] columns = cursor.getColumnNames();
 
         // the bare minimum: itemId and contentURL
         String itemId = cursor.getString(cursor.getColumnIndexOrThrow(COL_ITEM_ID));
         String contentURL = cursor.getString(cursor.getColumnIndexOrThrow(COL_CONTENT_URL));
 
-        ClearDownloadItem item = new ClearDownloadItem(itemId, contentURL);
+        DefaultDownloadItem item = new DefaultDownloadItem(itemId, contentURL);
         for (int i = 0; i < columns.length; i++) {
             switch (columns[i]) {
                 case COL_ITEM_ID:
@@ -469,7 +469,7 @@ class Database {
         return item;
     }
 
-    ArrayList<ClearDownloadItem> readItemsFromDB(DownloadState[] states) {
+    ArrayList<DefaultDownloadItem> readItemsFromDB(DownloadState[] states) {
         // TODO: unify some code with findItem()
 
         String stateNames[] = new String[states.length];
@@ -478,7 +478,7 @@ class Database {
         }
         String placeholders = "(" + TextUtils.join(",", Collections.nCopies(stateNames.length, "?")) + ")";
 
-        ArrayList<ClearDownloadItem> items = new ArrayList<>();
+        ArrayList<DefaultDownloadItem> items = new ArrayList<>();
 
         SQLiteDatabase db = mDatabase;
         Cursor cursor = null;
@@ -491,7 +491,7 @@ class Database {
             // TODO: consider using a LinkedList and/or doing a COUNT query to pre-allocate the list.
 
             while (cursor.moveToNext()) {
-                ClearDownloadItem item = readItem(cursor);
+                DefaultDownloadItem item = readItem(cursor);
                 items.add(item);
             }
         } finally {
@@ -530,7 +530,7 @@ class Database {
     
     
 
-    void addTracks(final ClearDownloadItem item, final List<DashTrack> availableTracks, final List<DashTrack> selectedTracks) {
+    void addTracks(final DefaultDownloadItem item, final List<DashTrack> availableTracks, final List<DashTrack> selectedTracks) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {

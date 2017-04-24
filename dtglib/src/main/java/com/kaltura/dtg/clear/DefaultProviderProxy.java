@@ -22,7 +22,7 @@ class DefaultProviderProxy implements DownloadProvider {
     private static final String TAG = "DefaultProviderProxy";
     private Context context;
 
-    private ClearDownloadService service;
+    private DefaultDownloadService service;
     private DownloadStateListener listener;
 
     private ContentManager.OnStartedListener onStartedListener;
@@ -30,7 +30,7 @@ class DefaultProviderProxy implements DownloadProvider {
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
-            service = ((ClearDownloadService.LocalBinder) binder).getService();
+            service = ((DefaultDownloadService.LocalBinder) binder).getService();
             service.setDownloadStateListener(listener);
             service.setMaxConcurrentDownloads(maxConcurrentDownloads);
             onStartedListener.onStarted();
@@ -57,7 +57,7 @@ class DefaultProviderProxy implements DownloadProvider {
         
         this.onStartedListener = startedListener;
 
-        Intent intent = new Intent(context, ClearDownloadService.class);
+        Intent intent = new Intent(context, DefaultDownloadService.class);
 
         Log.d(TAG, "*** Starting service");
 
@@ -71,7 +71,7 @@ class DefaultProviderProxy implements DownloadProvider {
 
     @Override
     public void loadItemMetadata(DownloadItem item) {
-        service.loadItemMetadata((ClearDownloadItem) item);
+        service.loadItemMetadata((DefaultDownloadItem) item);
     }
 
     @Override
@@ -81,17 +81,17 @@ class DefaultProviderProxy implements DownloadProvider {
 
     @Override
     public void pauseDownload(DownloadItem item) {
-        service.pauseDownload((ClearDownloadItem) item);
+        service.pauseDownload((DefaultDownloadItem) item);
     }
 
     @Override
     public void resumeDownload(DownloadItem item) {
-        service.resumeDownload((ClearDownloadItem) item);
+        service.resumeDownload((DefaultDownloadItem) item);
     }
 
     @Override
     public void removeItem(DownloadItem item) {
-        service.removeItem((ClearDownloadItem) item);
+        service.removeItem((DefaultDownloadItem) item);
     }
 
     @Override

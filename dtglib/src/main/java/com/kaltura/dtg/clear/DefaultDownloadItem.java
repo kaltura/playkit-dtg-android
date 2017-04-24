@@ -11,13 +11,13 @@ import java.util.Date;
 /**
  * Created by noamt on 30/05/2016.
  */
-class ClearDownloadItem implements DownloadItem {
+class DefaultDownloadItem implements DownloadItem {
 
-    private static final String TAG = "ClearDownloadItem";
+    private static final String TAG = "DefaultDownloadItem";
     private final String mItemId;
     private final String mContentURL;
 
-    private ClearDownloadService mProvider;
+    private DefaultDownloadService mProvider;
     private DownloadState mState = DownloadState.NEW;
     private long mAddedTime;
     private long mFinishedTime;
@@ -30,7 +30,7 @@ class ClearDownloadItem implements DownloadItem {
     
     private TrackSelector mTrackSelector;
 
-    ClearDownloadItem(String itemId, String contentURL) {
+    DefaultDownloadItem(String itemId, String contentURL) {
         this.mItemId = itemId;
         this.mContentURL = contentURL;
     }
@@ -69,7 +69,7 @@ class ClearDownloadItem implements DownloadItem {
         mPlaybackPath = playbackPath;
     }
     
-    void setProvider(ClearDownloadService provider) {
+    void setProvider(DefaultDownloadService provider) {
         this.mProvider = provider;
     }
 
@@ -178,7 +178,7 @@ class ClearDownloadItem implements DownloadItem {
         mTrackSelector = trackSelector;
     }
 
-    ClearDownloadService getService() {
+    DefaultDownloadService getService() {
         return mProvider;
     }
 }

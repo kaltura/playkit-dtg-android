@@ -30,11 +30,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
-public class ClearDownloadService extends Service {
+public class DefaultDownloadService extends Service {
 
     class LocalBinder extends Binder {
-        ClearDownloadService getService() {
-            return ClearDownloadService.this;
+        DefaultDownloadService getService() {
+            return DefaultDownloadService.this;
         }
     }
 
@@ -64,7 +64,7 @@ public class ClearDownloadService extends Service {
         return super.onUnbind(intent);
     }
 
-    static final String TAG = "ClearDownloadService";
+    static final String TAG = "DefaultDownloadService";
 
     public void setMaxConcurrentDownloads(int maxConcurrentDownloads) {
         this.maxConcurrentDownloads = maxConcurrentDownloads;
@@ -117,7 +117,7 @@ public class ClearDownloadService extends Service {
         @Override
         public void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes) {
             String itemId = task.itemId;
-            final ClearDownloadItem item = findItemImpl(itemId);
+            final DefaultDownloadItem item = findItemImpl(itemId);
             if (item == null) {
                 Log.e(TAG, "Can't find item by id: " + itemId + "; taskId: " + task.taskId);
                 return;
@@ -172,7 +172,7 @@ public class ClearDownloadService extends Service {
         }
     };
 
-    void updateItemInfoInDB(ClearDownloadItem item, String... columns) {
+    void updateItemInfoInDB(DefaultDownloadItem item, String... columns) {
         database.updateItemInfo(item, columns);
     }
     
@@ -229,7 +229,7 @@ public class ClearDownloadService extends Service {
         }
     }
 
-    public void loadItemMetadata(final ClearDownloadItem item) {
+    public void loadItemMetadata(final DefaultDownloadItem item) {
         assertStarted();
 
         new Thread() {
@@ -257,7 +257,7 @@ public class ClearDownloadService extends Service {
         return new File(downloadsDir, "items/" + itemId + "/data");    // TODO: make sure name is safe.
     }
 
-    private void downloadMetadata(ClearDownloadItem item) throws IOException {
+    private void downloadMetadata(DefaultDownloadItem item) throws IOException {
 
         File itemDataDir = getItemDataDir(item.getItemId());
         String contentURL = item.getContentURL();
@@ -276,7 +276,7 @@ public class ClearDownloadService extends Service {
         }
     }
 
-    private void downloadMetadataDash(ClearDownloadItem item, File itemDataDir) throws IOException {
+    private void downloadMetadataDash(DefaultDownloadItem item, File itemDataDir) throws IOException {
 
         final DashDownloader dashDownloader = new DashDownloadCreator(item.getContentURL(), itemDataDir);
 
@@ -307,7 +307,7 @@ public class ClearDownloadService extends Service {
         addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
     }
 
-    private void downloadMetadataSimple(URL url, ClearDownloadItem item, File itemDataDir) throws IOException {
+    private void downloadMetadataSimple(URL url, DefaultDownloadItem item, File itemDataDir) throws IOException {
 
         long length = Utils.httpHeadGetLength(url);
 
@@ -323,14 +323,14 @@ public class ClearDownloadService extends Service {
         addDownloadTasksToDB(item, downloadTasks);
     }
 
-    void addDownloadTasksToDB(ClearDownloadItem item, List<DownloadTask> tasks) {
+    void addDownloadTasksToDB(DefaultDownloadItem item, List<DownloadTask> tasks) {
         
         // Filter-out things that are already 
         
         database.addDownloadTasksToDB(item, tasks);
     }
 
-    private void downloadMetadataHLS(ClearDownloadItem item, File itemDataDir) throws IOException {
+    private void downloadMetadataHLS(DefaultDownloadItem item, File itemDataDir) throws IOException {
         HLSParser hlsParser = new HLSParser(item, itemDataDir);
 
 
@@ -357,7 +357,7 @@ public class ClearDownloadService extends Service {
     public DownloadState startDownload(final String itemId) {
         assertStarted();
         
-        final ClearDownloadItem item = findItemImpl(itemId);
+        final DefaultDownloadItem item = findItemImpl(itemId);
 
         item.setState(DownloadState.IN_PROGRESS);
         
@@ -389,7 +389,7 @@ public class ClearDownloadService extends Service {
         return item.getState();
     }
 
-    public void pauseDownload(final ClearDownloadItem item) {
+    public void pauseDownload(final DefaultDownloadItem item) {
         assertStarted();
 
         ArrayList<DownloadTask> downloadTasks;
@@ -412,7 +412,7 @@ public class ClearDownloadService extends Service {
         }
     }
 
-    public void resumeDownload(ClearDownloadItem item) {
+    public void resumeDownload(DefaultDownloadItem item) {
         assertStarted();
 
         // resume should be considered as download start
@@ -422,7 +422,7 @@ public class ClearDownloadService extends Service {
     }
 
     
-    public void removeItem(ClearDownloadItem item) {
+    public void removeItem(DefaultDownloadItem item) {
         assertStarted();
 
         if (item == null) {
@@ -441,11 +441,11 @@ public class ClearDownloadService extends Service {
         Utils.deleteRecursive(file);
     }
 
-    private ClearDownloadItem findItemImpl(String itemId) {
+    private DefaultDownloadItem findItemImpl(String itemId) {
 
         // TODO: cache items in memory?
         
-        ClearDownloadItem item = database.findItemInDB(itemId);
+        DefaultDownloadItem item = database.findItemInDB(itemId);
         if (item != null) {
             item.setProvider(this);
         }
@@ -459,7 +459,7 @@ public class ClearDownloadService extends Service {
      * @return An item identified by itemId, or null if not found.
      */
     
-    public ClearDownloadItem findItem(String itemId) {
+    public DefaultDownloadItem findItem(String itemId) {
         assertStarted();
 
         return findItemImpl(itemId);
@@ -471,10 +471,10 @@ public class ClearDownloadService extends Service {
     }
 
     
-    public ClearDownloadItem createItem(String itemId, String contentURL) {
+    public DefaultDownloadItem createItem(String itemId, String contentURL) {
         assertStarted();
 
-        ClearDownloadItem item = findItemImpl(itemId);
+        DefaultDownloadItem item = findItemImpl(itemId);
         // If item already exists, return null.
         if (item != null) {
             return null;    // don't create, DON'T return db item.
@@ -485,7 +485,7 @@ public class ClearDownloadService extends Service {
             return null;
         }
 
-        item = new ClearDownloadItem(itemId, contentURL);
+        item = new DefaultDownloadItem(itemId, contentURL);
         item.setState(DownloadState.NEW);
         item.setAddedTime(System.currentTimeMillis());
         File itemDataDir = getItemDataDir(itemId);
@@ -511,12 +511,12 @@ public class ClearDownloadService extends Service {
     }
 
     
-    public List<ClearDownloadItem> getDownloads(DownloadState[] states) {
+    public List<DefaultDownloadItem> getDownloads(DownloadState[] states) {
         assertStarted();
 
-        ArrayList<ClearDownloadItem> items = database.readItemsFromDB(states);
+        ArrayList<DefaultDownloadItem> items = database.readItemsFromDB(states);
 
-        for (ClearDownloadItem item : items) {
+        for (DefaultDownloadItem item : items) {
             item.setProvider(this);
         }
 
@@ -535,7 +535,7 @@ public class ClearDownloadService extends Service {
     public File getLocalFile(String itemId) {
         assertStarted();
 
-        ClearDownloadItem item = findItemImpl(itemId);
+        DefaultDownloadItem item = findItemImpl(itemId);
         if (item == null) {
             return null;
         }
