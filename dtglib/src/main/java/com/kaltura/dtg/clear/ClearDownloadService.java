@@ -65,14 +65,19 @@ public class ClearDownloadService extends Service {
     }
 
     static final String TAG = "ClearDownloadService";
-    private static final int MAX_CONCURRENT_DOWNLOADS = 2;
+
+    public void setMaxConcurrentDownloads(int maxConcurrentDownloads) {
+        this.maxConcurrentDownloads = maxConcurrentDownloads;
+    }
+
+    private int maxConcurrentDownloads = 1;
     private Database database;
     private File downloadsDir;
     private boolean started;
 
     private DownloadStateListener downloadStateListener;
     
-    private ExecutorService mExecutor = Executors.newFixedThreadPool(MAX_CONCURRENT_DOWNLOADS);
+    private ExecutorService mExecutor = Executors.newFixedThreadPool(maxConcurrentDownloads);
     private ItemFutureMap futureMap = new ItemFutureMap();
 
 

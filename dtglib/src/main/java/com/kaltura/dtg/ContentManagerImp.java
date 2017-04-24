@@ -13,6 +13,8 @@ import java.util.List;
 class ContentManagerImp extends ContentManager {
 
 
+    private int maxConcurrentDownloads;
+
     public static ContentManager getInstance(Context context) {
         if (sInstance == null) {
             synchronized (ContentManager.class) {
@@ -113,6 +115,12 @@ class ContentManagerImp extends ContentManager {
     }
 
     @Override
+    public void setMaxConcurrentDownloads(int maxConcurrentDownloads) {
+        this.maxConcurrentDownloads = maxConcurrentDownloads;
+    }
+
+
+    @Override
     public void stop() {
         mProvider.stop();
         mProvider = null;
@@ -127,6 +135,7 @@ class ContentManagerImp extends ContentManager {
         }
 
         mProvider = DownloadProviderFactory.getProvider(mContext);
+        mProvider.setMaxConcurrentDownloads(maxConcurrentDownloads);
         mProvider.setDownloadStateListener(mDownloadStateRelay);
         mProvider.start(new OnStartedListener() {
                             @Override

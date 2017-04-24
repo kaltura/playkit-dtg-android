@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         final ContentManager contentManager = ContentManager.getInstance(this);
+        contentManager.setMaxConcurrentDownloads(2);
         
         contentManager.addDownloadStateListener(new DownloadStateListener() {
             @Override

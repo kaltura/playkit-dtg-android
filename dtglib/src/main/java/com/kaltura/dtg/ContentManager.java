@@ -26,6 +26,13 @@ public abstract class ContentManager {
     public abstract void removeDownloadStateListener(DownloadStateListener listener);
 
     /**
+     * Set the maximum number of concurrent downloads. Must be called before {@link #start(OnStartedListener)}
+     * and cannot be changed after that.
+     * @param maxConcurrentDownloads
+     */
+    public abstract void setMaxConcurrentDownloads(int maxConcurrentDownloads);
+    
+    /**
      * Stop the downloader. Stops all running downloads, but keep them in IN_PROGRESS state.
      */
     public abstract void stop();

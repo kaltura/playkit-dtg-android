@@ -32,6 +32,7 @@ class DefaultProviderProxy implements DownloadProvider {
         public void onServiceConnected(ComponentName name, IBinder binder) {
             service = ((ClearDownloadService.LocalBinder) binder).getService();
             service.setDownloadStateListener(listener);
+            service.setMaxConcurrentDownloads(maxConcurrentDownloads);
             onStartedListener.onStarted();
         }
 
@@ -40,11 +41,17 @@ class DefaultProviderProxy implements DownloadProvider {
             DefaultProviderProxy.this.service = null;
         }
     };
+    private int maxConcurrentDownloads;
 
     DefaultProviderProxy(Context context) {
         this.context = context.getApplicationContext();
     }
-    
+
+    @Override
+    public void setMaxConcurrentDownloads(int maxConcurrentDownloads) {
+        this.maxConcurrentDownloads = maxConcurrentDownloads;
+    }
+
     @Override
     public void start(ContentManager.OnStartedListener startedListener) {
         
@@ -59,7 +66,7 @@ class DefaultProviderProxy implements DownloadProvider {
 
     @Override
     public void stop() {
-        service.stop();
+        context.unbindService(serviceConnection);
     }
 
     @Override

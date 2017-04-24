@@ -10,6 +10,8 @@ import java.util.List;
  */
 public interface DownloadProvider {
 
+    void setMaxConcurrentDownloads(int maxConcurrentDownloads);
+
     void start(ContentManager.OnStartedListener listener);
 
     void stop();
