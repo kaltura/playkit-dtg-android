@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
+apply from: 'version.gradle'
 
 group='com.github.kaltura'
 
@@ -9,8 +9,7 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 2
-        versionName "2.0.2"
+        versionName dtglibVersion  // defined in version.gradle
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     
