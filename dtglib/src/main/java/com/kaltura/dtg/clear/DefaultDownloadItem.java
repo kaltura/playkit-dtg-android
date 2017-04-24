@@ -14,151 +14,151 @@ import java.util.Date;
 class DefaultDownloadItem implements DownloadItem {
 
     private static final String TAG = "DefaultDownloadItem";
-    private final String mItemId;
-    private final String mContentURL;
+    private final String itemId;
+    private final String contentUrl;
 
-    private DefaultDownloadService mProvider;
-    private DownloadState mState = DownloadState.NEW;
-    private long mAddedTime;
-    private long mFinishedTime;
-    private long mEstimatedSizeBytes;
-    private long mDownloadedSizeBytes;
-    private boolean mBroken;
+    private DefaultDownloadService service;
+    private DownloadState state = DownloadState.NEW;
+    private long addedTime;
+    private long finishedTime;
+    private long estimatedSizeBytes;
+    private long downloadedSizeBytes;
+    private boolean broken;
     
-    private String mDataDir;
-    private String mPlaybackPath;
+    private String dataDir;
+    private String playbackPath;
     
-    private TrackSelector mTrackSelector;
+    private TrackSelector trackSelector;
 
     DefaultDownloadItem(String itemId, String contentURL) {
-        this.mItemId = itemId;
-        this.mContentURL = contentURL;
+        this.itemId = itemId;
+        this.contentUrl = contentURL;
     }
 
     @Override
     public String toString() {
-        return "<" + getClass().getName() + " mItemId=" + getItemId() + " mContentURL=" + getContentURL() +
-                " state=" + mState.name() + " mAddedTime=" + new Date(mAddedTime) +
-                " mEstimatedSizeBytes=" + mEstimatedSizeBytes +
-                " mDownloadedSizeBytes=" + mDownloadedSizeBytes + ">";
+        return "<" + getClass().getName() + " itemId=" + getItemId() + " contentUrl=" + getContentURL() +
+                " state=" + state.name() + " addedTime=" + new Date(addedTime) +
+                " estimatedSizeBytes=" + estimatedSizeBytes +
+                " downloadedSizeBytes=" + downloadedSizeBytes + ">";
     }
 
     @Override
     public String getItemId() {
-        return mItemId;
+        return itemId;
     }
 
     @Override
     public String getContentURL() {
-        return mContentURL;
+        return contentUrl;
     }
 
     String getDataDir() {
-        return mDataDir;
+        return dataDir;
     }
 
     void setDataDir(String dataDir) {
-        mDataDir = dataDir;
+        this.dataDir = dataDir;
     }
 
     String getPlaybackPath() {
-        return mPlaybackPath;
+        return playbackPath;
     }
 
     void setPlaybackPath(String playbackPath) {
-        mPlaybackPath = playbackPath;
+        this.playbackPath = playbackPath;
     }
     
     void setProvider(DefaultDownloadService provider) {
-        this.mProvider = provider;
+        this.service = provider;
     }
 
     void setEstimatedSizeBytes(long bytes) {
-        mEstimatedSizeBytes = bytes;
+        estimatedSizeBytes = bytes;
     }
 
     void setDownloadedSizeBytes(long bytes) {
-        mDownloadedSizeBytes = bytes;
+        downloadedSizeBytes = bytes;
     }
 
     void setState(DownloadState state) {
-        this.mState = state;
+        this.state = state;
     }
 
     void updateItemState(DownloadState state) {
-        mProvider.updateItemState(this.getItemId(), state);
+        service.updateItemState(this.getItemId(), state);
     }
     
     void setAddedTime(long addedTime) {
-        this.mAddedTime = addedTime;
+        this.addedTime = addedTime;
     }
     
     void setFinishedTime(long finishedTime) {
-        this.mFinishedTime = finishedTime;
+        this.finishedTime = finishedTime;
     }
 
     void setBroken(boolean broken) {
-        this.mBroken = broken;
+        this.broken = broken;
     }
     
     long incDownloadBytes(long downloadedBytes) {
-        long updated = mDownloadedSizeBytes + downloadedBytes;
-        this.mDownloadedSizeBytes = updated;
+        long updated = downloadedSizeBytes + downloadedBytes;
+        this.downloadedSizeBytes = updated;
         return updated;
     }
     
     @Override
     public void startDownload() {
-        mBroken = false;
-        mProvider.startDownload(this.getItemId());
+        broken = false;
+        service.startDownload(this.getItemId());
 //        this.setState(state);
     }
 
     @Override
     public long getEstimatedSizeBytes() {
-        return mEstimatedSizeBytes;
+        return estimatedSizeBytes;
     }
 
     @Override
     public long getDownloadedSizeBytes() {
-        return mDownloadedSizeBytes;
+        return downloadedSizeBytes;
     }
 
     @Override
     public DownloadState getState() {
-        return mState;
+        return state;
     }
 
     @Override
     public void loadMetadata() {
-        mProvider.loadItemMetadata(this);
+        service.loadItemMetadata(this);
     }
 
     @Override
     public void pauseDownload() {
-        mProvider.pauseDownload(this);
+        service.pauseDownload(this);
     }
 
     @Override
     public long getAddedTime() {
-        return mAddedTime;
+        return addedTime;
     }
 
     boolean isBroken() {
-        return mBroken;
+        return broken;
     }
 
     @Override
     public TrackSelector getTrackSelector() {
         
-        if (mPlaybackPath==null || !mPlaybackPath.endsWith(".mpd")) {
+        if (playbackPath ==null || !playbackPath.endsWith(".mpd")) {
             Log.w(TAG, "Track selection is only supported for dash");
             return null;
         }
         
         // If selection is in progress, return the current selector.
         
-        if (mTrackSelector == null) {
+        if (trackSelector == null) {
             DashDownloadUpdater dashDownloadUpdater = null;
             try {
                 dashDownloadUpdater = new DashDownloadUpdater(this);
@@ -171,14 +171,14 @@ class DefaultDownloadItem implements DownloadItem {
             setTrackSelector(trackSelector);
         }
 
-        return mTrackSelector;
+        return trackSelector;
     }
 
     void setTrackSelector(TrackSelector trackSelector) {
-        mTrackSelector = trackSelector;
+        this.trackSelector = trackSelector;
     }
 
     DefaultDownloadService getService() {
-        return mProvider;
+        return service;
     }
 }

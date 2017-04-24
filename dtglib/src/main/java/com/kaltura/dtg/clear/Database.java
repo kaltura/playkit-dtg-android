@@ -62,12 +62,12 @@ class Database {
     static final String COL_TRACK_REL_ID = "TrackRelativeId";
     static final String COL_FILE_COMPLETE = "FileComplete";
 
-    private final SQLiteOpenHelper mHelper;
-    private final SQLiteDatabase mDatabase;
+    private final SQLiteOpenHelper helper;
+    private final SQLiteDatabase database;
 
 
     Database(File dbFile, final Context context) {
-        mHelper = new SQLiteOpenHelper(context, dbFile.getAbsolutePath(), null, DB_VERSION) {
+        helper = new SQLiteOpenHelper(context, dbFile.getAbsolutePath(), null, DB_VERSION) {
 
             @Override
             public void onCreate(SQLiteDatabase db) {
@@ -145,7 +145,7 @@ class Database {
                 db.setLocale(Locale.US);
             }
         };
-        mDatabase = mHelper.getWritableDatabase();
+        database = helper.getWritableDatabase();
     }
 
     private static void safeClose(Cursor cursor) {
@@ -157,26 +157,26 @@ class Database {
     private boolean doTransaction(Transaction transaction) {
         boolean success = false;
         try {
-            if (mDatabase != null) {
-                mDatabase.beginTransaction();
+            if (database != null) {
+                database.beginTransaction();
 
-                success = transaction.execute(mDatabase);
+                success = transaction.execute(database);
 
                 if (success) {
-                    mDatabase.setTransactionSuccessful();
+                    database.setTransactionSuccessful();
                 }
             }
         } finally {
-            if (mDatabase != null) {
-                mDatabase.endTransaction();
+            if (database != null) {
+                database.endTransaction();
             }
         }
         return success;
     }
 
     void close() {
-        mDatabase.close();
-        mHelper.close();
+        database.close();
+        helper.close();
     }
 
     void addDownloadTasksToDB(final DownloadItem item, final List<DownloadTask> downloadTasks) {
@@ -207,7 +207,7 @@ class Database {
 
         final ArrayList<DownloadTask> downloadTasks = new ArrayList<>();
 
-        SQLiteDatabase db = mDatabase;
+        SQLiteDatabase db = database;
         Cursor cursor = null;
 
         try {
@@ -251,7 +251,7 @@ class Database {
 
     DefaultDownloadItem findItemInDB(String itemId) {
 
-        SQLiteDatabase db = mDatabase;
+        SQLiteDatabase db = database;
         Cursor cursor = null;
         DefaultDownloadItem item = null;
 
@@ -367,7 +367,7 @@ class Database {
 
     // If itemId is null, sum all items.
     long getItemColumnLong(@Nullable String itemId, @NonNull String col) {
-        SQLiteDatabase db = mDatabase;
+        SQLiteDatabase db = database;
         Cursor cursor = null;
         try {
             if (itemId != null) {
@@ -480,7 +480,7 @@ class Database {
 
         ArrayList<DefaultDownloadItem> items = new ArrayList<>();
 
-        SQLiteDatabase db = mDatabase;
+        SQLiteDatabase db = database;
         Cursor cursor = null;
 
         try {
@@ -504,7 +504,7 @@ class Database {
     
     int countPendingFiles(String itemId, @Nullable String trackId) {
 
-        SQLiteDatabase db = mDatabase;
+        SQLiteDatabase db = database;
         Cursor cursor = null;
         int count = 0;
 
@@ -580,7 +580,7 @@ class Database {
 
             String selection = TextUtils.join("=? AND ", selectionCols) + "=?";
             String[] selectionArgsArray = selectionArgs.toArray(new String[selectionArgs.size()]);
-            cursor = mDatabase.query(TBL_TRACK,
+            cursor = database.query(TBL_TRACK,
                     DashTrack.REQUIRED_DB_FIELDS,
                     selection,
                     selectionArgsArray,

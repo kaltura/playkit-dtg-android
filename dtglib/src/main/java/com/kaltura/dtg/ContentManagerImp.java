@@ -28,61 +28,61 @@ class ContentManagerImp extends ContentManager {
 
 
     private static ContentManager sInstance;
-    private Context mContext;
-    private DownloadProvider mProvider;
-    private File mItemsDir;
-    private boolean mStarted;
+    private Context context;
+    private DownloadProvider provider;
+    private File itemsDir;
+    private boolean started;
     
-    private final HashSet<DownloadStateListener> mStateListeners = new HashSet<>(1);
-    private final DownloadStateListener mDownloadStateRelay = new DownloadStateListener() {
+    private final HashSet<DownloadStateListener> stateListeners = new HashSet<>(1);
+    private final DownloadStateListener downloadStateRelay = new DownloadStateListener() {
 
         // Pass the state to all listeners.
 
         @Override
         public void onDownloadComplete(DownloadItem item) {
-            for (DownloadStateListener stateListener : mStateListeners) {
+            for (DownloadStateListener stateListener : stateListeners) {
                 stateListener.onDownloadComplete(item);
             }
         }
 
         @Override
         public void onProgressChange(DownloadItem item, long downloadedBytes) {
-            for (DownloadStateListener stateListener : mStateListeners) {
+            for (DownloadStateListener stateListener : stateListeners) {
                 stateListener.onProgressChange(item, downloadedBytes);
             }
         }
 
         @Override
         public void onDownloadStart(DownloadItem item) {
-            for (DownloadStateListener stateListener : mStateListeners) {
+            for (DownloadStateListener stateListener : stateListeners) {
                 stateListener.onDownloadStart(item);
             }
         }
 
         @Override
         public void onDownloadPause(DownloadItem item) {
-            for (DownloadStateListener stateListener : mStateListeners) {
+            for (DownloadStateListener stateListener : stateListeners) {
                 stateListener.onDownloadPause(item);
             }
         }
 
         @Override
         public void onDownloadStop(DownloadItem item) {
-            for (DownloadStateListener stateListener : mStateListeners) {
+            for (DownloadStateListener stateListener : stateListeners) {
                 stateListener.onDownloadStop(item);
             }
         }
 
         @Override
         public void onDownloadMetadata(DownloadItem item, Exception error) {
-            for (DownloadStateListener stateListener : mStateListeners) {
+            for (DownloadStateListener stateListener : stateListeners) {
                 stateListener.onDownloadMetadata(item, error);
             }
         }
 
         @Override
         public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
-            for (DownloadStateListener stateListener : mStateListeners) {
+            for (DownloadStateListener stateListener : stateListeners) {
                 stateListener.onTracksAvailable(item, trackSelector);
             }
         }
@@ -90,13 +90,13 @@ class ContentManagerImp extends ContentManager {
     
     
     private ContentManagerImp(Context context) {
-        mContext = context.getApplicationContext();
-        File filesDir = mContext.getFilesDir();
-        mItemsDir = new File(filesDir, "dtg/items");
+        this.context = context.getApplicationContext();
+        File filesDir = this.context.getFilesDir();
+        itemsDir = new File(filesDir, "dtg/items");
 
         // make sure all directories are there.
         filesDir.mkdirs();
-        mItemsDir.mkdirs();
+        itemsDir.mkdirs();
         
         AppBuildConfig.init(context);
     }
@@ -106,12 +106,12 @@ class ContentManagerImp extends ContentManager {
 
     @Override
     public void addDownloadStateListener(DownloadStateListener listener) {
-        mStateListeners.add(listener);
+        stateListeners.add(listener);
     }
 
     @Override
     public void removeDownloadStateListener(DownloadStateListener listener) {
-        mStateListeners.remove(listener);
+        stateListeners.remove(listener);
     }
 
     @Override
@@ -122,22 +122,22 @@ class ContentManagerImp extends ContentManager {
 
     @Override
     public void stop() {
-        mProvider.stop();
-        mProvider = null;
-        mStarted = false;
+        provider.stop();
+        provider = null;
+        started = false;
     }
 
     @Override
     public void start(final OnStartedListener onStartedListener) {
 
-        if (mStarted) {
+        if (started) {
             return;
         }
 
-        mProvider = DownloadProviderFactory.getProvider(mContext);
-        mProvider.setMaxConcurrentDownloads(maxConcurrentDownloads);
-        mProvider.setDownloadStateListener(mDownloadStateRelay);
-        mProvider.start(new OnStartedListener() {
+        provider = DownloadProviderFactory.getProvider(context);
+        provider.setMaxConcurrentDownloads(maxConcurrentDownloads);
+        provider.setDownloadStateListener(downloadStateRelay);
+        provider.start(new OnStartedListener() {
                             @Override
                             public void onStarted() {
                                 // Resume all downloads that were in progress on stop.
@@ -153,14 +153,14 @@ class ContentManagerImp extends ContentManager {
                         });
 
 
-        mStarted = true;
+        started = true;
     }
 
     @Override
     public void pauseDownloads() {
         List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
         for (DownloadItem item : downloads) {
-            mProvider.pauseDownload(item);
+            provider.pauseDownload(item);
         }
     }
 
@@ -168,40 +168,40 @@ class ContentManagerImp extends ContentManager {
     public void resumeDownloads() {
         List<DownloadItem> downloads = getDownloads(DownloadState.PAUSED);
         for (DownloadItem item : downloads) {
-            mProvider.resumeDownload(item);
+            provider.resumeDownload(item);
         }
     }
 
     @Override
     public DownloadItem findItem(String itemId) {
-        return mProvider.findItem(itemId);
+        return provider.findItem(itemId);
     }
 
     @Override
     public long getDownloadedItemSize(String itemId) {
-        return mProvider.getDownloadedItemSize(itemId);
+        return provider.getDownloadedItemSize(itemId);
     }
 
     @Override
     public long getEstimatedItemSize(String itemId) {
-        return mProvider.getEstimatedItemSize(itemId);
+        return provider.getEstimatedItemSize(itemId);
     }
 
     @Override
     public DownloadItem createItem(String itemId, String contentURL) {
-        return mProvider.createItem(itemId, contentURL);
+        return provider.createItem(itemId, contentURL);
     }
 
     @Override
     public void removeItem(String itemId) {
         DownloadItem item = findItem(itemId);
         // TODO: can the lower-level methods use itemId and not item?
-        mProvider.removeItem(item);
+        provider.removeItem(item);
     }
 
     private File getItemDir(String itemId) {
         // TODO: safe itemId?
-        File itemDir = new File(mItemsDir, itemId);
+        File itemDir = new File(itemsDir, itemId);
         return itemDir;
     }
 
@@ -214,20 +214,20 @@ class ContentManagerImp extends ContentManager {
 
     @Override
     public List<DownloadItem> getDownloads(DownloadState... states) {
-        if (mProvider == null) {
+        if (provider == null) {
             return Collections.emptyList();
         }
-        return new ArrayList<>(mProvider.getDownloads(states));
+        return new ArrayList<>(provider.getDownloads(states));
     }
 
     @Override
     public String getPlaybackURL(String itemId) {
-        return mProvider.getPlaybackURL(itemId);
+        return provider.getPlaybackURL(itemId);
     }
 
     @Override
     public File getLocalFile(String itemId) {
-        return mProvider.getLocalFile(itemId);
+        return provider.getLocalFile(itemId);
     }
 }
 
