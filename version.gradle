@@ -1,6 +1,6 @@
 
 // PlayKit Library Version
-ext.dtglibVersion = '2.1.0.rc2'
+ext.dtglibVersion = '2.1.0.rc3'
 
 
 // Append short commit hash to dev builds, i.e. "dev.a1b2c3d"
