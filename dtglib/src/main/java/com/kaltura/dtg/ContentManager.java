@@ -35,11 +35,6 @@ public abstract class ContentManager {
     public abstract void setMaxConcurrentDownloads(int maxConcurrentDownloads);
 
     /**
-     * Stop the downloader. Stops all running downloads, but keep them in IN_PROGRESS state.
-     */
-    public abstract void stop();
-
-    /**
      * Auto start items marked as {@link DownloadState#IN_PROGRESS}. Default is true.
      * This setter only has effect if called before {@link #start(OnStartedListener)}.
      * @param autoStartItemsInProgress
@@ -51,6 +46,11 @@ public abstract class ContentManager {
      * manager was stopped. Add listeners before calling this method.
      */
     public abstract void start(OnStartedListener onStartedListener);
+
+    /**
+     * Stop the downloader. Stops all running downloads, but keep them in IN_PROGRESS state.
+     */
+    public abstract void stop();
 
     /**
      * Pause all downloads (set their state to PAUSE and stop downloading).
