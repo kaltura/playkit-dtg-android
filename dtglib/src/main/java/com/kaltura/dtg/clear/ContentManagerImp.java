@@ -1,6 +1,13 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.clear;
 
 import android.content.Context;
+
+import com.kaltura.dtg.AppBuildConfig;
+import com.kaltura.dtg.ContentManager;
+import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadProvider;
+import com.kaltura.dtg.DownloadState;
+import com.kaltura.dtg.DownloadStateListener;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -10,7 +17,7 @@ import java.util.List;
 
 
 
-class ContentManagerImp extends ContentManager {
+public class ContentManagerImp extends ContentManager {
 
 
     private static ContentManager sInstance;
@@ -129,7 +136,7 @@ class ContentManagerImp extends ContentManager {
             return;
         }
 
-        provider = DownloadProviderFactory.getProvider(context);
+        provider = new DefaultProviderProxy(context);
         provider.setMaxConcurrentDownloads(maxConcurrentDownloads);
         provider.setDownloadStateListener(downloadStateRelay);
         provider.start(new OnStartedListener() {
