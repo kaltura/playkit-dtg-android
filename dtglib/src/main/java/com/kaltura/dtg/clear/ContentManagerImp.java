@@ -75,11 +75,14 @@ public class ContentManagerImp extends ContentManager {
             }
         }
     };
+    
     private int maxConcurrentDownloads;
     private Context context;
     private DownloadProvider provider;
     private File itemsDir;
     private boolean started;
+    private boolean autoResumeItemsInProgress = true;
+
     private ContentManagerImp(Context context) {
         this.context = context.getApplicationContext();
         File filesDir = this.context.getFilesDir();
@@ -142,10 +145,13 @@ public class ContentManagerImp extends ContentManager {
         provider.start(new OnStartedListener() {
                             @Override
                             public void onStarted() {
-                                // Resume all downloads that were in progress on stop.
-                                List < DownloadItem > downloads = getDownloads(DownloadState.IN_PROGRESS);
-                                for (DownloadItem download : downloads) {
-                                    download.startDownload();
+                                
+                                if (autoResumeItemsInProgress) {
+                                    // Resume all downloads that were in progress on stop.
+                                    List < DownloadItem > downloads = getDownloads(DownloadState.IN_PROGRESS);
+                                    for (DownloadItem download : downloads) {
+                                        download.startDownload();
+                                    }
                                 }
                                 
                                 if (onStartedListener != null) {
@@ -230,6 +236,11 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public File getLocalFile(String itemId) {
         return provider.getLocalFile(itemId);
+    }
+
+    @Override
+    public void setAutoResumeItemsInProgress(boolean autoStartItemsInProgress) {
+        this.autoResumeItemsInProgress = autoStartItemsInProgress;
     }
 }
 

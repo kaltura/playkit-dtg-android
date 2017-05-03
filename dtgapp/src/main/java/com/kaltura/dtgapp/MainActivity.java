@@ -248,6 +248,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+//        contentManager.setAutoResumeItemsInProgress(false);
         contentManager.start(new ContentManager.OnStartedListener() {
             @Override
             public void onStarted() {
