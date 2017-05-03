@@ -61,7 +61,16 @@ public class DefaultDownloadService extends Service {
             }
 
             if (newState == DownloadTask.State.ERROR) {
-                item.setBroken(true);
+                item.setState(DownloadState.FAILED);
+                database.updateItemState(itemId, DownloadState.FAILED);
+                futureMap.cancelItem(itemId);
+                listenerHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        downloadStateListener.onDownloadFailure(item);
+                    }
+                });
+                return;
             }
 
             final long totalBytes = item.incDownloadBytes(newBytes);
@@ -71,26 +80,14 @@ public class DefaultDownloadService extends Service {
                 // We finished the last (or only) chunk of the item.
                 database.setDownloadFinishTime(itemId);
 
-                // TODO: revisit this "broken" notion.
-                if (item.isBroken()) {
-                    item.setState(DownloadState.PAUSED);
-                    database.updateItemState(item.getItemId(), DownloadState.PAUSED);
-                    listenerHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            downloadStateListener.onDownloadStop(item);
-                        }
-                    });
-                } else {
-                    item.setState(DownloadState.COMPLETED);
-                    database.updateItemState(item.getItemId(), DownloadState.COMPLETED);
-                    listenerHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            downloadStateListener.onDownloadComplete(item);
-                        }
-                    });
-                }
+                item.setState(DownloadState.COMPLETED);
+                database.updateItemState(item.getItemId(), DownloadState.COMPLETED);
+                listenerHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        downloadStateListener.onDownloadComplete(item);
+                    }
+                });
             } else {
                 listenerHandler.post(new Runnable() {
                     @Override
@@ -101,7 +98,6 @@ public class DefaultDownloadService extends Service {
             }
         }
     };
-    private HandlerThread listenerThread = null;
 
     @Override
     public void onCreate() {
@@ -131,7 +127,7 @@ public class DefaultDownloadService extends Service {
     }
 
     public void startListenerThread(){
-        listenerThread = new HandlerThread("DownloadStateListener");
+        HandlerThread listenerThread = new HandlerThread("DownloadStateListener");
         listenerThread.start();
         listenerHandler = new Handler(listenerThread.getLooper());
     }
@@ -172,20 +168,12 @@ public class DefaultDownloadService extends Service {
         Log.d(TAG, "start()");
 
         File dataDir = new File(getFilesDir(), "dtg/clear");
-        dataDir.mkdirs();
-        if (!dataDir.isDirectory()) {
-            Log.e(TAG, "Failed to create provider data directory " + dataDir);
-            throw new IllegalStateException("Can't continue without the data directory, " + dataDir);
-        }
+        makeDirs(dataDir, "provider data directory");
 
         File extFilesDir = getExternalFilesDir(null);
         if (extFilesDir != null) {
             downloadsDir = new File(extFilesDir, "dtg/clear");
-            downloadsDir.mkdirs();
-            if (!downloadsDir.isDirectory()) {
-                Log.e(TAG, "Failed to create provider downloads directory " + downloadsDir);
-                throw new IllegalStateException("Can't continue without the downloads directory, " + downloadsDir);
-            }
+            makeDirs(downloadsDir, "provider downloads");
 
         } else {
             downloadsDir = dataDir;
@@ -198,6 +186,15 @@ public class DefaultDownloadService extends Service {
         startListenerThread();
         
         started = true;
+    }
+
+    private void makeDirs(File dataDir, String name) {
+        //noinspection ResultOfMethodCallIgnored
+        dataDir.mkdirs();
+        if (!dataDir.isDirectory()) {
+            Log.e(TAG, "Failed to create " + name + " -- " + dataDir);
+            throw new IllegalStateException("Can't continue without " + name + " -- " + dataDir);
+        }
     }
 
     public void stop() {
@@ -469,11 +466,8 @@ public class DefaultDownloadService extends Service {
         item.setState(DownloadState.NEW);
         item.setAddedTime(System.currentTimeMillis());
         File itemDataDir = getItemDataDir(itemId);
-        itemDataDir.mkdirs();
-        if (!itemDataDir.isDirectory()) {
-            Log.e(TAG, "Failed to create item data directory " + itemDataDir);
-            throw new IllegalStateException("Can't continue without item data directory, " + itemDataDir);
-        }
+        
+        makeDirs(itemDataDir, "item data directory");
 
         item.setDataDir(itemDataDir.getAbsolutePath());
 
