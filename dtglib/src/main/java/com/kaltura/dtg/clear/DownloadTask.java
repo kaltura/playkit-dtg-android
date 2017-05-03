@@ -1,8 +1,5 @@
 package com.kaltura.dtg.clear;
 
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 
 import com.kaltura.dtg.Utils;
@@ -35,73 +32,6 @@ class DownloadTask {
 
     private Listener listener;  // this is the service
 
-    class ProgressReporter extends Thread {
-        private Handler handler;
-        private Looper myLooper;
-
-        private void report(DownloadTask.State state, int newBytes) {
-            if (listener == null) {
-                Log.w(TAG, "Discarding a progress report, there's no listener");
-                return;
-            }
-            Message msg = Message.obtain();
-            msg.what = state.ordinal();
-            msg.arg1 = newBytes;
-            msg.obj = DownloadTask.this;
-            handler.sendMessage(msg);
-        }
-        
-        private void quit() {
-            Log.d(TAG, "Quitting Looper");
-            myLooper.quit();
-        }
-
-        @Override
-        public void run() {
-            Looper.prepare();
-            
-            myLooper = Looper.myLooper();
-
-            handler = new Handler() {
-                @Override
-                public void handleMessage(Message msg) {
-                    
-                    if (msg.what == -1) {
-                        Looper.myLooper().quit();
-                    }
-                    
-                    DownloadTask.State state;
-                    switch (msg.what) {
-                        case 0:
-                            state = DownloadTask.State.IDLE;
-                            break;
-                        case 1:
-                            state = DownloadTask.State.IN_PROGRESS;
-                            break;
-                        case 2:
-                            state = DownloadTask.State.COMPLETED;
-                            break;
-                        case 3:
-                            state = DownloadTask.State.STOPPED;
-                            break;
-                        case 4:
-                            state = DownloadTask.State.ERROR;
-                            break;
-                        default:
-                            return;
-                    }
-
-                    listener.onTaskProgress(DownloadTask.this, state, msg.arg1);
-                }
-            };
-
-            Looper.loop();
-            
-            Log.d(TAG, "Looper quited");
-        }
-    }
-
-    private ProgressReporter progressReporter = new ProgressReporter();
 
     @Override
     public String toString() {
@@ -115,8 +45,6 @@ class DownloadTask {
     
     void download() {
         
-//        progressReporter.start();
-
         URL url = this.url;
         File targetFile = this.targetFile;
         Log.d(TAG, "Task " + taskId + ": download " + url + " to " + targetFile);
@@ -239,14 +167,11 @@ class DownloadTask {
             if (stopReason != null) {
                 reportProgress(stopReason, 0, stopError);
             }
-            
-//            progressReporter.quit();
         }
     }
 
     private void reportProgress(final State state, final int newBytes, Exception stopError) {
         Log.d(TAG, "progress: " + state + ", " + newBytes);
-//        progressReporter.report(state, newBytes);
         listener.onTaskProgress(this, state, newBytes, stopError);
     }
     
