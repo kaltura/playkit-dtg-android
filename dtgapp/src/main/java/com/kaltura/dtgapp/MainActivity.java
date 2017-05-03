@@ -18,8 +18,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.kaltura.dtg.*;
-import com.kaltura.dtg.BuildConfig;
+import com.kaltura.dtg.ContentManager;
+import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadState;
+import com.kaltura.dtg.DownloadStateListener;
+import com.kaltura.dtg.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -193,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onDownloadFailure(DownloadItem item) {
+            public void onDownloadFailure(DownloadItem item, Exception error) {
                 uiLog("Download failed");
             }
 

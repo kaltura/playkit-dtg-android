@@ -8,6 +8,7 @@ import android.util.Log;
 import com.kaltura.dtg.Utils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,8 +22,8 @@ import java.net.URL;
  */
 class DownloadTask {
     static final String TAG = "DownloadTask";
-    private static final int HTTP_READ_TIMEOUT_MS = 10000;
-    private static final int HTTP_CONNECT_TIMEOUT_MS = 15000;
+    private static final int HTTP_READ_TIMEOUT_MS = 5000;
+    private static final int HTTP_CONNECT_TIMEOUT_MS = 5000;
     private static final int PROGRESS_REPORT_COUNT = 20;
 
     // TODO: Hold url and targetFile as Strings, only convert to URL/File when used.
@@ -123,17 +124,17 @@ class DownloadTask {
         // Create parent dir if needed
         if (!createParentDir(targetFile)) {
             Log.e(TAG, "Can't create parent dir");
-            reportProgress(State.ERROR, 0);
+            reportProgress(State.ERROR, 0, new FileNotFoundException(targetFile.getAbsolutePath()));
             return;
         }
 
-        reportProgress(State.STARTED, 0);
+        reportProgress(State.STARTED, 0, null);
         long remoteFileSize;
         try {
             remoteFileSize = Utils.httpHeadGetLength(url);
         } catch (InterruptedIOException e) {
             Log.d(TAG, "Task " + taskId + " interrupted (1)");
-            reportProgress(State.STOPPED, 0);
+            reportProgress(State.STOPPED, 0, null);
             return;
         } catch (IOException e) {
             Log.e(TAG, "HEAD request failed for " + url, e);
@@ -145,7 +146,7 @@ class DownloadTask {
         // finish before even starting, if file is already complete.
         if (localFileSize == remoteFileSize) {
             // We're done.
-            reportProgress(State.COMPLETED, 0);
+            reportProgress(State.COMPLETED, 0, null);
             return;
         } else if (localFileSize > remoteFileSize) {
             // This is really odd. Delete and try again.
@@ -162,6 +163,7 @@ class DownloadTask {
         FileOutputStream fileOutputStream = null;
         
         State stopReason = null;
+        Exception stopError = null;
 
         int progressReportBytes = 0;
         try {
@@ -206,7 +208,7 @@ class DownloadTask {
 
                 if (progressReportBytes > 0 && progressReportCounter >= PROGRESS_REPORT_COUNT) {
                     Log.v(TAG, "progressReportBytes:" + progressReportBytes + "; progressReportCounter:" + progressReportCounter);
-                    reportProgress(State.IN_PROGRESS, progressReportBytes);
+                    reportProgress(State.IN_PROGRESS, progressReportBytes, stopError);
                     progressReportBytes = 0;
                     progressReportCounter = 0;
                 }
@@ -222,6 +224,7 @@ class DownloadTask {
         } catch (IOException e) {
             Log.d(TAG, "Task " + taskId + " failed", e);
             stopReason = State.ERROR;
+            stopError = e;
 
         } finally {
             Utils.safeClose(inputStream, fileOutputStream);
@@ -231,20 +234,20 @@ class DownloadTask {
 
             // Maybe some bytes are still waiting to be reported
             if (progressReportBytes > 0) {
-                reportProgress(State.IN_PROGRESS, progressReportBytes);
+                reportProgress(State.IN_PROGRESS, progressReportBytes, stopError);
             }
             if (stopReason != null) {
-                reportProgress(stopReason, 0);
+                reportProgress(stopReason, 0, stopError);
             }
             
 //            progressReporter.quit();
         }
     }
 
-    private void reportProgress(final State state, final int newBytes) {
+    private void reportProgress(final State state, final int newBytes, Exception stopError) {
         Log.d(TAG, "progress: " + state + ", " + newBytes);
 //        progressReporter.report(state, newBytes);
-        listener.onTaskProgress(this, state, newBytes);
+        listener.onTaskProgress(this, state, newBytes, stopError);
     }
     
     public void setListener(Listener listener) {
@@ -256,7 +259,7 @@ class DownloadTask {
     }
 
     interface Listener {
-        void onTaskProgress(DownloadTask task, State newState, int newBytes);
+        void onTaskProgress(DownloadTask task, State newState, int newBytes, Exception stopError);
     }
     
     enum State {

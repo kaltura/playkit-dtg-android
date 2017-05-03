@@ -45,7 +45,7 @@ public class DefaultDownloadService extends Service {
     private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
 
         @Override
-        public void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes) {
+        public void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes, final Exception stopError) {
             String itemId = task.itemId;
             final DefaultDownloadItem item = findItemImpl(itemId);
             if (item == null) {
@@ -67,7 +67,7 @@ public class DefaultDownloadService extends Service {
                 listenerHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        downloadStateListener.onDownloadFailure(item);
+                        downloadStateListener.onDownloadFailure(item, stopError);
                     }
                 });
                 return;
@@ -96,6 +96,43 @@ public class DefaultDownloadService extends Service {
                     }
                 });
             }
+        }
+    };
+
+    DownloadStateListener noopListener = new DownloadStateListener() {
+        @Override
+        public void onDownloadComplete(DownloadItem item) {
+
+        }
+
+        @Override
+        public void onProgressChange(DownloadItem item, long downloadedBytes) {
+
+        }
+
+        @Override
+        public void onDownloadStart(DownloadItem item) {
+
+        }
+
+        @Override
+        public void onDownloadPause(DownloadItem item) {
+
+        }
+
+        @Override
+        public void onDownloadFailure(DownloadItem item, Exception error) {
+
+        }
+
+        @Override
+        public void onDownloadMetadata(DownloadItem item, Exception error) {
+
+        }
+
+        @Override
+        public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
+
         }
     };
 
@@ -524,7 +561,7 @@ public class DefaultDownloadService extends Service {
     
     public void setDownloadStateListener(DownloadStateListener listener) {
         if (listener == null) {
-            listener = DownloadStateListener.noopListener;
+            listener = noopListener;
         }
         downloadStateListener = listener;
     }
