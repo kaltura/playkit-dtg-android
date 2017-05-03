@@ -1,10 +1,8 @@
 package com.kaltura.dtg.clear;
 
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.kaltura.dtg.Utils;
@@ -279,20 +277,6 @@ class DownloadTask {
         this(new URL(url), new File(targetFile));
     }
 
-    @NonNull
-    private Bundle toBundle() {
-        Bundle bundle = new Bundle();
-        bundle.putString("itemId", itemId);
-        bundle.putString("targetFile", targetFile.toString());
-        bundle.putString("url", url.toString());
-        return bundle;
-    }
-
-    private DownloadTask(Bundle bundle) throws MalformedURLException {
-        this(bundle.getString("url"), bundle.getString("targetFile"));
-        this.itemId = bundle.getString("itemId");
-    }
-    
     @Override
     public boolean equals(Object o) {
         if (o instanceof DownloadTask) {
