@@ -55,9 +55,9 @@ public class ContentManagerImp extends ContentManager {
         }
 
         @Override
-        public void onDownloadStop(DownloadItem item) {
+        public void onDownloadFailure(DownloadItem item) {
             for (DownloadStateListener stateListener : stateListeners) {
-                stateListener.onDownloadStop(item);
+                stateListener.onDownloadFailure(item);
             }
         }
 

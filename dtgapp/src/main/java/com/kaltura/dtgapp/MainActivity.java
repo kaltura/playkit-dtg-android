@@ -163,38 +163,38 @@ public class MainActivity extends AppCompatActivity {
         final HashMap<String, Long> downloadStartTime = new HashMap<>();
 
         contentManager.setMaxConcurrentDownloads(2);
-        
+
         contentManager.addDownloadStateListener(new DownloadStateListener() {
             @Override
             public void onDownloadComplete(DownloadItem item) {
                 long startTime = downloadStartTime.remove(item.getItemId());
                 long downloadTime = System.currentTimeMillis() - startTime;
-                Log.d(TAG, "onDownloadComplete: " + item.getItemId() + "; " + item.getDownloadedSizeBytes()/1024 + "; " + downloadTime/1000f);
-                uiLog("Downloaded " + item.getItemId() + " in " + downloadTime/1000f + " seconds");
+                Log.d(TAG, "onDownloadComplete: " + item.getItemId() + "; " + item.getDownloadedSizeBytes() / 1024 + "; " + downloadTime / 1000f);
+                uiLog("Downloaded " + item.getItemId() + " in " + downloadTime / 1000f + " seconds");
             }
 
             @Override
             public void onProgressChange(DownloadItem item, long downloadedBytes) {
                 long estimatedSizeBytes = item.getEstimatedSizeBytes();
                 long percent = estimatedSizeBytes > 0 ? 100 * downloadedBytes / estimatedSizeBytes : 0;
-                Log.d(TAG, "onProgressChange: " + item.getItemId() + "; " + percent + "; " + item.getDownloadedSizeBytes()/1024);
+                Log.d(TAG, "onProgressChange: " + item.getItemId() + "; " + percent + "; " + item.getDownloadedSizeBytes() / 1024);
             }
 
             @Override
             public void onDownloadStart(DownloadItem item) {
                 downloadStartTime.put(item.getItemId(), System.currentTimeMillis());
-                Log.d(TAG, "onDownloadStart: " + item.getItemId() + "; " + item.getDownloadedSizeBytes()/1024);
+                Log.d(TAG, "onDownloadStart: " + item.getItemId() + "; " + item.getDownloadedSizeBytes() / 1024);
                 uiLog(item);
             }
 
             @Override
             public void onDownloadPause(DownloadItem item) {
-                Log.d(TAG, "onDownloadPause: " + item.getItemId() + "; " + item.getDownloadedSizeBytes()/1024);
+                Log.d(TAG, "onDownloadPause: " + item.getItemId() + "; " + item.getDownloadedSizeBytes() / 1024);
             }
 
             @Override
-            public void onDownloadStop(DownloadItem item) {
-                Log.d(TAG, "onDownloadStop: " + item.getItemId() + "; " + item.getDownloadedSizeBytes()/1024);
+            public void onDownloadFailure(DownloadItem item) {
+                uiLog("Download failed");
             }
 
             @Override
@@ -202,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                 if (error == null) {
                     uiLog("Metadata for " + item.getItemId() + " is loaded");
                     uiLog(item);
-                    
+
                     // Pre-download interactive track selection
                     // Select second audio track, if there are at least 2.
                     DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
@@ -226,16 +226,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
-                
+
                 // Policy-based selection
                 // Select first and last audio
-                
+
                 List<DownloadItem.Track> audioTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO);
                 if (audioTracks.size() > 0) {
                     List<DownloadItem.Track> selection = new ArrayList<>();
                     selection.add(audioTracks.get(0));
                     if (audioTracks.size() > 1) {
-                        selection.add(audioTracks.get(audioTracks.size()-1));
+                        selection.add(audioTracks.get(audioTracks.size() - 1));
                     }
                     trackSelector.setSelectedTracks(DownloadItem.TrackType.AUDIO, selection);
                 }
@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        
+
         contentManager.start(new ContentManager.OnStartedListener() {
             @Override
             public void onStarted() {
@@ -331,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
                 SpinnerItem spinner = getSelectedItem();
 
                 DownloadItem item = contentManager.findItem(spinner.itemId);
-                if (item!=null) {
+                if (item != null) {
                     item.pauseDownload();
                 }
             }
@@ -358,9 +358,9 @@ public class MainActivity extends AppCompatActivity {
                 SpinnerItem selected = getSelectedItem();
 
                 DownloadItem item = contentManager.findItem(selected.itemId);
-                
+
                 JSONObject td = getTestData();
-                
+
                 // As file
                 File appDataDir = contentManager.getAppDataDir(item.getItemId());
                 String result;
@@ -404,7 +404,7 @@ public class MainActivity extends AppCompatActivity {
                 uiLog(result);
             }
         });
-        
+
         setButtonAction(R.id.button_list_downloads_new, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -419,7 +419,7 @@ public class MainActivity extends AppCompatActivity {
                 List<DownloadItem> downloads = contentManager.getDownloads(DownloadState.IN_PROGRESS);
                 List<String> progress = new ArrayList<>(downloads.size());
                 for (DownloadItem downloadItem : downloads) {
-                    double percent = downloadItem.getDownloadedSizeBytes()*100f/downloadItem.getEstimatedSizeBytes();
+                    double percent = downloadItem.getDownloadedSizeBytes() * 100f / downloadItem.getEstimatedSizeBytes();
                     progress.add(String.format(Locale.ENGLISH, "<%s %.2f%%>", downloadItem.getItemId(), percent));
                 }
                 uiLog(progress);
@@ -432,7 +432,7 @@ public class MainActivity extends AppCompatActivity {
                 List<DownloadItem> downloads = contentManager.getDownloads(DownloadState.PAUSED);
                 List<String> progress = new ArrayList<>(downloads.size());
                 for (DownloadItem downloadItem : downloads) {
-                    double percent = downloadItem.getDownloadedSizeBytes()*100f/downloadItem.getEstimatedSizeBytes();
+                    double percent = downloadItem.getDownloadedSizeBytes() * 100f / downloadItem.getEstimatedSizeBytes();
                     progress.add(String.format(Locale.ENGLISH, "<%s %.2f%%>", downloadItem.getItemId(), percent));
                 }
                 uiLog(progress);
@@ -455,7 +455,7 @@ public class MainActivity extends AppCompatActivity {
                 log.setText("");
             }
         });
-        
+
         setButtonAction(R.id.button_do_action, new View.OnClickListener() {
             @Override
             public void onClick(View v) {

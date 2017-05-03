@@ -23,7 +23,6 @@ class DefaultDownloadItem implements DownloadItem {
     private long finishedTime;
     private long estimatedSizeBytes;
     private long downloadedSizeBytes;
-    private boolean broken;
     
     private String dataDir;
     private String playbackPath;
@@ -97,9 +96,6 @@ class DefaultDownloadItem implements DownloadItem {
         this.finishedTime = finishedTime;
     }
 
-    void setBroken(boolean broken) {
-        this.broken = broken;
-    }
     
     long incDownloadBytes(long downloadedBytes) {
         long updated = downloadedSizeBytes + downloadedBytes;
@@ -109,7 +105,6 @@ class DefaultDownloadItem implements DownloadItem {
     
     @Override
     public void startDownload() {
-        broken = false;
         service.startDownload(this.getItemId());
 //        this.setState(state);
     }
@@ -144,9 +139,6 @@ class DefaultDownloadItem implements DownloadItem {
         return addedTime;
     }
 
-    boolean isBroken() {
-        return broken;
-    }
 
     @Override
     public TrackSelector getTrackSelector() {

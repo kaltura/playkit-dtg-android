@@ -12,7 +12,7 @@ public interface DownloadStateListener {
 
     void onDownloadPause(DownloadItem item);
 
-    void onDownloadStop(DownloadItem item);
+    void onDownloadFailure(DownloadItem item);
     
     void onDownloadMetadata(DownloadItem item, Exception error);
 
@@ -44,7 +44,7 @@ public interface DownloadStateListener {
         }
 
         @Override
-        public void onDownloadStop(DownloadItem item) {
+        public void onDownloadFailure(DownloadItem item) {
 
         }
 

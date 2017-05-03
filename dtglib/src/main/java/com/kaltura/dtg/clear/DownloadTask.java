@@ -127,7 +127,7 @@ class DownloadTask {
             return;
         }
 
-        reportProgress(State.IN_PROGRESS, 0);
+        reportProgress(State.STARTED, 0);
         long remoteFileSize;
         try {
             remoteFileSize = Utils.httpHeadGetLength(url);
@@ -260,7 +260,7 @@ class DownloadTask {
     }
     
     enum State {
-        IDLE, IN_PROGRESS, COMPLETED, STOPPED, ERROR;
+        IDLE, STARTED, IN_PROGRESS, COMPLETED, STOPPED, ERROR;
         private final static State[] values = values();
         static State fromOrdinal(int ordinal) {
             return values[ordinal];

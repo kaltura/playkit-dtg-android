@@ -8,5 +8,6 @@ public enum DownloadState {
     INFO_LOADED,
     IN_PROGRESS,
     PAUSED,
-    COMPLETED
+    COMPLETED,
+    FAILED
 }
