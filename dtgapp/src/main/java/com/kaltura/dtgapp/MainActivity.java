@@ -284,15 +284,36 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        
+
         setButtonAction(R.id.button_load_info, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final DownloadItem item = contentManager.findItem(getSelectedItem().itemId);
+                if (item == null) {
+                    uiLog("Item not found");
+                } else {
+                    item.loadMetadata();
+                }
+            }
+        });
+        
+        setButtonAction(R.id.button_add_and_load, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // If item not found -- create. Then load metadata.
+                
+                SpinnerItem selectedItem = getSelectedItem();
+                
+                DownloadItem item = contentManager.findItem(selectedItem.itemId);
+                if (item == null) {
+                    // Add
+                    item = contentManager.createItem(selectedItem.itemId, selectedItem.url);
+                }
+
                 item.loadMetadata();
             }
         });
-
+        
         setButtonAction(R.id.button_show_existing, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -442,7 +463,15 @@ public class MainActivity extends AppCompatActivity {
         setButtonAction(R.id.button_list_downloads_done, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                List<DownloadItem> downloads = contentManager.getDownloads(DownloadState.NEW, DownloadState.COMPLETED);
+                List<DownloadItem> downloads = contentManager.getDownloads(DownloadState.COMPLETED);
+                uiLog(itemIdList(downloads));
+            }
+        });
+
+        setButtonAction(R.id.button_list_downloads_failed, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                List<DownloadItem> downloads = contentManager.getDownloads(DownloadState.FAILED);
                 uiLog(itemIdList(downloads));
             }
         });
