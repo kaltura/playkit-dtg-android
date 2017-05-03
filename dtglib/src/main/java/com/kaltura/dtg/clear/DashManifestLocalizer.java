@@ -28,13 +28,13 @@ class DashManifestLocalizer {
     private XmlSerializer serializer;
 
 
-    public byte[] getLocalManifestBytes() {
-        return localManifestBytes;
-    }
-
     DashManifestLocalizer(byte[] originManifestBytes, List<DashTrack> keepTracks) {
         this.originManifestBytes = originManifestBytes;
         this.keepTracks = keepTracks;
+    }
+
+    public byte[] getLocalManifestBytes() {
+        return localManifestBytes;
     }
 
     void localize() throws IOException {

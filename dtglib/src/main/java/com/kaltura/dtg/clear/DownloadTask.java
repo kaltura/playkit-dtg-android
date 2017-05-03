@@ -33,6 +33,16 @@ class DownloadTask {
     private Listener listener;  // this is the service
 
 
+    DownloadTask(URL url, File targetFile) {
+        this.url = url;
+        this.targetFile = targetFile;
+        this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
+    }
+
+    DownloadTask(String url, String targetFile) throws MalformedURLException {
+        this(new URL(url), new File(targetFile));
+    }
+    
     @Override
     public String toString() {
         return "<DownloadTask id='" + taskId + "' url='" + url + "' target='" + targetFile + "'>";
@@ -174,35 +184,13 @@ class DownloadTask {
         Log.d(TAG, "progress: " + state + ", " + newBytes);
         listener.onTaskProgress(this, state, newBytes, stopError);
     }
-    
-    public void setListener(Listener listener) {
-        this.listener = listener;
-    }
 
     public Listener getListener() {
         return listener;
     }
-
-    interface Listener {
-        void onTaskProgress(DownloadTask task, State newState, int newBytes, Exception stopError);
-    }
     
-    enum State {
-        IDLE, STARTED, IN_PROGRESS, COMPLETED, STOPPED, ERROR;
-        private final static State[] values = values();
-        static State fromOrdinal(int ordinal) {
-            return values[ordinal];
-        }
-    }
-
-    DownloadTask(URL url, File targetFile) {
-        this.url = url;
-        this.targetFile = targetFile;
-        this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
-    }
-
-    DownloadTask(String url, String targetFile) throws MalformedURLException {
-        this(new URL(url), new File(targetFile));
+    public void setListener(Listener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -220,5 +208,17 @@ class DownloadTask {
         code = 31 * code + (this.url == null ? 0 : this.url.hashCode());
         code = 31 * code + (this.targetFile == null ? 0 : this.targetFile.hashCode());
         return code;
+    }
+
+    enum State {
+        IDLE, STARTED, IN_PROGRESS, COMPLETED, STOPPED, ERROR;
+        private final static State[] values = values();
+        static State fromOrdinal(int ordinal) {
+            return values[ordinal];
+        }
+    }
+
+    interface Listener {
+        void onTaskProgress(DownloadTask task, State newState, int newBytes, Exception stopError);
     }
 }

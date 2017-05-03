@@ -32,7 +32,7 @@ import java.util.concurrent.FutureTask;
 
 public class DefaultDownloadService extends Service {
 
-    static final String TAG = "DefaultDownloadService";
+    private static final String TAG = "DefaultDownloadService";
     private LocalBinder localBinder = new LocalBinder();
     private int maxConcurrentDownloads = 1;
     private Database database;
@@ -98,8 +98,8 @@ public class DefaultDownloadService extends Service {
             }
         }
     };
-
-    DownloadStateListener noopListener = new DownloadStateListener() {
+    
+    private DownloadStateListener noopListener = new DownloadStateListener() {
         @Override
         public void onDownloadComplete(DownloadItem item) {
 

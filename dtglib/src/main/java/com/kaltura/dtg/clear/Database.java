@@ -154,6 +154,10 @@ class Database {
         }
     }
 
+    private static String[] strings(String... strings) {
+        return strings;
+    }
+
     private boolean doTransaction(Transaction transaction) {
         boolean success = false;
         try {
@@ -355,12 +359,12 @@ class Database {
             }
         });
     }
-
+    
     // If itemId is null, sum all items.
     long getEstimatedItemSize(@Nullable String itemId) {
         return getItemColumnLong(itemId, COL_ITEM_ESTIMATED_SIZE);
     }
-    
+
     long getDownloadedItemSize(@Nullable String itemId) {
         return getItemColumnLong(itemId, COL_ITEM_DOWNLOADED_SIZE);
     }
@@ -468,7 +472,7 @@ class Database {
         }
         return item;
     }
-
+    
     ArrayList<DefaultDownloadItem> readItemsFromDB(DownloadState[] states) {
         // TODO: unify some code with findItem()
 
@@ -528,8 +532,6 @@ class Database {
         return count;
     }
     
-    
-
     void addTracks(final DefaultDownloadItem item, final List<DashTrack> availableTracks, final List<DashTrack> selectedTracks) {
         doTransaction(new Transaction() {
             @Override
@@ -614,11 +616,6 @@ class Database {
                 return true;
             }
         });
-    }
-    
-
-    private static String[] strings(String... strings) {
-        return strings;
     }
 
     interface Transaction {

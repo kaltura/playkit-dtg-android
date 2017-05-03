@@ -72,56 +72,51 @@ class DefaultDownloadItem implements DownloadItem {
         this.service = provider;
     }
 
-    void setEstimatedSizeBytes(long bytes) {
-        estimatedSizeBytes = bytes;
-    }
-
-    void setDownloadedSizeBytes(long bytes) {
-        downloadedSizeBytes = bytes;
-    }
-
-    void setState(DownloadState state) {
-        this.state = state;
-    }
-
     void updateItemState(DownloadState state) {
         service.updateItemState(this.getItemId(), state);
     }
-    
-    void setAddedTime(long addedTime) {
-        this.addedTime = addedTime;
-    }
-    
+
     void setFinishedTime(long finishedTime) {
         this.finishedTime = finishedTime;
     }
 
-    
     long incDownloadBytes(long downloadedBytes) {
         long updated = downloadedSizeBytes + downloadedBytes;
         this.downloadedSizeBytes = updated;
         return updated;
     }
-    
+
     @Override
     public void startDownload() {
         service.startDownload(this.getItemId());
 //        this.setState(state);
     }
-
+    
     @Override
     public long getEstimatedSizeBytes() {
         return estimatedSizeBytes;
+    }
+    
+    void setEstimatedSizeBytes(long bytes) {
+        estimatedSizeBytes = bytes;
     }
 
     @Override
     public long getDownloadedSizeBytes() {
         return downloadedSizeBytes;
     }
+    
+    void setDownloadedSizeBytes(long bytes) {
+        downloadedSizeBytes = bytes;
+    }
 
     @Override
     public DownloadState getState() {
         return state;
+    }
+
+    void setState(DownloadState state) {
+        this.state = state;
     }
 
     @Override
@@ -139,6 +134,9 @@ class DefaultDownloadItem implements DownloadItem {
         return addedTime;
     }
 
+    void setAddedTime(long addedTime) {
+        this.addedTime = addedTime;
+    }
 
     @Override
     public TrackSelector getTrackSelector() {
