@@ -45,17 +45,8 @@
                 style="?android:attr/buttonStyleSmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Add"
-                android:id="@+id/button_new_item"
-                android:layout_gravity="fill"
-                />
-
-            <Button
-                style="?android:attr/buttonStyleSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Load"
-                android:id="@+id/button_load_info"
+                android:text="Add+Load"
+                android:id="@+id/button_add_and_load"
                 />
 
             <Button
@@ -102,6 +93,23 @@
             android:orientation="horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
+
+            <Button
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add"
+                android:id="@+id/button_new_item"
+                android:layout_gravity="fill"
+                />
+
+            <Button
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Load"
+                android:id="@+id/button_load_info"
+                />
 
             <Button
                 style="?android:attr/buttonStyleSmall"
@@ -225,6 +233,14 @@
             android:layout_height="wrap_content"
             android:text="DONE"
             android:id="@+id/button_list_downloads_done"
+            android:layout_gravity="fill" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FAILED"
+            android:id="@+id/button_list_downloads_failed"
             android:layout_gravity="fill" />
     </LinearLayout>
 

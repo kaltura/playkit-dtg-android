@@ -44,17 +44,17 @@ public interface DownloadItem {
     }
 
     interface Track {
-        TrackType getType();
-    
-        String getLanguage();
-    
-        long getBitrate();
-
         Comparator<Track> bitrateComparator = new Comparator<DownloadItem.Track>() {
             @Override
             public int compare(DownloadItem.Track lhs, DownloadItem.Track rhs) {
                 return lhs.getBitrate() < rhs.getBitrate() ? -1 : (lhs.getBitrate() == rhs.getBitrate() ? 0 : 1);
             }
         };
+    
+        TrackType getType();
+    
+        String getLanguage();
+
+        long getBitrate();
     }
 }

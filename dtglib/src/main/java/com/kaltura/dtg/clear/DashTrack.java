@@ -19,6 +19,8 @@ import java.util.List;
  * Created by noamt on 13/09/2016.
  */
 class DashTrack implements DownloadItem.Track {
+    static final String[] REQUIRED_DB_FIELDS =
+            {Database.COL_TRACK_ID, Database.COL_TRACK_TYPE, Database.COL_TRACK_LANGUAGE, Database.COL_TRACK_BITRATE, Database.COL_TRACK_EXTRA};
     private static final String ORIGINAL_ADAPTATION_SET_INDEX = "originalAdaptationSetIndex";
     private static final String ORIGINAL_REPRESENTATION_INDEX = "originalRepresentationIndex";
     private static final String TAG = "DashTrack";
@@ -27,9 +29,6 @@ class DashTrack implements DownloadItem.Track {
     private DownloadItem.TrackType type;
     private String language;
     private long bitrate;
-
-    static final String[] REQUIRED_DB_FIELDS =
-            {Database.COL_TRACK_ID, Database.COL_TRACK_TYPE, Database.COL_TRACK_LANGUAGE, Database.COL_TRACK_BITRATE, Database.COL_TRACK_EXTRA};
     
 
     DashTrack(DownloadItem.TrackType type, String language, long bitrate, int adaptationIndex, int representationIndex) {
@@ -76,6 +75,16 @@ class DashTrack implements DownloadItem.Track {
         }
     }
 
+    static List<DashTrack> filterByLanguage(@NonNull String language, List<DashTrack> list) {
+        List<DashTrack> filtered = new ArrayList<>();
+        for (DashTrack track : list) {
+            if (language.equals(track.getLanguage())) {
+                filtered.add(track);
+            }
+        }
+        return filtered;
+    }
+
     private void parseExtra(String extra) {
         JSONObject jsonExtra;
         try {
@@ -106,16 +115,6 @@ class DashTrack implements DownloadItem.Track {
         }
 
         return values;
-    }
-
-    static List<DashTrack> filterByLanguage(@NonNull String language, List<DashTrack> list) {
-        List<DashTrack> filtered = new ArrayList<>();
-        for (DashTrack track : list) {
-            if (language.equals(track.getLanguage())) {
-                filtered.add(track);
-            }
-        }
-        return filtered;
     }
 
     @Override

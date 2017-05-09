@@ -10,7 +10,9 @@ import java.util.List;
  */
 public interface DownloadProvider {
 
-    void start();
+    void setMaxConcurrentDownloads(int maxConcurrentDownloads);
+
+    void start(ContentManager.OnStartedListener listener);
 
     void stop();
 
@@ -30,7 +32,7 @@ public interface DownloadProvider {
 
     DownloadItem createItem(String itemId, String contentURL);
 
-    List<DownloadItem> getDownloads(DownloadState[] states);
+    List<? extends DownloadItem> getDownloads(DownloadState[] states);
 
     String getPlaybackURL(String itemId);
 
@@ -44,5 +46,6 @@ public interface DownloadProvider {
 
 
     void updateItemState(String itemId, DownloadState state);
+
 }
 

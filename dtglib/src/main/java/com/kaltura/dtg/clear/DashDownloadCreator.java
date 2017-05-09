@@ -42,9 +42,9 @@ class DashDownloadCreator extends DashDownloader {
 
     private void selectDefaultTracks() {
 
-        mSelectedTracks = new HashMap<>();
+        selectedTracks = new HashMap<>();
         for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
-            mSelectedTracks.put(type, new ArrayList<DashTrack>(1));
+            selectedTracks.put(type, new ArrayList<DashTrack>(1));
         }
 
 
@@ -91,18 +91,18 @@ class DashDownloadCreator extends DashDownloader {
     }
 
     private void downloadManifest() throws IOException {
-        URL url = new URL(mManifestUrl);
-        File targetFile = new File(mTargetDir, ORIGIN_MANIFEST_MPD);
-        mOriginManifestBytes = Utils.downloadToFile(url, targetFile, MAX_DASH_MANIFEST_SIZE);
+        URL url = new URL(manifestUrl);
+        File targetFile = new File(targetDir, ORIGIN_MANIFEST_MPD);
+        originManifestBytes = Utils.downloadToFile(url, targetFile, MAX_DASH_MANIFEST_SIZE);
     }
 
     private void createTracks() {
 
-        List<AdaptationSet> adaptationSets = mCurrentPeriod.adaptationSets;
+        List<AdaptationSet> adaptationSets = currentPeriod.adaptationSets;
 
-        mAvailableTracks = new HashMap<>();
+        availableTracks = new HashMap<>();
         for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
-            mAvailableTracks.put(type, new ArrayList<DashTrack>(1));
+            availableTracks.put(type, new ArrayList<DashTrack>(1));
         }
         
         ListIterator<AdaptationSet> itAdaptations = adaptationSets.listIterator();
@@ -131,7 +131,7 @@ class DashDownloadCreator extends DashDownloader {
                 }
                 if (type != DownloadItem.TrackType.UNKNOWN) {
                     DashTrack track = new DashTrack(type, representation.format.language, representation.format.bitrate, adaptationIndex, representationIndex);
-                    mAvailableTracks.get(type).add(track);
+                    availableTracks.get(type).add(track);
                 }
             }
         }

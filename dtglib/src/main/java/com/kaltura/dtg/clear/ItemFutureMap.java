@@ -17,23 +17,23 @@ import java.util.concurrent.Future;
  */
 class ItemFutureMap {
     private static final String TAG = "ItemFutureMap";
-    private Map<String, Set<Future>> mMap;
+    private Map<String, Set<Future>> map;
 
     ItemFutureMap() {
-        mMap = new HashMap<>();
+        map = new HashMap<>();
     }
 
     synchronized void add(@NonNull String itemId, @NonNull Future future) {
-        Set<Future> futureList = mMap.get(itemId);
+        Set<Future> futureList = map.get(itemId);
         if (futureList == null) {
             futureList = Collections.newSetFromMap(new WeakHashMap<Future, Boolean>());
-            mMap.put(itemId, futureList);
+            map.put(itemId, futureList);
         }
         futureList.add(future);
     }
 
     synchronized void cancelItem(@NonNull String itemId) {
-        Set<Future> futureList = mMap.get(itemId);
+        Set<Future> futureList = map.get(itemId);
         int count = futureList == null ? 0 : futureList.size();
         Log.d(TAG, "cancelItem: " + itemId + "; count=" + count);
         if (count > 0) {
@@ -45,17 +45,17 @@ class ItemFutureMap {
     }
 
     synchronized void remove(String itemId, Future future) {
-        Set<Future> futureList = mMap.get(itemId);
+        Set<Future> futureList = map.get(itemId);
         if (futureList != null) {
             futureList.remove(future);
             if (futureList.isEmpty()) {
-                mMap.remove(itemId);
+                map.remove(itemId);
             }
         }
     }
 
     synchronized public void cancelAll() {
-        for (String itemId : new HashSet<>(mMap.keySet())) {
+        for (String itemId : new HashSet<>(map.keySet())) {
             cancelItem(itemId);
         }
     }

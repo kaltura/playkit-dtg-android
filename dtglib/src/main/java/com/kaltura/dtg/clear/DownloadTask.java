@@ -1,15 +1,11 @@
 package com.kaltura.dtg.clear;
 
-import android.annotation.SuppressLint;
-import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.kaltura.dtg.Utils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,10 +17,10 @@ import java.net.URL;
 /**
  * Created by noamt on 5/13/15.
  */
-class DownloadTask implements Parcelable {
+class DownloadTask {
     static final String TAG = "DownloadTask";
-    private static final int HTTP_READ_TIMEOUT_MS = 10000;
-    private static final int HTTP_CONNECT_TIMEOUT_MS = 15000;
+    private static final int HTTP_READ_TIMEOUT_MS = 5000;
+    private static final int HTTP_CONNECT_TIMEOUT_MS = 5000;
     private static final int PROGRESS_REPORT_COUNT = 20;
 
     // TODO: Hold url and targetFile as Strings, only convert to URL/File when used.
@@ -34,6 +30,19 @@ class DownloadTask implements Parcelable {
     String itemId;
     String trackRelativeId;
 
+    private Listener listener;  // this is the service
+
+
+    DownloadTask(URL url, File targetFile) {
+        this.url = url;
+        this.targetFile = targetFile;
+        this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
+    }
+
+    DownloadTask(String url, String targetFile) throws MalformedURLException {
+        this(new URL(url), new File(targetFile));
+    }
+    
     @Override
     public String toString() {
         return "<DownloadTask id='" + taskId + "' url='" + url + "' target='" + targetFile + "'>";
@@ -44,8 +53,8 @@ class DownloadTask implements Parcelable {
         return parent.mkdirs() || parent.isDirectory();
     }
     
-    void download(Listener listener) {
-
+    void download() {
+        
         URL url = this.url;
         File targetFile = this.targetFile;
         Log.d(TAG, "Task " + taskId + ": download " + url + " to " + targetFile);
@@ -53,17 +62,17 @@ class DownloadTask implements Parcelable {
         // Create parent dir if needed
         if (!createParentDir(targetFile)) {
             Log.e(TAG, "Can't create parent dir");
-            listener.onTaskProgress(taskId, State.ERROR, 0);
+            reportProgress(State.ERROR, 0, new FileNotFoundException(targetFile.getAbsolutePath()));
             return;
         }
-        
-        listener.onTaskProgress(taskId, State.IN_PROGRESS, 0);
+
+        reportProgress(State.STARTED, 0, null);
         long remoteFileSize;
         try {
             remoteFileSize = Utils.httpHeadGetLength(url);
         } catch (InterruptedIOException e) {
             Log.d(TAG, "Task " + taskId + " interrupted (1)");
-            listener.onTaskProgress(taskId, State.STOPPED, 0);
+            reportProgress(State.STOPPED, 0, null);
             return;
         } catch (IOException e) {
             Log.e(TAG, "HEAD request failed for " + url, e);
@@ -75,7 +84,7 @@ class DownloadTask implements Parcelable {
         // finish before even starting, if file is already complete.
         if (localFileSize == remoteFileSize) {
             // We're done.
-            listener.onTaskProgress(taskId, State.COMPLETED, 0);
+            reportProgress(State.COMPLETED, 0, null);
             return;
         } else if (localFileSize > remoteFileSize) {
             // This is really odd. Delete and try again.
@@ -92,6 +101,7 @@ class DownloadTask implements Parcelable {
         FileOutputStream fileOutputStream = null;
         
         State stopReason = null;
+        Exception stopError = null;
 
         int progressReportBytes = 0;
         try {
@@ -136,7 +146,7 @@ class DownloadTask implements Parcelable {
 
                 if (progressReportBytes > 0 && progressReportCounter >= PROGRESS_REPORT_COUNT) {
                     Log.v(TAG, "progressReportBytes:" + progressReportBytes + "; progressReportCounter:" + progressReportCounter);
-                    listener.onTaskProgress(taskId, State.IN_PROGRESS, progressReportBytes);
+                    reportProgress(State.IN_PROGRESS, progressReportBytes, stopError);
                     progressReportBytes = 0;
                     progressReportCounter = 0;
                 }
@@ -152,6 +162,7 @@ class DownloadTask implements Parcelable {
         } catch (IOException e) {
             Log.d(TAG, "Task " + taskId + " failed", e);
             stopReason = State.ERROR;
+            stopError = e;
 
         } finally {
             Utils.safeClose(inputStream, fileOutputStream);
@@ -161,84 +172,27 @@ class DownloadTask implements Parcelable {
 
             // Maybe some bytes are still waiting to be reported
             if (progressReportBytes > 0) {
-                listener.onTaskProgress(taskId, State.IN_PROGRESS, progressReportBytes);
+                reportProgress(State.IN_PROGRESS, progressReportBytes, stopError);
             }
             if (stopReason != null) {
-                listener.onTaskProgress(taskId, stopReason, 0);
+                reportProgress(stopReason, 0, stopError);
             }
         }
     }
-    
-    interface Listener {
-        void onTaskProgress(String taskId, State newState, int newBytes);
+
+    private void reportProgress(final State state, final int newBytes, Exception stopError) {
+        Log.d(TAG, "progress: " + state + ", " + newBytes);
+        listener.onTaskProgress(this, state, newBytes, stopError);
+    }
+
+    public Listener getListener() {
+        return listener;
     }
     
-    enum State {
-        IDLE, IN_PROGRESS, COMPLETED, STOPPED, ERROR;
-        private final static State[] values = values();
-        static State fromOrdinal(int ordinal) {
-            return values[ordinal];
-        }
+    public void setListener(Listener listener) {
+        this.listener = listener;
     }
 
-    DownloadTask(URL url, File targetFile) {
-        this.url = url;
-        this.targetFile = targetFile;
-        this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
-    }
-
-    DownloadTask(String url, String targetFile) throws MalformedURLException {
-        this(new URL(url), new File(targetFile));
-    }
-
-    @SuppressLint("ParcelClassLoader")
-    private DownloadTask(Parcel in) throws MalformedURLException {
-        this(in.readBundle());
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        Bundle bundle = toBundle();
-
-        dest.writeBundle(bundle); 
-    }
-
-    @NonNull
-    private Bundle toBundle() {
-        Bundle bundle = new Bundle();
-        bundle.putString("itemId", itemId);
-        bundle.putString("targetFile", targetFile.toString());
-        bundle.putString("url", url.toString());
-        return bundle;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    public static final Creator<DownloadTask> CREATOR = new Creator<DownloadTask>() {
-        @Override
-        public DownloadTask createFromParcel(Parcel in) {
-            try {
-                return new DownloadTask(in);
-            } catch (MalformedURLException e) {
-                Log.e(TAG, "Can't create DownloadTask from bundle", e);
-                return null;
-            }
-        }
-
-        @Override
-        public DownloadTask[] newArray(int size) {
-            return new DownloadTask[size];
-        }
-    };
-    
-    private DownloadTask(Bundle bundle) throws MalformedURLException {
-        this(bundle.getString("url"), bundle.getString("targetFile"));
-        this.itemId = bundle.getString("itemId");
-    }
-    
     @Override
     public boolean equals(Object o) {
         if (o instanceof DownloadTask) {
@@ -254,5 +208,17 @@ class DownloadTask implements Parcelable {
         code = 31 * code + (this.url == null ? 0 : this.url.hashCode());
         code = 31 * code + (this.targetFile == null ? 0 : this.targetFile.hashCode());
         return code;
+    }
+
+    enum State {
+        IDLE, STARTED, IN_PROGRESS, COMPLETED, STOPPED, ERROR;
+        private final static State[] values = values();
+        static State fromOrdinal(int ordinal) {
+            return values[ordinal];
+        }
+    }
+
+    interface Listener {
+        void onTaskProgress(DownloadTask task, State newState, int newBytes, Exception stopError);
     }
 }

@@ -40,48 +40,48 @@ abstract class DashDownloader {
         UNKNOWN
     }
     
-    String mManifestUrl;
+    String manifestUrl;
 
-    File mTargetDir;
+    File targetDir;
     
-    byte[] mOriginManifestBytes;
-    Period mCurrentPeriod;
+    byte[] originManifestBytes;
+    Period currentPeriod;
 
-    private long mItemDurationMS;
-    private long mEstimatedDownloadSize;
+    private long itemDurationMS;
+    private long estimatedDownloadSize;
 
 
-    Map<DownloadItem.TrackType, List<DashTrack>> mSelectedTracks;
-    Map<DownloadItem.TrackType, List<DashTrack>> mAvailableTracks;
+    Map<DownloadItem.TrackType, List<DashTrack>> selectedTracks;
+    Map<DownloadItem.TrackType, List<DashTrack>> availableTracks;
 
     void parseOriginManifest() throws IOException {
         MediaPresentationDescriptionParser mpdParser = new MediaPresentationDescriptionParser();
-        MediaPresentationDescription parsedMpd = mpdParser.parse(mManifestUrl, new ByteArrayInputStream(mOriginManifestBytes));
+        MediaPresentationDescription parsedMpd = mpdParser.parse(manifestUrl, new ByteArrayInputStream(originManifestBytes));
 
         if (parsedMpd.getPeriodCount() < 1) {
             throw new IOException("At least one period is required");
         }
 
         int periodIndex = 0;
-        mCurrentPeriod = parsedMpd.getPeriod(periodIndex);
+        currentPeriod = parsedMpd.getPeriod(periodIndex);
         setItemDurationMS(parsedMpd.getPeriodDuration(periodIndex));
         
     }
 
     void createDownloadTasks() throws MalformedURLException {
         
-        mDownloadTasks = new LinkedHashSet<>();
+        downloadTasks = new LinkedHashSet<>();
         
         List<DashTrack> trackList = getSelectedTracks();
         for (DashTrack track : trackList) {
-            AdaptationSet adaptationSet = mCurrentPeriod.adaptationSets.get(track.getAdaptationIndex());
+            AdaptationSet adaptationSet = currentPeriod.adaptationSets.get(track.getAdaptationIndex());
             Representation representation = adaptationSet.representations.get(track.getRepresentationIndex());
             
             createDownloadTasks(representation, track);
         }
 
         if (AppBuildConfig.DEBUG) {
-            Log.d(TAG, "download tasks: " + mDownloadTasks);
+            Log.d(TAG, "download tasks: " + downloadTasks);
         }
     }
 
@@ -119,22 +119,22 @@ abstract class DashDownloader {
     }
 
     long getItemDurationMS() {
-        return mItemDurationMS;
+        return itemDurationMS;
     }
 
     void setItemDurationMS(long itemDurationMS) {
-        mItemDurationMS = itemDurationMS;
+        this.itemDurationMS = itemDurationMS;
     }
 
     void setEstimatedDownloadSize(long estimatedDownloadSize) {
-        mEstimatedDownloadSize = estimatedDownloadSize;
+        this.estimatedDownloadSize = estimatedDownloadSize;
     }
 
 
 //    abstract void parse() throws IOException;
     
     long getEstimatedDownloadSize() {
-        return mEstimatedDownloadSize;
+        return estimatedDownloadSize;
     }
 
     String getPlaybackPath() {
@@ -142,15 +142,15 @@ abstract class DashDownloader {
     }
 
     LinkedHashSet<DownloadTask> getDownloadTasks() {
-        return mDownloadTasks;
+        return downloadTasks;
     }
 
-    LinkedHashSet<DownloadTask> mDownloadTasks;
+    LinkedHashSet<DownloadTask> downloadTasks;
 
     DashDownloader(String manifestUrl, File targetDir) {
-        mManifestUrl = manifestUrl;
-        mTargetDir = targetDir;
-        mDownloadTasks = new LinkedHashSet<>();
+        this.manifestUrl = manifestUrl;
+        this.targetDir = targetDir;
+        downloadTasks = new LinkedHashSet<>();
     }
 
     void createLocalManifest() throws IOException {
@@ -158,7 +158,7 @@ abstract class DashDownloader {
         // The localizer needs a raw list of tracks.
         List<DashTrack> tracks = getSelectedTracks();
         
-        createLocalManifest(tracks, mOriginManifestBytes, mTargetDir);
+        createLocalManifest(tracks, originManifestBytes, targetDir);
     }
 
     static void createLocalManifest(List<DashTrack> tracks, byte[] originManifestBytes, File targetDir) throws IOException {
@@ -177,7 +177,7 @@ abstract class DashDownloader {
 
     @NonNull
     List<DashTrack> getSelectedTracks() {
-        return flattenTrackList(mSelectedTracks);
+        return flattenTrackList(selectedTracks);
     }
 
     @NonNull
@@ -191,25 +191,25 @@ abstract class DashDownloader {
 
 
     void addTask(RangedUri url, String file, String trackId) throws MalformedURLException {
-        File targetFile = new File(mTargetDir, file);
+        File targetFile = new File(targetDir, file);
         DownloadTask task = new DownloadTask(new URL(url.getUriString()), targetFile);
         task.trackRelativeId = trackId;
-        mDownloadTasks.add(task);
+        downloadTasks.add(task);
     }
 
     
     void setSelectedTracks(@NonNull DownloadItem.TrackType type, @NonNull List<DashTrack> tracks) {
         // FIXME: 07/09/2016 Verify type, null
-        mSelectedTracks.put(type, new ArrayList<>(tracks));
+        selectedTracks.put(type, new ArrayList<>(tracks));
     }
 
     List<DashTrack> getAvailableTracks(DownloadItem.TrackType type) {
         // FIXME: 07/09/2016 Verify type
-        return Collections.unmodifiableList(mAvailableTracks.get(type));
+        return Collections.unmodifiableList(availableTracks.get(type));
     }
     
     List<DashTrack> getAvailableTracks() {
-        return flattenTrackList(mAvailableTracks);
+        return flattenTrackList(availableTracks);
     }
 
 

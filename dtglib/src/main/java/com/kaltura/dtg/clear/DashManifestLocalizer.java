@@ -21,20 +21,20 @@ class DashManifestLocalizer {
     public static final String BASE_URL_TAG = "BaseURL";
     public static final String MEDIA_ATTRIBUTE = "media";
     public static final String INITIALIZATION_ATTRIBUTE = "initialization";
-    private final byte[] mOriginManifestBytes;
-    private final List<DashTrack> mKeepTracks;
-    private byte[] mLocalManifestBytes;
-    private XmlPullParser mParser;
-    private XmlSerializer mSerializer;
+    private final byte[] originManifestBytes;
+    private final List<DashTrack> keepTracks;
+    private byte[] localManifestBytes;
+    private XmlPullParser parser;
+    private XmlSerializer serializer;
 
-
-    public byte[] getLocalManifestBytes() {
-        return mLocalManifestBytes;
-    }
 
     DashManifestLocalizer(byte[] originManifestBytes, List<DashTrack> keepTracks) {
-        mOriginManifestBytes = originManifestBytes;
-        mKeepTracks = keepTracks;
+        this.originManifestBytes = originManifestBytes;
+        this.keepTracks = keepTracks;
+    }
+
+    public byte[] getLocalManifestBytes() {
+        return localManifestBytes;
     }
 
     void localize() throws IOException {
@@ -49,12 +49,12 @@ class DashManifestLocalizer {
     }
 
     private void skipSubtree() throws XmlPullParserException, IOException {
-        if (mParser.getEventType() != XmlPullParser.START_TAG) {
+        if (parser.getEventType() != XmlPullParser.START_TAG) {
             throw new IllegalStateException();
         }
         int depth = 1;
         while (depth != 0) {
-            switch (mParser.next()) {
+            switch (parser.next()) {
                 case XmlPullParser.END_TAG:
                     depth--;
                     break;
@@ -67,7 +67,7 @@ class DashManifestLocalizer {
     
     boolean shouldKeepAdaptationSet(int index) {
         // TODO: make the search more efficient
-        for (DashTrack keepTrack : mKeepTracks) {
+        for (DashTrack keepTrack : keepTracks) {
             if (keepTrack.getAdaptationIndex() == index) {
                 return true;
             }
@@ -77,7 +77,7 @@ class DashManifestLocalizer {
     
     boolean shouldKeepRepresentation(int adaptationIndex, int representationIndex) {
         // TODO: make the search more efficient
-        for (DashTrack keepTrack : mKeepTracks) {
+        for (DashTrack keepTrack : keepTracks) {
             if (keepTrack.getAdaptationIndex() == adaptationIndex && keepTrack.getRepresentationIndex() == representationIndex) {
                 return true;
             }
@@ -89,19 +89,19 @@ class DashManifestLocalizer {
     void localizeImp() throws XmlPullParserException, IOException {
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         factory.setNamespaceAware(true);
-        mParser = factory.newPullParser();
+        parser = factory.newPullParser();
 
-        mSerializer = factory.newSerializer();
+        serializer = factory.newSerializer();
 
-        mParser.setInput(new ByteArrayInputStream(mOriginManifestBytes), null);
+        parser.setInput(new ByteArrayInputStream(originManifestBytes), null);
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        mSerializer.setOutput(output, "utf8");
+        serializer.setOutput(output, "utf8");
 
 
 
-        mParser.require(XmlPullParser.START_DOCUMENT, null, null);
-        Boolean standalone = (Boolean) mParser.getProperty("http://xmlpull.org/v1/doc/properties.html#xmldecl-standalone");
-        mSerializer.startDocument(mParser.getInputEncoding(), standalone);
+        parser.require(XmlPullParser.START_DOCUMENT, null, null);
+        Boolean standalone = (Boolean) parser.getProperty("http://xmlpull.org/v1/doc/properties.html#xmldecl-standalone");
+        serializer.startDocument(parser.getInputEncoding(), standalone);
         
         int representationIndex = -1;
         int adaptationSetIndex = -1;
@@ -109,12 +109,12 @@ class DashManifestLocalizer {
         String currentRepresentationId = null;
         
         int eventType;
-        while ((eventType = mParser.next()) != XmlPullParser.END_DOCUMENT) {
+        while ((eventType = parser.next()) != XmlPullParser.END_DOCUMENT) {
             switch (eventType) {
                 case XmlPullParser.START_TAG:
                     copyNamespaces();
 
-                    if (mParser.getName().equals(ADAPTATION_SET_TAG)) {
+                    if (parser.getName().equals(ADAPTATION_SET_TAG)) {
 
                         adaptationSetIndex++;
                         representationIndex = -1;
@@ -126,10 +126,10 @@ class DashManifestLocalizer {
                         }
                     }
                     
-                    if (mParser.getName().equals(REPRESENTATION_TAG)) {
+                    if (parser.getName().equals(REPRESENTATION_TAG)) {
 
                         representationIndex++;
-                        currentRepresentationId = mParser.getAttributeValue(null, "id");
+                        currentRepresentationId = parser.getAttributeValue(null, "id");
                         
                         if (!shouldKeepRepresentation(adaptationSetIndex, representationIndex)) {
                             skipSubtree();
@@ -138,8 +138,8 @@ class DashManifestLocalizer {
                     }
 
                     // Start copying the tag
-                    mSerializer.startTag(mParser.getNamespace(), mParser.getName());
-                    switch (mParser.getName()){
+                    serializer.startTag(parser.getNamespace(), parser.getName());
+                    switch (parser.getName()){
                         case SEGMENT_TEMPLATE_TAG:
                             handleSegmentTemplate();
                             break;
@@ -153,44 +153,44 @@ class DashManifestLocalizer {
                     break;
                 
                 case XmlPullParser.END_TAG:
-                    mSerializer.endTag(mParser.getNamespace(), mParser.getName());
+                    serializer.endTag(parser.getNamespace(), parser.getName());
                     break;
 
                 case XmlPullParser.TEXT:
-                    mSerializer.text(mParser.getText());
+                    serializer.text(parser.getText());
                     break;
             }
         }
-        mSerializer.endDocument();
-        mSerializer.flush();
-        mLocalManifestBytes = output.toByteArray();
+        serializer.endDocument();
+        serializer.flush();
+        localManifestBytes = output.toByteArray();
     }
 
     private void handleBaseURL(String id) throws IOException, XmlPullParserException {
-        mSerializer.text(id + ".vtt");
+        serializer.text(id + ".vtt");
         // Avoid copying the original text.
         // NOTE: if there are child elements in the BaseURL, they will be skipped.
         skipSubtree();
         // We skipped the end tag, but we still need it.
-        mSerializer.endTag(mParser.getNamespace(), mParser.getName());
+        serializer.endTag(parser.getNamespace(), parser.getName());
     }
 
     private void copyTagAttributes() throws IOException {
         // copy all attributes
-        for (int i=0, n=mParser.getAttributeCount(); i<n; i++) {
-            String attributeName = mParser.getAttributeName(i);
-            String attributeNamespace = mParser.getAttributeNamespace(i);
-            String attributeValue = mParser.getAttributeValue(i);
-            mSerializer.attribute(attributeNamespace, attributeName, attributeValue);
+        for (int i = 0, n = parser.getAttributeCount(); i<n; i++) {
+            String attributeName = parser.getAttributeName(i);
+            String attributeNamespace = parser.getAttributeNamespace(i);
+            String attributeValue = parser.getAttributeValue(i);
+            serializer.attribute(attributeNamespace, attributeName, attributeValue);
         }
     }
 
     private void handleSegmentTemplate() throws IOException {
         // copy attributes, but modify the template
-        for (int i=0, n=mParser.getAttributeCount(); i<n; i++) {
-            String attributeName = mParser.getAttributeName(i);
-            String attributeNamespace = mParser.getAttributeNamespace(i);
-            String attributeValue = mParser.getAttributeValue(i);
+        for (int i = 0, n = parser.getAttributeCount(); i<n; i++) {
+            String attributeName = parser.getAttributeName(i);
+            String attributeNamespace = parser.getAttributeNamespace(i);
+            String attributeValue = parser.getAttributeValue(i);
 
             switch (attributeName) {
                 case MEDIA_ATTRIBUTE:
@@ -199,17 +199,17 @@ class DashManifestLocalizer {
                     attributeValue = "init-$RepresentationID$.mp4"; break;
             }
 
-            mSerializer.attribute(attributeNamespace, attributeName, attributeValue);
+            serializer.attribute(attributeNamespace, attributeName, attributeValue);
         }
     }
 
     private void copyNamespaces() throws XmlPullParserException, IOException {
-        int nsStart = mParser.getNamespaceCount(mParser.getDepth()-1);
-        int nsEnd = mParser.getNamespaceCount(mParser.getDepth());
+        int nsStart = parser.getNamespaceCount(parser.getDepth()-1);
+        int nsEnd = parser.getNamespaceCount(parser.getDepth());
         for (int i = nsStart; i < nsEnd; i++) {
-            String prefix = mParser.getNamespacePrefix(i);
-            String ns = mParser.getNamespaceUri(i);
-            mSerializer.setPrefix(prefix, ns);
+            String prefix = parser.getNamespacePrefix(i);
+            String ns = parser.getNamespaceUri(i);
+            serializer.setPrefix(prefix, ns);
         }
     }
 

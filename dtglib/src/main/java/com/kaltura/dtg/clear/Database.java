@@ -62,12 +62,12 @@ class Database {
     static final String COL_TRACK_REL_ID = "TrackRelativeId";
     static final String COL_FILE_COMPLETE = "FileComplete";
 
-    private final SQLiteOpenHelper mHelper;
-    private final SQLiteDatabase mDatabase;
+    private final SQLiteOpenHelper helper;
+    private final SQLiteDatabase database;
 
 
     Database(File dbFile, final Context context) {
-        mHelper = new SQLiteOpenHelper(context, dbFile.getAbsolutePath(), null, DB_VERSION) {
+        helper = new SQLiteOpenHelper(context, dbFile.getAbsolutePath(), null, DB_VERSION) {
 
             @Override
             public void onCreate(SQLiteDatabase db) {
@@ -145,7 +145,7 @@ class Database {
                 db.setLocale(Locale.US);
             }
         };
-        mDatabase = mHelper.getWritableDatabase();
+        database = helper.getWritableDatabase();
     }
 
     private static void safeClose(Cursor cursor) {
@@ -154,29 +154,33 @@ class Database {
         }
     }
 
+    private static String[] strings(String... strings) {
+        return strings;
+    }
+
     private boolean doTransaction(Transaction transaction) {
         boolean success = false;
         try {
-            if (mDatabase != null) {
-                mDatabase.beginTransaction();
+            if (database != null) {
+                database.beginTransaction();
 
-                success = transaction.execute(mDatabase);
+                success = transaction.execute(database);
 
                 if (success) {
-                    mDatabase.setTransactionSuccessful();
+                    database.setTransactionSuccessful();
                 }
             }
         } finally {
-            if (mDatabase != null) {
-                mDatabase.endTransaction();
+            if (database != null) {
+                database.endTransaction();
             }
         }
         return success;
     }
 
     void close() {
-        mDatabase.close();
-        mHelper.close();
+        database.close();
+        helper.close();
     }
 
     void addDownloadTasksToDB(final DownloadItem item, final List<DownloadTask> downloadTasks) {
@@ -207,7 +211,7 @@ class Database {
 
         final ArrayList<DownloadTask> downloadTasks = new ArrayList<>();
 
-        SQLiteDatabase db = mDatabase;
+        SQLiteDatabase db = database;
         Cursor cursor = null;
 
         try {
@@ -249,11 +253,11 @@ class Database {
         });
     }
 
-    ClearDownloadItem findItemInDB(String itemId) {
+    DefaultDownloadItem findItemInDB(String itemId) {
 
-        SQLiteDatabase db = mDatabase;
+        SQLiteDatabase db = database;
         Cursor cursor = null;
-        ClearDownloadItem item = null;
+        DefaultDownloadItem item = null;
 
         try {
             cursor = db.query(TBL_ITEMS,
@@ -271,7 +275,7 @@ class Database {
         return item;
     }
 
-    void addItemToDB(final ClearDownloadItem item, final File itemDataDir) {
+    void addItemToDB(final DefaultDownloadItem item, final File itemDataDir) {
 
         doTransaction(new Transaction() {
             @Override
@@ -289,7 +293,7 @@ class Database {
         });
     }
 
-    void removeItemFromDB(final ClearDownloadItem item) {
+    void removeItemFromDB(final DefaultDownloadItem item) {
 
         doTransaction(new Transaction() {
             @Override
@@ -355,19 +359,19 @@ class Database {
             }
         });
     }
-
+    
     // If itemId is null, sum all items.
     long getEstimatedItemSize(@Nullable String itemId) {
         return getItemColumnLong(itemId, COL_ITEM_ESTIMATED_SIZE);
     }
-    
+
     long getDownloadedItemSize(@Nullable String itemId) {
         return getItemColumnLong(itemId, COL_ITEM_DOWNLOADED_SIZE);
     }
 
     // If itemId is null, sum all items.
     long getItemColumnLong(@Nullable String itemId, @NonNull String col) {
-        SQLiteDatabase db = mDatabase;
+        SQLiteDatabase db = database;
         Cursor cursor = null;
         try {
             if (itemId != null) {
@@ -384,7 +388,7 @@ class Database {
         }
     }
 
-    void updateItemInfo(final ClearDownloadItem item, final String[] columns) {
+    void updateItemInfo(final DefaultDownloadItem item, final String[] columns) {
         if (columns==null || columns.length == 0) {
             throw new IllegalArgumentException("columns.length must be >0");
         }
@@ -429,14 +433,14 @@ class Database {
         });
     }
 
-    private ClearDownloadItem readItem(Cursor cursor) {
+    private DefaultDownloadItem readItem(Cursor cursor) {
         String[] columns = cursor.getColumnNames();
 
         // the bare minimum: itemId and contentURL
         String itemId = cursor.getString(cursor.getColumnIndexOrThrow(COL_ITEM_ID));
         String contentURL = cursor.getString(cursor.getColumnIndexOrThrow(COL_CONTENT_URL));
 
-        ClearDownloadItem item = new ClearDownloadItem(itemId, contentURL);
+        DefaultDownloadItem item = new DefaultDownloadItem(itemId, contentURL);
         for (int i = 0; i < columns.length; i++) {
             switch (columns[i]) {
                 case COL_ITEM_ID:
@@ -468,8 +472,8 @@ class Database {
         }
         return item;
     }
-
-    ArrayList<ClearDownloadItem> readItemsFromDB(DownloadState[] states) {
+    
+    ArrayList<DefaultDownloadItem> readItemsFromDB(DownloadState[] states) {
         // TODO: unify some code with findItem()
 
         String stateNames[] = new String[states.length];
@@ -478,9 +482,9 @@ class Database {
         }
         String placeholders = "(" + TextUtils.join(",", Collections.nCopies(stateNames.length, "?")) + ")";
 
-        ArrayList<ClearDownloadItem> items = new ArrayList<>();
+        ArrayList<DefaultDownloadItem> items = new ArrayList<>();
 
-        SQLiteDatabase db = mDatabase;
+        SQLiteDatabase db = database;
         Cursor cursor = null;
 
         try {
@@ -491,7 +495,7 @@ class Database {
             // TODO: consider using a LinkedList and/or doing a COUNT query to pre-allocate the list.
 
             while (cursor.moveToNext()) {
-                ClearDownloadItem item = readItem(cursor);
+                DefaultDownloadItem item = readItem(cursor);
                 items.add(item);
             }
         } finally {
@@ -504,7 +508,7 @@ class Database {
     
     int countPendingFiles(String itemId, @Nullable String trackId) {
 
-        SQLiteDatabase db = mDatabase;
+        SQLiteDatabase db = database;
         Cursor cursor = null;
         int count = 0;
 
@@ -528,9 +532,7 @@ class Database {
         return count;
     }
     
-    
-
-    void addTracks(final ClearDownloadItem item, final List<DashTrack> availableTracks, final List<DashTrack> selectedTracks) {
+    void addTracks(final DefaultDownloadItem item, final List<DashTrack> availableTracks, final List<DashTrack> selectedTracks) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -580,7 +582,7 @@ class Database {
 
             String selection = TextUtils.join("=? AND ", selectionCols) + "=?";
             String[] selectionArgsArray = selectionArgs.toArray(new String[selectionArgs.size()]);
-            cursor = mDatabase.query(TBL_TRACK,
+            cursor = database.query(TBL_TRACK,
                     DashTrack.REQUIRED_DB_FIELDS,
                     selection,
                     selectionArgsArray,
@@ -614,11 +616,6 @@ class Database {
                 return true;
             }
         });
-    }
-    
-
-    private static String[] strings(String... strings) {
-        return strings;
     }
 
     interface Transaction {

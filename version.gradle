@@ -1,0 +1,13 @@
+
+// PlayKit Library Version
+ext.dtglibVersion = '2.1.1'
+
+
+// Append short commit hash to dev builds, i.e. "dev.a1b2c3d"
+if (dtglibVersion == 'dev') {
+    def cmd = "git rev-parse --short HEAD"
+    def proc = cmd.execute()
+    def commit = proc.text.trim()
+    ext.dtglibVersion = 'dev.' + commit
+}
+

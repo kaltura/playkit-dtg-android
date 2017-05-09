@@ -2,6 +2,8 @@ package com.kaltura.dtg;
 
 import android.content.Context;
 
+import com.kaltura.dtg.clear.ContentManagerImp;
+
 import java.io.File;
 import java.util.List;
 
@@ -26,15 +28,29 @@ public abstract class ContentManager {
     public abstract void removeDownloadStateListener(DownloadStateListener listener);
 
     /**
-     * Stop the downloader. Stops all running downloads, but keep them in IN_PROGRESS state.
+     * Set the maximum number of concurrent downloads. Must be called before {@link #start(OnStartedListener)}
+     * and cannot be changed after that.
+     * @param maxConcurrentDownloads
      */
-    public abstract void stop();
+    public abstract void setMaxConcurrentDownloads(int maxConcurrentDownloads);
+
+    /**
+     * Auto start items marked as {@link DownloadState#IN_PROGRESS}. Default is true.
+     * This setter only has effect if called before {@link #start(OnStartedListener)}.
+     * @param autoStartItemsInProgress
+     */
+    public abstract void setAutoResumeItemsInProgress(boolean autoStartItemsInProgress);
 
     /**
      * Start the download manager. Starts all downloads that were in IN_PROGRESS state when the 
      * manager was stopped. Add listeners before calling this method.
      */
-    public abstract void start();
+    public abstract void start(OnStartedListener onStartedListener);
+
+    /**
+     * Stop the downloader. Stops all running downloads, but keep them in IN_PROGRESS state.
+     */
+    public abstract void stop();
 
     /**
      * Pause all downloads (set their state to PAUSE and stop downloading).
@@ -105,4 +121,8 @@ public abstract class ContentManager {
      * @return
      */
     public abstract File getLocalFile(String itemId);
+
+    public interface OnStartedListener {
+        void onStarted();
+    }
 }

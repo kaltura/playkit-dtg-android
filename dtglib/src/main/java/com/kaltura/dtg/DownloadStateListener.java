@@ -12,7 +12,7 @@ public interface DownloadStateListener {
 
     void onDownloadPause(DownloadItem item);
 
-    void onDownloadStop(DownloadItem item);
+    void onDownloadFailure(DownloadItem item, Exception error);
     
     void onDownloadMetadata(DownloadItem item, Exception error);
 
@@ -21,42 +21,5 @@ public interface DownloadStateListener {
      * @param item
      */
     void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector);
-    
-    DownloadStateListener noopListener = new DownloadStateListener() {
-        @Override
-        public void onDownloadComplete(DownloadItem item) {
-            
-        }
-
-        @Override
-        public void onProgressChange(DownloadItem item, long downloadedBytes) {
-
-        }
-
-        @Override
-        public void onDownloadStart(DownloadItem item) {
-
-        }
-
-        @Override
-        public void onDownloadPause(DownloadItem item) {
-
-        }
-
-        @Override
-        public void onDownloadStop(DownloadItem item) {
-
-        }
-
-        @Override
-        public void onDownloadMetadata(DownloadItem item, Exception error) {
-            
-        }
-
-        @Override
-        public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
-            
-        }
-    };
 }
 

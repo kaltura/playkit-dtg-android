@@ -1,6 +1,9 @@
 package com.kaltura.dtgapp;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -13,11 +16,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadState;
 import com.kaltura.dtg.DownloadStateListener;
+import com.kaltura.dtg.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,8 +33,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -95,22 +102,56 @@ public class MainActivity extends AppCompatActivity {
         return (SpinnerItem) itemSpinner.getSelectedItem();
     }
 
-    private JSONArray getTestItems() throws IOException, JSONException {
-        InputStream is = null;
-        try {
-            is = getResources().getAssets().open("items.json");
-            byte[] buffer = new byte[is.available()];
-            if (is.read(buffer) > 0) {
-                return new JSONArray(new String(buffer));
-            }
-        } finally {
-            if (is != null) {
-                is.close();
+    private void loadTestItems(final ArrayAdapter<SpinnerItem> itemAdapter) {
+
+        Intent intent = getIntent();
+        if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {
+            final Uri uri = intent.getData();
+
+            new AsyncTask<Void, Void, byte[]>() {
+                @Override
+                protected byte[] doInBackground(Void... params) {
+                    try {
+                        return Utils.downloadToFile(new URL(uri.toString()), new File(getFilesDir(), "last.dtglist.json"), 10000);
+                    } catch (IOException e) {
+                        return null;
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(byte[] bytes) {
+                    addTestItems(bytes, itemAdapter);
+                }
+            }.execute();
+        } else {
+            try {
+                InputStream inputStream = getResources().getAssets().open("items.json");
+                byte[] buffer = new byte[inputStream.available()];
+                if (inputStream.read(buffer) > 0) {
+                    addTestItems(buffer, itemAdapter);
+                }
+            } catch (IOException e) {
             }
         }
-        return null;
     }
 
+    private void addTestItems(byte[] buffer, ArrayAdapter<SpinnerItem> itemAdapter) {
+        
+        try {
+            JSONArray items = new JSONArray(new String(buffer));
+
+            for (int i=0, n=items.length(); i < n; i++) {
+                JSONObject jo = items.getJSONObject(i);
+                String id = jo.keys().next();
+                String url = jo.getString(id);
+                itemAdapter.add(new SpinnerItem(id, url));
+            }
+            
+        } catch (JSONException e) {
+            Log.e(TAG, "Error reading items.json, spinner will be empty", e);
+        }
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,34 +162,42 @@ public class MainActivity extends AppCompatActivity {
 
 
         final ContentManager contentManager = ContentManager.getInstance(this);
-        
+
+        final HashMap<String, Long> downloadStartTime = new HashMap<>();
+
+        contentManager.setMaxConcurrentDownloads(2);
+
         contentManager.addDownloadStateListener(new DownloadStateListener() {
             @Override
             public void onDownloadComplete(DownloadItem item) {
-                Log.d(TAG, "onDownloadComplete: " + item.getItemId() + "; " + item.getDownloadedSizeBytes()/1024);
+                long startTime = downloadStartTime.remove(item.getItemId());
+                long downloadTime = System.currentTimeMillis() - startTime;
+                Log.d(TAG, "onDownloadComplete: " + item.getItemId() + "; " + item.getDownloadedSizeBytes() / 1024 + "; " + downloadTime / 1000f);
+                uiLog("Downloaded " + item.getItemId() + " in " + downloadTime / 1000f + " seconds");
             }
 
             @Override
             public void onProgressChange(DownloadItem item, long downloadedBytes) {
                 long estimatedSizeBytes = item.getEstimatedSizeBytes();
                 long percent = estimatedSizeBytes > 0 ? 100 * downloadedBytes / estimatedSizeBytes : 0;
-                Log.d(TAG, "onProgressChange: " + item.getItemId() + "; " + percent + "; " + item.getDownloadedSizeBytes()/1024);
+                Log.d(TAG, "onProgressChange: " + item.getItemId() + "; " + percent + "; " + item.getDownloadedSizeBytes() / 1024);
             }
 
             @Override
             public void onDownloadStart(DownloadItem item) {
-                Log.d(TAG, "onDownloadStart: " + item.getItemId() + "; " + item.getDownloadedSizeBytes()/1024);
+                downloadStartTime.put(item.getItemId(), System.currentTimeMillis());
+                Log.d(TAG, "onDownloadStart: " + item.getItemId() + "; " + item.getDownloadedSizeBytes() / 1024);
                 uiLog(item);
             }
 
             @Override
             public void onDownloadPause(DownloadItem item) {
-                Log.d(TAG, "onDownloadPause: " + item.getItemId() + "; " + item.getDownloadedSizeBytes()/1024);
+                Log.d(TAG, "onDownloadPause: " + item.getItemId() + "; " + item.getDownloadedSizeBytes() / 1024);
             }
 
             @Override
-            public void onDownloadStop(DownloadItem item) {
-                Log.d(TAG, "onDownloadStop: " + item.getItemId() + "; " + item.getDownloadedSizeBytes()/1024);
+            public void onDownloadFailure(DownloadItem item, Exception error) {
+                uiLog("Download failed");
             }
 
             @Override
@@ -156,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
                 if (error == null) {
                     uiLog("Metadata for " + item.getItemId() + " is loaded");
                     uiLog(item);
-                    
+
                     // Pre-download interactive track selection
                     // Select second audio track, if there are at least 2.
                     DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
@@ -180,16 +229,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
-                
+
                 // Policy-based selection
                 // Select first and last audio
-                
+
                 List<DownloadItem.Track> audioTracks = trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO);
                 if (audioTracks.size() > 0) {
-                    List<DownloadItem.Track> selection = new ArrayList<DownloadItem.Track>();
+                    List<DownloadItem.Track> selection = new ArrayList<>();
                     selection.add(audioTracks.get(0));
                     if (audioTracks.size() > 1) {
-                        selection.add(audioTracks.get(audioTracks.size()-1));
+                        selection.add(audioTracks.get(audioTracks.size() - 1));
                     }
                     trackSelector.setSelectedTracks(DownloadItem.TrackType.AUDIO, selection);
                 }
@@ -201,8 +250,14 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        
-        contentManager.start();
+
+//        contentManager.setAutoResumeItemsInProgress(false);
+        contentManager.start(new ContentManager.OnStartedListener() {
+            @Override
+            public void onStarted() {
+                Log.d(TAG, "Service started");
+            }
+        });
 
         setButtonAction(R.id.totalStorageSize, new View.OnClickListener() {
             @Override
@@ -217,20 +272,7 @@ public class MainActivity extends AppCompatActivity {
         assert itemSpinner != null;
         itemSpinner.setAdapter(itemAdapter);
 
-        try {
-            JSONArray items;
-            items = getTestItems();
-            for (int i=0, n=items.length(); i < n; i++) {
-                JSONObject jo = items.getJSONObject(i);
-                String id = jo.keys().next();
-                String url = jo.getString(id);
-                itemAdapter.add(new SpinnerItem(id, url));
-            }
-        } catch (RuntimeException rte) {
-            throw rte;
-        } catch (Exception e) {
-            Log.e(TAG, "Error reading items.json, spinner will be empty", e);
-        }
+        loadTestItems(itemAdapter);
 
         setButtonAction(R.id.button_new_item, new View.OnClickListener() {
             @Override
@@ -246,15 +288,36 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        
+
         setButtonAction(R.id.button_load_info, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final DownloadItem item = contentManager.findItem(getSelectedItem().itemId);
+                if (item == null) {
+                    uiLog("Item not found");
+                } else {
+                    item.loadMetadata();
+                }
+            }
+        });
+        
+        setButtonAction(R.id.button_add_and_load, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // If item not found -- create. Then load metadata.
+                
+                SpinnerItem selectedItem = getSelectedItem();
+                
+                DownloadItem item = contentManager.findItem(selectedItem.itemId);
+                if (item == null) {
+                    // Add
+                    item = contentManager.createItem(selectedItem.itemId, selectedItem.url);
+                }
+
                 item.loadMetadata();
             }
         });
-
+        
         setButtonAction(R.id.button_show_existing, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -293,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
                 SpinnerItem spinner = getSelectedItem();
 
                 DownloadItem item = contentManager.findItem(spinner.itemId);
-                if (item!=null) {
+                if (item != null) {
                     item.pauseDownload();
                 }
             }
@@ -320,9 +383,9 @@ public class MainActivity extends AppCompatActivity {
                 SpinnerItem selected = getSelectedItem();
 
                 DownloadItem item = contentManager.findItem(selected.itemId);
-                
+
                 JSONObject td = getTestData();
-                
+
                 // As file
                 File appDataDir = contentManager.getAppDataDir(item.getItemId());
                 String result;
@@ -366,7 +429,7 @@ public class MainActivity extends AppCompatActivity {
                 uiLog(result);
             }
         });
-        
+
         setButtonAction(R.id.button_list_downloads_new, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -381,7 +444,7 @@ public class MainActivity extends AppCompatActivity {
                 List<DownloadItem> downloads = contentManager.getDownloads(DownloadState.IN_PROGRESS);
                 List<String> progress = new ArrayList<>(downloads.size());
                 for (DownloadItem downloadItem : downloads) {
-                    double percent = downloadItem.getDownloadedSizeBytes()*100f/downloadItem.getEstimatedSizeBytes();
+                    double percent = downloadItem.getDownloadedSizeBytes() * 100f / downloadItem.getEstimatedSizeBytes();
                     progress.add(String.format(Locale.ENGLISH, "<%s %.2f%%>", downloadItem.getItemId(), percent));
                 }
                 uiLog(progress);
@@ -394,7 +457,7 @@ public class MainActivity extends AppCompatActivity {
                 List<DownloadItem> downloads = contentManager.getDownloads(DownloadState.PAUSED);
                 List<String> progress = new ArrayList<>(downloads.size());
                 for (DownloadItem downloadItem : downloads) {
-                    double percent = downloadItem.getDownloadedSizeBytes()*100f/downloadItem.getEstimatedSizeBytes();
+                    double percent = downloadItem.getDownloadedSizeBytes() * 100f / downloadItem.getEstimatedSizeBytes();
                     progress.add(String.format(Locale.ENGLISH, "<%s %.2f%%>", downloadItem.getItemId(), percent));
                 }
                 uiLog(progress);
@@ -404,7 +467,15 @@ public class MainActivity extends AppCompatActivity {
         setButtonAction(R.id.button_list_downloads_done, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                List<DownloadItem> downloads = contentManager.getDownloads(DownloadState.NEW, DownloadState.COMPLETED);
+                List<DownloadItem> downloads = contentManager.getDownloads(DownloadState.COMPLETED);
+                uiLog(itemIdList(downloads));
+            }
+        });
+
+        setButtonAction(R.id.button_list_downloads_failed, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                List<DownloadItem> downloads = contentManager.getDownloads(DownloadState.FAILED);
                 uiLog(itemIdList(downloads));
             }
         });
@@ -417,7 +488,7 @@ public class MainActivity extends AppCompatActivity {
                 log.setText("");
             }
         });
-        
+
         setButtonAction(R.id.button_do_action, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -427,6 +498,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private void doCustomAction(String action) {
         String itemId = getSelectedItem().itemId;
@@ -452,7 +524,8 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_version) {
+            Toast.makeText(this, "Version " + BuildConfig.VERSION_NAME, Toast.LENGTH_LONG).show();
             return true;
         }
 
