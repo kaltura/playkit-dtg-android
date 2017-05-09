@@ -17,14 +17,15 @@ before_script:
   - echo $android_sdk_license > $ANDROID_HOME/licenses/android-sdk-license
 script:
   - ./gradlew dtglib:build dtgapp:build
-before_deploy:
-  - mv dtglib/build/intermediates/bundles/release/classes.jar dtglib-$TRAVIS_TAG.jar
+after_success:
+  - ./travis-push-to-bintray.sh
 deploy:
   provider: releases
   draft: false
   skip_cleanup: true
   file:
-    - dtglib-$TRAVIS_TAG.jar
+    - dtglib/build/outputs/aar/dtglib-release.aar
+    - dtgapp/build/outputs/apk/dtgapp-debug.apk
   on:
     tags: true
   api-key: $GH_TOKEN
