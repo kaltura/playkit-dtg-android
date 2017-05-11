@@ -1,6 +1,5 @@
 ---
 title: Download-to-Go for Android
-layout: post
 ---
 
 # Download-to-Go for Android
