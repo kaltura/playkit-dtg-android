@@ -7,7 +7,7 @@ Kaltura PlayKit DTG is an Android library that enables downloading MPEG-DASH and
 * Track selection for video/audio/captions
 * Widevine modular DRM
 
-Documentation: https://vpaas.kaltura.com/documentation/Mobile-Video-Player-SDKs/Android-DTG.html
+Documentation: https://kaltura.github.io/playkit-dtg-android/
 
 ## Setup
 
