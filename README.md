@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8078d788646d4a62b52c83e57b3bea45)](https://www.codacy.com/app/PlayKit/playkit-dtg-android?utm_source=github.com&utm_medium=referral&utm_content=kaltura/playkit-dtg-android&utm_campaign=badger)
 [![](https://jitpack.io/v/com.kaltura/playkit-dtg-android.svg)](https://jitpack.io/#com.kaltura/playkit-dtg-android) [![Travis](https://img.shields.io/travis/kaltura/playkit-dtg-android.svg)](https://travis-ci.org/kaltura/playkit-dtg-android)
 
 # PlayKit DTG - Download To Go
