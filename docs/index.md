@@ -21,9 +21,11 @@ Download to Go (DTG) is an Android library that facilitates the download of vide
 
 ## Project Setup  
 
+```java
 dependencies {
 	compile 'com.kaltura.dtg:dtglib:2.1.1'
 }
+```
 
 Replace `2.1.1` with the [latest release](https://github.com/kaltura/playkit-dtg-android/releases).
 
