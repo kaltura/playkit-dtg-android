@@ -3,7 +3,6 @@ package com.kaltura.dtg.clear;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.dtg.DownloadItem;
@@ -12,7 +11,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -29,7 +27,8 @@ class DashTrack implements DownloadItem.Track {
     private DownloadItem.TrackType type;
     private String language;
     private long bitrate;
-    
+    private int width;
+    private int height;
 
     DashTrack(DownloadItem.TrackType type, String language, long bitrate, int adaptationIndex, int representationIndex) {
         this.type = type;
@@ -136,11 +135,11 @@ class DashTrack implements DownloadItem.Track {
         return "a" + getAdaptationIndex() + "r" + getRepresentationIndex();
     }
 
-    public int getAdaptationIndex() {
+    int getAdaptationIndex() {
         return adaptationIndex;
     }
 
-    public int getRepresentationIndex() {
+    int getRepresentationIndex() {
         return representationIndex;
     }
 
@@ -148,17 +147,29 @@ class DashTrack implements DownloadItem.Track {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         DashTrack dashTrack = (DashTrack) o;
-        return adaptationIndex == dashTrack.adaptationIndex &&
-                representationIndex == dashTrack.representationIndex &&
-                bitrate == dashTrack.bitrate &&
-                type == dashTrack.type &&
-                TextUtils.equals(language, dashTrack.language);
+
+        if (adaptationIndex != dashTrack.adaptationIndex) return false;
+        if (representationIndex != dashTrack.representationIndex) return false;
+        if (bitrate != dashTrack.bitrate) return false;
+        if (width != dashTrack.width) return false;
+        if (height != dashTrack.height) return false;
+        if (type != dashTrack.type) return false;
+        return language.equals(dashTrack.language);
+
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{adaptationIndex, representationIndex, type, language, bitrate});
+        int result = adaptationIndex;
+        result = 31 * result + representationIndex;
+        result = 31 * result + type.hashCode();
+        result = 31 * result + language.hashCode();
+        result = 31 * result + (int) (bitrate ^ (bitrate >>> 32));
+        result = 31 * result + width;
+        result = 31 * result + height;
+        return result;
     }
 
     @Override
@@ -169,6 +180,25 @@ class DashTrack implements DownloadItem.Track {
                 ", type=" + type +
                 ", language='" + language + '\'' +
                 ", bitrate=" + bitrate +
+                ", resolution=" + width + "x" + height +
                 '}';
+    }
+
+    @Override
+    public int getHeight() {
+        return height;
+    }
+
+    @Override
+    public int getWidth() {
+        return width;
+    }
+
+    void setWidth(int width) {
+        this.width = width;
+    }
+
+    void setHeight(int height) {
+        this.height = height;
     }
 }

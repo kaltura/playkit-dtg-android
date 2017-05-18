@@ -47,14 +47,29 @@ public interface DownloadItem {
         Comparator<Track> bitrateComparator = new Comparator<DownloadItem.Track>() {
             @Override
             public int compare(DownloadItem.Track lhs, DownloadItem.Track rhs) {
-                return lhs.getBitrate() < rhs.getBitrate() ? -1 : (lhs.getBitrate() == rhs.getBitrate() ? 0 : 1);
+                return lhs.getBitrate() == rhs.getBitrate() ? 0 :
+                        lhs.getBitrate() < rhs.getBitrate() ? -1 : 1;
             }
         };
-    
+
+        Comparator<Track> heightComparator = new Comparator<DownloadItem.Track>() {
+            @Override
+            public int compare(DownloadItem.Track lhs, DownloadItem.Track rhs) {
+                return lhs.getHeight() == rhs.getHeight() ? 0 :
+                        lhs.getHeight() < rhs.getHeight() ? -1 : 1;
+            }
+        };
+
+
+
         TrackType getType();
     
         String getLanguage();
 
         long getBitrate();
+        
+        // Only applicable to VIDEO tracks.
+        int getWidth();
+        int getHeight();
     }
 }

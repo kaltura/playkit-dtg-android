@@ -2,6 +2,7 @@ package com.kaltura.dtg.clear;
 
 import android.util.Log;
 
+import com.kaltura.android.exoplayer.chunk.Format;
 import com.kaltura.android.exoplayer.dash.mpd.AdaptationSet;
 import com.kaltura.android.exoplayer.dash.mpd.Representation;
 import com.kaltura.dtg.DownloadItem;
@@ -130,7 +131,10 @@ class DashDownloadCreator extends DashDownloader {
                         break;
                 }
                 if (type != DownloadItem.TrackType.UNKNOWN) {
-                    DashTrack track = new DashTrack(type, representation.format.language, representation.format.bitrate, adaptationIndex, representationIndex);
+                    Format format = representation.format;
+                    DashTrack track = new DashTrack(type, format.language, format.bitrate, adaptationIndex, representationIndex);
+                    track.setHeight(format.height);
+                    track.setWidth(format.width);
                     availableTracks.get(type).add(track);
                 }
             }
