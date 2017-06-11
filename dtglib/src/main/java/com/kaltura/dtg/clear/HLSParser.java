@@ -1,7 +1,5 @@
 package com.kaltura.dtg.clear;
 
-import android.net.Uri;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -212,7 +210,7 @@ class HLSParser {
             String line = lines[i];
             line = line.trim();
             if (!line.isEmpty() && line.charAt(0) != '#') {
-                lines[i] = getHashedFileName(line);
+                lines[i] = Utils.getHashedFileName(line);
             }
             Log.d(TAG, String.format("rename in playlist: '%s' ==> '%s'", line, lines[i]));
         }
@@ -240,30 +238,15 @@ class HLSParser {
         for (HlsMediaPlaylist.Segment segment : segments) {
 
             URL segmentURL = new URL(variantURL, segment.url);
-            File segmentFile = new File(targetDirectory, getHashedFileName(segment.url));
+            File segmentFile = new File(targetDirectory, Utils.getHashedFileName(segment.url));
 
             Log.d(TAG, String.format("rename in file: '%s' ==> '%s' (%s ==> %s)",
-                    segmentURL, segmentFile, segment.url, getHashedFileName(segment.url)));
+                    segmentURL, segmentFile, segment.url, Utils.getHashedFileName(segment.url)));
 
             downloadTasks.add(new DownloadTask(segmentURL, segmentFile));
         }
 
         return new ArrayList<>(downloadTasks);
-    }
-
-    // Returns hex-encoded md5 of the input, appending the extension.
-    // "a.mp4" ==> "2a1f28800d49717bbf88dc2c704f4390.mp4"
-    public String getHashedFileName(String original) {
-        String ext = getFileExtension(original);
-        return Utils.md5Hex(original) + ext;
-    }
-
-    @NonNull
-    private String getFileExtension(String pathOrURL) {
-        // if it's a URL, get only the path. Uri does this correctly, even if the argument is a simple path.
-        String path = Uri.parse(pathOrURL).getPath();
-
-        return path.substring(path.lastIndexOf('.'));
     }
 
     public long getEstimatedSizeBytes() {

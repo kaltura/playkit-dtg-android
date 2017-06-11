@@ -1,5 +1,6 @@
 package com.kaltura.dtg;
 
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -224,5 +225,20 @@ public class Utils {
         bos.close();
         inputStream.close();
         return bos;
+    }
+
+    // Returns hex-encoded md5 of the input, appending the extension.
+    // "a.mp4" ==> "2a1f28800d49717bbf88dc2c704f4390.mp4"
+    public static String getHashedFileName(String original) {
+        String ext = getFileExtension(original);
+        return md5Hex(original) + ext;
+    }
+
+    @NonNull
+    private static String getFileExtension(String pathOrURL) {
+        // if it's a URL, get only the path. Uri does this correctly, even if the argument is a simple path.
+        String path = Uri.parse(pathOrURL).getPath();
+
+        return path.substring(path.lastIndexOf('.'));
     }
 }
