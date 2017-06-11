@@ -3,6 +3,7 @@ package com.kaltura.dtg.clear;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.dtg.DownloadItem;
@@ -156,16 +157,21 @@ class DashTrack implements DownloadItem.Track {
         if (width != dashTrack.width) return false;
         if (height != dashTrack.height) return false;
         if (type != dashTrack.type) return false;
-        return language.equals(dashTrack.language);
-
+        return TextUtils.equals(language, dashTrack.language);
     }
 
     @Override
     public int hashCode() {
         int result = adaptationIndex;
         result = 31 * result + representationIndex;
-        result = 31 * result + type.hashCode();
-        result = 31 * result + language.hashCode();
+        if (type != null) {
+            result = 31 * result + type.hashCode();
+        }
+        
+        if (language != null) {
+            result = 31 * result + language.hashCode();
+        }
+        
         result = 31 * result + (int) (bitrate ^ (bitrate >>> 32));
         result = 31 * result + width;
         result = 31 * result + height;
