@@ -136,6 +136,10 @@ public class ContentManagerImp extends ContentManager {
     public void start(final OnStartedListener onStartedListener) {
 
         if (started) {
+            //Call the onstarted callback even if it has already been started
+            if(onStartedListener != null){
+                onStartedListener.onStarted();
+            }
             return;
         }
 
