@@ -29,7 +29,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 public class DefaultDownloadService extends Service {
 
@@ -165,16 +164,9 @@ public class DefaultDownloadService extends Service {
      * It does this by allocating a new fixed size thread pool.
      * The way this library is currently constructed there should
      * never be any ongoing downloads when setMaxConcurrentDownloads are called.
-     * However, we do wait for any existing threads to terminate just in case.
      */
     public void setMaxConcurrentDownloads(int maxConcurrentDownloads) {
         this.maxConcurrentDownloads = maxConcurrentDownloads;
-        try {
-            //Wait for any existing threads to complete.
-            mExecutor.awaitTermination(1, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         mExecutor = Executors.newFixedThreadPool(maxConcurrentDownloads);
     }
 
