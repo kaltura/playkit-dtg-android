@@ -159,8 +159,15 @@ public class DefaultDownloadService extends Service {
         return super.onUnbind(intent);
     }
 
+    /**
+     * This method changes the number of threads that are used to download the chunks.
+     * It does this by allocating a new fixed size thread pool.
+     * The way this library is currently constructed there should
+     * never be any ongoing downloads when setMaxConcurrentDownloads are called.
+     */
     public void setMaxConcurrentDownloads(int maxConcurrentDownloads) {
         this.maxConcurrentDownloads = maxConcurrentDownloads;
+        mExecutor = Executors.newFixedThreadPool(maxConcurrentDownloads);
     }
 
     public void startListenerThread(){
