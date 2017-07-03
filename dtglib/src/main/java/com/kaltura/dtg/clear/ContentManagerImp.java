@@ -121,7 +121,7 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public void setMaxConcurrentDownloads(int maxConcurrentDownloads) {
-        if(started){
+        if (started){
             throw new IllegalStateException("Max concurrent downloads cannot be set after the Content manager has been started.");
         }
         this.maxConcurrentDownloads = maxConcurrentDownloads;
