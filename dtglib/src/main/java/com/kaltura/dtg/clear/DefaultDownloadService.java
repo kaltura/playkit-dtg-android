@@ -330,12 +330,12 @@ public class DefaultDownloadService extends Service {
 
         long length = Utils.httpHeadGetLength(url);
 
-        String fileName = Utils.getHashedFileName(url.getPath());
-        File targetFile = new File(itemDataDir, fileName);
+        String fileNameFullPath = Utils.getHashedFileName(url.getPath());
+        File targetFile = new File(itemDataDir, fileNameFullPath);
         DownloadTask downloadTask = new DownloadTask(url, targetFile);
 
         item.setEstimatedSizeBytes(length);
-        item.setPlaybackPath(fileName.substring(1));    // without the first slash
+        item.setPlaybackPath(fileNameFullPath);
 
         ArrayList<DownloadTask> downloadTasks = new ArrayList<>(1);
         downloadTasks.add(downloadTask);

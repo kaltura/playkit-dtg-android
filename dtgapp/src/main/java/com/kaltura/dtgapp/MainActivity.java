@@ -505,8 +505,13 @@ public class MainActivity extends AppCompatActivity {
         DownloadItem item = ContentManager.getInstance(this).findItem(itemId);
 
         DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
-        List<DownloadItem.Track> downloadedTracks = trackSelector.getDownloadedTracks(DownloadItem.TrackType.AUDIO);
-        Log.d(TAG, "downloadedTracks=" + downloadedTracks);
+        if (trackSelector != null) {
+            List<DownloadItem.Track> downloadedTracks = trackSelector.getDownloadedTracks(DownloadItem.TrackType.AUDIO);
+            Log.d(TAG, "downloadedTracks=" + downloadedTracks);
+        } else {
+            Log.w(TAG, "downloadedTracks not supported for item " + itemId);
+
+        }
     }
 
     @Override
