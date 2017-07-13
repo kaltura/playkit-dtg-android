@@ -129,6 +129,10 @@ public class ContentManagerImp extends ContentManager {
     
     @Override
     public void stop() {
+        if (provider == null) {
+            started = false;
+            return;
+        }
         provider.stop();
         provider = null;
         started = false;
