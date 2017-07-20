@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
         final HashMap<String, Long> downloadStartTime = new HashMap<>();
 
-        contentManager.setMaxConcurrentDownloads(2);
+        contentManager.setMaxConcurrentDownloads(8);
 
         contentManager.addDownloadStateListener(new DownloadStateListener() {
             @Override

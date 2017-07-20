@@ -3,6 +3,7 @@ package com.kaltura.dtg.clear;
 import android.app.Service;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -42,62 +43,74 @@ public class DefaultDownloadService extends Service {
     private ExecutorService mExecutor = Executors.newFixedThreadPool(maxConcurrentDownloads);
     private ItemFutureMap futureMap = new ItemFutureMap();
     private Handler listenerHandler = null;
+    
+    private Handler taskProgressHandler = null;
+    
     private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
 
         @Override
-        public void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes, final Exception stopError) {
-            String itemId = task.itemId;
-            final DefaultDownloadItem item = findItemImpl(itemId);
-            if (item == null) {
-                Log.e(TAG, "Can't find item by id: " + itemId + "; taskId: " + task.taskId);
-                return;
-            }
-            
-            int pendingCount = -1;
-            if (newState == DownloadTask.State.COMPLETED) {
-                database.markTaskAsComplete(task);
-                pendingCount = countPendingFiles(itemId, null);
-                Log.i(TAG, "Pending tasks for item: " + pendingCount);
-            }
-
-            if (newState == DownloadTask.State.ERROR) {
-                item.setState(DownloadState.FAILED);
-                database.updateItemState(itemId, DownloadState.FAILED);
-                futureMap.cancelItem(itemId);
-                listenerHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        downloadStateListener.onDownloadFailure(item, stopError);
-                    }
-                });
-                return;
-            }
-
-            final long totalBytes = item.incDownloadBytes(newBytes);
-            updateItemInfoInDB(item, Database.COL_ITEM_DOWNLOADED_SIZE);
-
-            if (pendingCount == 0) {
-                // We finished the last (or only) chunk of the item.
-                database.setDownloadFinishTime(itemId);
-
-                item.setState(DownloadState.COMPLETED);
-                database.updateItemState(item.getItemId(), DownloadState.COMPLETED);
-                listenerHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        downloadStateListener.onDownloadComplete(item);
-                    }
-                });
-            } else {
-                listenerHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        downloadStateListener.onProgressChange(item, totalBytes);
-                    }
-                });
-            }
+        public void onTaskProgress(final DownloadTask task, final DownloadTask.State newState, final int newBytes, final Exception stopError) {
+            taskProgressHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    DefaultDownloadService.this.onTaskProgress(task, newState, newBytes, stopError);
+                }
+            });
         }
     };
+    
+    private void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes, final Exception stopError) {
+        String itemId = task.itemId;
+        final DefaultDownloadItem item = findItemImpl(itemId);
+        if (item == null) {
+            Log.e(TAG, "Can't find item by id: " + itemId + "; taskId: " + task.taskId);
+            return;
+        }
+
+        int pendingCount = -1;
+        if (newState == DownloadTask.State.COMPLETED) {
+            database.markTaskAsComplete(task);
+            pendingCount = countPendingFiles(itemId, null);
+            Log.i(TAG, "Pending tasks for item: " + pendingCount);
+        }
+
+        if (newState == DownloadTask.State.ERROR) {
+            item.setState(DownloadState.FAILED);
+            database.updateItemState(itemId, DownloadState.FAILED);
+            futureMap.cancelItem(itemId);
+            listenerHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    downloadStateListener.onDownloadFailure(item, stopError);
+                }
+            });
+            return;
+        }
+
+        final long totalBytes = item.incDownloadBytes(newBytes);
+        updateItemInfoInDB(item, Database.COL_ITEM_DOWNLOADED_SIZE);
+
+        if (pendingCount == 0) {
+            // We finished the last (or only) chunk of the item.
+            database.setDownloadFinishTime(itemId);
+
+            item.setState(DownloadState.COMPLETED);
+            database.updateItemState(item.getItemId(), DownloadState.COMPLETED);
+            listenerHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    downloadStateListener.onDownloadComplete(item);
+                }
+            });
+        } else {
+            listenerHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    downloadStateListener.onProgressChange(item, totalBytes);
+                }
+            });
+        }
+    }
     
     private DownloadStateListener noopListener = new DownloadStateListener() {
         @Override
@@ -170,10 +183,16 @@ public class DefaultDownloadService extends Service {
         mExecutor = Executors.newFixedThreadPool(maxConcurrentDownloads);
     }
 
-    public void startListenerThread(){
+    private void startHandlerThreads() {
+        // HandlerThread for calling the listener
         HandlerThread listenerThread = new HandlerThread("DownloadStateListener");
         listenerThread.start();
         listenerHandler = new Handler(listenerThread.getLooper());
+
+        // HandlerThread for handling task progress updates
+        listenerThread = new HandlerThread("DownloadTaskListener");
+        listenerThread.start();
+        taskProgressHandler = new Handler(listenerThread.getLooper());
     }
 
     void pauseItemDownload(String itemId) {
@@ -227,7 +246,7 @@ public class DefaultDownloadService extends Service {
 
         database = new Database(dbFile, this);
 
-        startListenerThread();
+        startHandlerThreads();
         
         started = true;
     }
@@ -258,7 +277,7 @@ public class DefaultDownloadService extends Service {
     public void loadItemMetadata(final DefaultDownloadItem item) {
         assertStarted();
 
-        new Thread() {
+        AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -274,7 +293,7 @@ public class DefaultDownloadService extends Service {
                     downloadStateListener.onDownloadMetadata(item, e);
                 }
             }
-        }.start();
+        });
     }
 
     public File getItemDataDir(String itemId) {
