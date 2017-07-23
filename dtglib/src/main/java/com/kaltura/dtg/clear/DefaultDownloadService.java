@@ -19,6 +19,7 @@ import com.kaltura.dtg.Utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpRetryException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,6 +76,7 @@ public class DefaultDownloadService extends Service {
         }
 
         if (newState == DownloadTask.State.ERROR) {
+            Log.d(TAG, "Task has failed; cancelling item " + itemId);
             item.setState(DownloadState.FAILED);
             database.updateItemState(itemId, DownloadState.FAILED);
             futureMap.cancelItem(itemId);
@@ -86,7 +88,7 @@ public class DefaultDownloadService extends Service {
             });
             return;
         }
-
+        
         final long totalBytes = item.incDownloadBytes(newBytes);
         updateItemInfoInDB(item, Database.COL_ITEM_DOWNLOADED_SIZE);
 
@@ -616,7 +618,16 @@ public class DefaultDownloadService extends Service {
         Callable<Void> callable = new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                task.download();
+                while (true) {
+                    try {
+                        task.download();
+                        break;
+                    } catch (HttpRetryException e) {
+                        Log.d(TAG, "Task should be retried");
+                        Thread.sleep(2000);
+                        // continue
+                    }
+                }
                 return null;
             }
         };
