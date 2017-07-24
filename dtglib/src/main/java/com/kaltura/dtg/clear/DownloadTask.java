@@ -2,6 +2,7 @@ package com.kaltura.dtg.clear;
 
 import android.util.Log;
 
+import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.Utils;
 
 import java.io.File;
@@ -24,7 +25,6 @@ class DownloadTask {
     private static final int HTTP_READ_TIMEOUT_MS = 15000;
     private static final int HTTP_CONNECT_TIMEOUT_MS = 15000;
     private static final int PROGRESS_REPORT_COUNT = 20;
-    private static final int MAX_RETRIES = 5;
 
     // TODO: Hold url and targetFile as Strings, only convert to URL/File when used.
     final String taskId;
@@ -36,6 +36,7 @@ class DownloadTask {
     private Listener listener;  // this is the service
 
     private int retryCount = 0;
+    private ContentManager.Settings downloadSettings;
 
     DownloadTask(URL url, File targetFile) {
         this.url = url;
@@ -46,6 +47,8 @@ class DownloadTask {
     DownloadTask(String url, String targetFile) throws MalformedURLException {
         this(new URL(url), new File(targetFile));
     }
+    
+    
     
     @Override
     public String toString() {
@@ -110,8 +113,8 @@ class DownloadTask {
         int progressReportBytes = 0;
         try {
             conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(HTTP_READ_TIMEOUT_MS);
-            conn.setConnectTimeout(HTTP_CONNECT_TIMEOUT_MS);
+            conn.setReadTimeout(downloadSettings.httpTimeoutMillis);
+            conn.setConnectTimeout(downloadSettings.httpTimeoutMillis);
             conn.setDoInput(true);
 
             if (localFileSize > 0) {
@@ -161,7 +164,7 @@ class DownloadTask {
         } catch (SocketTimeoutException e) {
             // Not a fatal error -- consider retry.
             retryCount++;
-            if (retryCount < MAX_RETRIES) {
+            if (retryCount < downloadSettings.maxDownloadRetries) {
                 throw new HttpRetryException(e.getMessage(), 1, url.toExternalForm());
             }
             Log.d(TAG, "Task " + taskId + " failed", e);
@@ -222,6 +225,10 @@ class DownloadTask {
         code = 31 * code + (this.url == null ? 0 : this.url.hashCode());
         code = 31 * code + (this.targetFile == null ? 0 : this.targetFile.hashCode());
         return code;
+    }
+
+    void setDownloadSettings(ContentManager.Settings downloadSettings) {
+        this.downloadSettings = downloadSettings;
     }
 
     enum State {

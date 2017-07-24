@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
         final HashMap<String, Long> downloadStartTime = new HashMap<>();
 
-        contentManager.setMaxConcurrentDownloads(8);
+        contentManager.getSettings().maxConcurrentDownloads = 4;
 
         contentManager.addDownloadStateListener(new DownloadStateListener() {
             @Override
@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onDownloadFailure(DownloadItem item, Exception error) {
-                uiLog("Download failed");
+                uiLog("Download failed: " + error);
             }
 
             @Override
