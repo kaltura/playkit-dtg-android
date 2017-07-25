@@ -159,21 +159,21 @@ class Database {
     }
 
     private boolean doTransaction(Transaction transaction) {
+        if (database == null) {
+            return false;
+        }
+
         boolean success = false;
         try {
-            if (database != null) {
-                database.beginTransaction();
+            database.beginTransaction();
 
-                success = transaction.execute(database);
+            success = transaction.execute(database);
 
-                if (success) {
-                    database.setTransactionSuccessful();
-                }
+            if (success) {
+                database.setTransactionSuccessful();
             }
         } finally {
-            if (database != null) {
-                database.endTransaction();
-            }
+            database.endTransaction();
         }
         return success;
     }
@@ -217,19 +217,17 @@ class Database {
         try {
             cursor = db.query(TBL_DOWNLOAD_FILES, new String[]{COL_FILE_URL, COL_TARGET_FILE},
                     COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0", new String[]{itemId}, null, null, "ROWID");
-
-            if (cursor.moveToFirst()) {
-                do {
-                    String url = cursor.getString(0);
-                    String file = cursor.getString(1);
-                    try {
-                        DownloadTask task = new DownloadTask(url, file);
-                        task.itemId = itemId;
-                        downloadTasks.add(task);
-                    } catch (MalformedURLException e) {
-                        Log.w(TAG, "Malformed URL while reading downloads from db", e);
-                    }
-                } while (cursor.moveToNext());
+            
+            while (cursor.moveToNext()) {
+                String url = cursor.getString(0);
+                String file = cursor.getString(1);
+                try {
+                    DownloadTask task = new DownloadTask(url, file);
+                    task.itemId = itemId;
+                    downloadTasks.add(task);
+                } catch (MalformedURLException e) {
+                    Log.w(TAG, "Malformed URL while reading downloads from db", e);
+                }
             }
 
         } finally {
