@@ -183,7 +183,7 @@ class Database {
         helper.close();
     }
 
-    void addDownloadTasksToDB(final DownloadItem item, final List<DownloadTask> downloadTasks) {
+    synchronized void addDownloadTasksToDB(final DownloadItem item, final List<DownloadTask> downloadTasks) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -207,7 +207,7 @@ class Database {
         });
     }
 
-    ArrayList<DownloadTask> readPendingDownloadTasksFromDB(final String itemId) {
+    synchronized ArrayList<DownloadTask> readPendingDownloadTasksFromDB(final String itemId) {
 
         final ArrayList<DownloadTask> downloadTasks = new ArrayList<>();
 
@@ -237,7 +237,7 @@ class Database {
         return downloadTasks;
     }
 
-    void markTaskAsComplete(final DownloadTask downloadTask) {
+    synchronized void markTaskAsComplete(final DownloadTask downloadTask) {
         
         doTransaction(new Transaction() {
             @Override
@@ -253,7 +253,7 @@ class Database {
         });
     }
 
-    DefaultDownloadItem findItemInDB(String itemId) {
+    synchronized DefaultDownloadItem findItemInDB(String itemId) {
 
         SQLiteDatabase db = database;
         Cursor cursor = null;
@@ -275,7 +275,7 @@ class Database {
         return item;
     }
 
-    void addItemToDB(final DefaultDownloadItem item, final File itemDataDir) {
+    synchronized void addItemToDB(final DefaultDownloadItem item, final File itemDataDir) {
 
         doTransaction(new Transaction() {
             @Override
@@ -293,7 +293,7 @@ class Database {
         });
     }
 
-    void removeItemFromDB(final DefaultDownloadItem item) {
+    synchronized void removeItemFromDB(final DefaultDownloadItem item) {
 
         doTransaction(new Transaction() {
             @Override
@@ -308,7 +308,7 @@ class Database {
         });
     }
 
-    void updateItemState(final String itemId, final DownloadState itemState) {
+    synchronized void updateItemState(final String itemId, final DownloadState itemState) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -322,7 +322,7 @@ class Database {
         });
     }
 
-    void setDownloadFinishTime(final String itemId) {
+    synchronized void setDownloadFinishTime(final String itemId) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -336,7 +336,7 @@ class Database {
         });
     }
 
-    void setEstimatedSize(final String itemId, final long estimatedSizeBytes) {
+    synchronized void setEstimatedSize(final String itemId, final long estimatedSizeBytes) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -348,7 +348,7 @@ class Database {
         });
     }
 
-    void updateDownloadedFileSize(final String itemId, final long downloadedFileSize) {
+    synchronized void updateDownloadedFileSize(final String itemId, final long downloadedFileSize) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -370,7 +370,7 @@ class Database {
     }
 
     // If itemId is null, sum all items.
-    long getItemColumnLong(@Nullable String itemId, @NonNull String col) {
+    synchronized long getItemColumnLong(@Nullable String itemId, @NonNull String col) {
         SQLiteDatabase db = database;
         Cursor cursor = null;
         try {
@@ -388,7 +388,7 @@ class Database {
         }
     }
 
-    void updateItemInfo(final DefaultDownloadItem item, final String[] columns) {
+    synchronized void updateItemInfo(final DefaultDownloadItem item, final String[] columns) {
         if (columns==null || columns.length == 0) {
             throw new IllegalArgumentException("columns.length must be >0");
         }
@@ -433,7 +433,7 @@ class Database {
         });
     }
 
-    private DefaultDownloadItem readItem(Cursor cursor) {
+    synchronized private DefaultDownloadItem readItem(Cursor cursor) {
         String[] columns = cursor.getColumnNames();
 
         // the bare minimum: itemId and contentURL
@@ -472,8 +472,8 @@ class Database {
         }
         return item;
     }
-    
-    ArrayList<DefaultDownloadItem> readItemsFromDB(DownloadState[] states) {
+
+    synchronized ArrayList<DefaultDownloadItem> readItemsFromDB(DownloadState[] states) {
         // TODO: unify some code with findItem()
 
         String stateNames[] = new String[states.length];
@@ -505,8 +505,8 @@ class Database {
 
         return items;
     }
-    
-    int countPendingFiles(String itemId, @Nullable String trackId) {
+
+    synchronized int countPendingFiles(String itemId, @Nullable String trackId) {
 
         SQLiteDatabase db = database;
         Cursor cursor = null;
@@ -531,8 +531,8 @@ class Database {
 
         return count;
     }
-    
-    void addTracks(final DefaultDownloadItem item, final List<DashTrack> availableTracks, final List<DashTrack> selectedTracks) {
+
+    synchronized void addTracks(final DefaultDownloadItem item, final List<DashTrack> availableTracks, final List<DashTrack> selectedTracks) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -560,7 +560,7 @@ class Database {
         });
     }
     
-    List<DashTrack> readTracks(String itemId, DownloadItem.TrackType type, @Nullable DashDownloader.TrackState state) {
+    synchronized List<DashTrack> readTracks(String itemId, DownloadItem.TrackType type, @Nullable DashDownloader.TrackState state) {
         Cursor cursor = null;
         List<DashTrack> tracks = new ArrayList<>(10);
         try {
@@ -600,8 +600,8 @@ class Database {
         
         return tracks;
     }
-    
-    void updateTracksState(final String itemId, final List<DashTrack> tracks, final DashDownloader.TrackState newState) {
+
+    synchronized void updateTracksState(final String itemId, final List<DashTrack> tracks, final DashDownloader.TrackState newState) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
