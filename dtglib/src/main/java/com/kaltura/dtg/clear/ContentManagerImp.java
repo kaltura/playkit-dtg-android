@@ -5,7 +5,6 @@ import android.content.Context;
 import com.kaltura.dtg.AppBuildConfig;
 import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.DownloadProvider;
 import com.kaltura.dtg.DownloadState;
 import com.kaltura.dtg.DownloadStateListener;
 
@@ -78,10 +77,11 @@ public class ContentManagerImp extends ContentManager {
     
     private int maxConcurrentDownloads;
     private Context context;
-    private DownloadProvider provider;
+    private DefaultProviderProxy provider;
     private File itemsDir;
     private boolean started;
     private boolean autoResumeItemsInProgress = true;
+    private Settings settings = new Settings();
 
     private ContentManagerImp(Context context) {
         this.context = context.getApplicationContext();
@@ -118,14 +118,6 @@ public class ContentManagerImp extends ContentManager {
     public void removeDownloadStateListener(DownloadStateListener listener) {
         stateListeners.remove(listener);
     }
-
-    @Override
-    public void setMaxConcurrentDownloads(int maxConcurrentDownloads) {
-        if (started){
-            throw new IllegalStateException("Max concurrent downloads cannot be set after the Content manager has been started.");
-        }
-        this.maxConcurrentDownloads = maxConcurrentDownloads;
-    }
     
     @Override
     public void stop() {
@@ -149,8 +141,7 @@ public class ContentManagerImp extends ContentManager {
             return;
         }
 
-        provider = new DefaultProviderProxy(context);
-        provider.setMaxConcurrentDownloads(maxConcurrentDownloads);
+        provider = new DefaultProviderProxy(context, settings);
         provider.setDownloadStateListener(downloadStateRelay);
         provider.start(new OnStartedListener() {
                             @Override
@@ -246,6 +237,14 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public File getLocalFile(String itemId) {
         return provider.getLocalFile(itemId);
+    }
+
+    @Override
+    public Settings getSettings() {
+        if (started) {
+            throw new IllegalStateException("Settings cannot be changed after the Content manager has been started.");
+        }
+        return settings;
     }
 
     @Override

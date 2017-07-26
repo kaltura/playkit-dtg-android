@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.kaltura.android.exoplayer.hls.Variant;
+import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadState;
 import com.kaltura.dtg.DownloadStateListener;
@@ -19,6 +20,7 @@ import com.kaltura.dtg.Utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpRetryException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,17 +37,17 @@ public class DefaultDownloadService extends Service {
 
     private static final String TAG = "DefaultDownloadService";
     private LocalBinder localBinder = new LocalBinder();
-    private int maxConcurrentDownloads = 1;
     private Database database;
     private File downloadsDir;
     private boolean started;
     private DownloadStateListener downloadStateListener;
-    private ExecutorService mExecutor = Executors.newFixedThreadPool(maxConcurrentDownloads);
+    private ExecutorService mExecutor;
     private ItemFutureMap futureMap = new ItemFutureMap();
     private Handler listenerHandler = null;
     
     private Handler taskProgressHandler = null;
-    
+    private ContentManager.Settings settings;
+
     private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
 
         @Override
@@ -58,7 +60,7 @@ public class DefaultDownloadService extends Service {
             });
         }
     };
-    
+
     private void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes, final Exception stopError) {
         String itemId = task.itemId;
         final DefaultDownloadItem item = findItemImpl(itemId);
@@ -75,6 +77,7 @@ public class DefaultDownloadService extends Service {
         }
 
         if (newState == DownloadTask.State.ERROR) {
+            Log.d(TAG, "Task has failed; cancelling item " + itemId);
             item.setState(DownloadState.FAILED);
             database.updateItemState(itemId, DownloadState.FAILED);
             futureMap.cancelItem(itemId);
@@ -86,7 +89,7 @@ public class DefaultDownloadService extends Service {
             });
             return;
         }
-
+        
         final long totalBytes = item.incDownloadBytes(newBytes);
         updateItemInfoInDB(item, Database.COL_ITEM_DOWNLOADED_SIZE);
 
@@ -162,25 +165,12 @@ public class DefaultDownloadService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "*** onBind");
-        start();
         return localBinder;
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-        stop();
         return super.onUnbind(intent);
-    }
-
-    /**
-     * This method changes the number of threads that are used to download the chunks.
-     * It does this by allocating a new fixed size thread pool.
-     * The way this library is currently constructed there should
-     * never be any ongoing downloads when setMaxConcurrentDownloads are called.
-     */
-    public void setMaxConcurrentDownloads(int maxConcurrentDownloads) {
-        this.maxConcurrentDownloads = maxConcurrentDownloads;
-        mExecutor = Executors.newFixedThreadPool(maxConcurrentDownloads);
     }
 
     private void startHandlerThreads() {
@@ -247,7 +237,9 @@ public class DefaultDownloadService extends Service {
         database = new Database(dbFile, this);
 
         startHandlerThreads();
-        
+
+        mExecutor = Executors.newFixedThreadPool(settings.maxConcurrentDownloads);
+
         started = true;
     }
 
@@ -613,10 +605,20 @@ public class DefaultDownloadService extends Service {
 
     private FutureTask futureTask(final String itemId, final DownloadTask task) {
         task.setListener(mDownloadTaskListener);
+        task.setDownloadSettings(settings);
         Callable<Void> callable = new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                task.download();
+                while (true) {
+                    try {
+                        task.download();
+                        break;
+                    } catch (HttpRetryException e) {
+                        Log.d(TAG, "Task should be retried");
+                        Thread.sleep(2000);
+                        // continue
+                    }
+                }
                 return null;
             }
         };
@@ -626,6 +628,18 @@ public class DefaultDownloadService extends Service {
                 futureMap.remove(itemId, this);
             }
         };
+    }
+
+    public void setDownloadSettings(ContentManager.Settings downloadSettings) {
+        if (started) {
+            throw new IllegalStateException("Can't change settings after start");
+        }
+        
+        // Copy fields.
+        this.settings = new ContentManager.Settings();
+        this.settings.httpTimeoutMillis = downloadSettings.httpTimeoutMillis;
+        this.settings.maxDownloadRetries = downloadSettings.maxDownloadRetries;
+        this.settings.maxConcurrentDownloads = downloadSettings.maxConcurrentDownloads;
     }
 
     class LocalBinder extends Binder {

@@ -28,13 +28,6 @@ public abstract class ContentManager {
     public abstract void removeDownloadStateListener(DownloadStateListener listener);
 
     /**
-     * Set the maximum number of concurrent downloads. Must be called before {@link #start(OnStartedListener)}
-     * and cannot be changed after that.
-     * @param maxConcurrentDownloads
-     */
-    public abstract void setMaxConcurrentDownloads(int maxConcurrentDownloads);
-
-    /**
      * Auto start items marked as {@link DownloadState#IN_PROGRESS}. Default is true.
      * This setter only has effect if called before {@link #start(OnStartedListener)}.
      * @param autoStartItemsInProgress
@@ -124,5 +117,13 @@ public abstract class ContentManager {
 
     public interface OnStartedListener {
         void onStarted();
+    }
+    
+    public abstract Settings getSettings();
+    
+    public static class Settings {
+        public int maxDownloadRetries = 5;
+        public int httpTimeoutMillis = 15000;
+        public int maxConcurrentDownloads = 4;
     }
 }

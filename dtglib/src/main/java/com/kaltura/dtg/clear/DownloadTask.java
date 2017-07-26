@@ -2,6 +2,7 @@ package com.kaltura.dtg.clear;
 
 import android.util.Log;
 
+import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.Utils;
 
 import java.io.File;
@@ -10,8 +11,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.net.HttpRetryException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 
 /**
@@ -19,8 +22,8 @@ import java.net.URL;
  */
 class DownloadTask {
     static final String TAG = "DownloadTask";
-    private static final int HTTP_READ_TIMEOUT_MS = 5000;
-    private static final int HTTP_CONNECT_TIMEOUT_MS = 5000;
+    private static final int HTTP_READ_TIMEOUT_MS = 15000;
+    private static final int HTTP_CONNECT_TIMEOUT_MS = 15000;
     private static final int PROGRESS_REPORT_COUNT = 20;
 
     // TODO: Hold url and targetFile as Strings, only convert to URL/File when used.
@@ -32,6 +35,8 @@ class DownloadTask {
 
     private Listener listener;  // this is the service
 
+    private int retryCount = 0;
+    private ContentManager.Settings downloadSettings;
 
     DownloadTask(URL url, File targetFile) {
         this.url = url;
@@ -43,6 +48,8 @@ class DownloadTask {
         this(new URL(url), new File(targetFile));
     }
     
+    
+    
     @Override
     public String toString() {
         return "<DownloadTask id='" + taskId + "' url='" + url + "' target='" + targetFile + "'>";
@@ -53,7 +60,7 @@ class DownloadTask {
         return parent.mkdirs() || parent.isDirectory();
     }
     
-    void download() {
+    void download() throws HttpRetryException {
         
         URL url = this.url;
         File targetFile = this.targetFile;
@@ -106,8 +113,8 @@ class DownloadTask {
         int progressReportBytes = 0;
         try {
             conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(HTTP_READ_TIMEOUT_MS);
-            conn.setConnectTimeout(HTTP_CONNECT_TIMEOUT_MS);
+            conn.setReadTimeout(downloadSettings.httpTimeoutMillis);
+            conn.setConnectTimeout(downloadSettings.httpTimeoutMillis);
             conn.setDoInput(true);
 
             if (localFileSize > 0) {
@@ -146,13 +153,23 @@ class DownloadTask {
 
                 if (progressReportBytes > 0 && progressReportCounter >= PROGRESS_REPORT_COUNT) {
                     Log.v(TAG, "progressReportBytes:" + progressReportBytes + "; progressReportCounter:" + progressReportCounter);
-                    reportProgress(State.IN_PROGRESS, progressReportBytes, stopError);
+                    reportProgress(State.IN_PROGRESS, progressReportBytes, null);
                     progressReportBytes = 0;
                     progressReportCounter = 0;
                 }
             }
 
             stopReason = State.COMPLETED;
+
+        } catch (SocketTimeoutException e) {
+            // Not a fatal error -- consider retry.
+            retryCount++;
+            if (retryCount < downloadSettings.maxDownloadRetries) {
+                throw new HttpRetryException(e.getMessage(), 1, url.toExternalForm());
+            }
+            Log.d(TAG, "Task " + taskId + " failed", e);
+            stopReason = State.ERROR;
+            stopError = e;
 
         } catch (InterruptedIOException e) {
             // Not an error -- task is cancelled.
@@ -181,7 +198,7 @@ class DownloadTask {
     }
 
     private void reportProgress(final State state, final int newBytes, Exception stopError) {
-        Log.d(TAG, "progress: " + state + ", " + newBytes);
+        Log.d(TAG, "progress: " + this.taskId + ", " + state + ", " + newBytes + ", " + stopError);
         listener.onTaskProgress(this, state, newBytes, stopError);
     }
 
@@ -210,12 +227,12 @@ class DownloadTask {
         return code;
     }
 
+    void setDownloadSettings(ContentManager.Settings downloadSettings) {
+        this.downloadSettings = downloadSettings;
+    }
+
     enum State {
         IDLE, STARTED, IN_PROGRESS, COMPLETED, STOPPED, ERROR;
-        private final static State[] values = values();
-        static State fromOrdinal(int ordinal) {
-            return values[ordinal];
-        }
     }
 
     interface Listener {
