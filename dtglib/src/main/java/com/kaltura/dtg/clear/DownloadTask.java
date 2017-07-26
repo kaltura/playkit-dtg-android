@@ -22,6 +22,8 @@ import java.net.URL;
  */
 class DownloadTask {
     static final String TAG = "DownloadTask";
+    private static final int HTTP_READ_TIMEOUT_MS = 15000;
+    private static final int HTTP_CONNECT_TIMEOUT_MS = 15000;
     private static final int PROGRESS_REPORT_COUNT = 20;
 
     // TODO: Hold url and targetFile as Strings, only convert to URL/File when used.
