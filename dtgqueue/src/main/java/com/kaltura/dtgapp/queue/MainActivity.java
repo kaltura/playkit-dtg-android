@@ -56,13 +56,19 @@ class ItemLoader {
 
         for (int i = 0; i < entries.length; i++) {
             items.add(null);
-            String entryId = entries[i];
+            final String entryId = entries[i];
             final int index = i;
             new KalturaOvpMediaProvider().setSessionProvider(sessionProvider).setEntryId(entryId).load(new OnMediaLoadCompletion() {
                 @Override
                 public void onComplete(ResultElement<PKMediaEntry> response) {
-                    PKMediaSource source = findFirstDash(response.getResponse().getSources());
-                    items.set(index, new Item(source));
+                    PKMediaEntry mediaEntry = response.getResponse();
+                    if (mediaEntry != null) {
+                        PKMediaSource source = findFirstDash(mediaEntry.getSources());
+                        Item item = new Item(source, mediaEntry.getName());
+                        items.set(index, item);
+                    } else {
+                        Log.d("LOAD", entryId);
+                    }
                 }
             });
 
@@ -81,7 +87,8 @@ class ItemLoader {
         
         // TODO: fill the list with Items -- each item has a single PKMediaSource with relevant DRM data.
         // Using OVP provider for simplicity
-        items.addAll(loadOVPItems(2222401, "1_q81a5nbp"));
+        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "1_utjroirc", "1_b8ppdt98", "0_3cb7ganx", "1_f93tepsn", 
+                "1_m1vpaory", "1_i18rihuv", "1_cwdmd8il"));
         
         // For simple cases (no DRM), no need for MediaSource.
         items.add(new Item("sintel-short-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_9bwuo813/format/mpegdash/protocol/http/a.mpd"));
@@ -94,19 +101,22 @@ class ItemLoader {
 
 class Item {
     private final PKMediaSource mediaSource;
-    
+    private final String name;
+
     DownloadState downloadState;
     boolean drmRegistered;
 
     Item(String id, String url) {
         this.mediaSource = new PKMediaSource().setId(id).setUrl(url);
+        this.name = id;
     }
     
-    Item(PKMediaSource mediaSource) {
+    Item(PKMediaSource mediaSource, String name) {
         this.mediaSource = mediaSource;
+        this.name = name;
     }
 
-    public boolean isDrmRegistered() {
+    boolean isDrmRegistered() {
         return drmRegistered;
     }
     
@@ -116,14 +126,14 @@ class Item {
 
     @Override
     public String toString() {
-        String drmState = null;
+        String drmState ;
         if (isDrmProtected()) {
             drmState = isDrmRegistered() ? "registered" : "unregistered";
         } else {
             drmState = "clear";
         }
         
-        return getId() + " | " + downloadState + " | " + drmState;
+        return getId() + " -- " + name + " -- " + downloadState + " -- " + drmState;
     }
 
     String getId() {
@@ -186,6 +196,7 @@ public class MainActivity extends ListActivity {
 
         }
     };
+    private Player player;
 
     private void itemStateChanged(DownloadItem downloadItem) {
         Item item = itemMap.get(downloadItem.getItemId());
@@ -269,6 +280,16 @@ public class MainActivity extends ListActivity {
         });
         
         localAssetsManager = new LocalAssetsManager(context);
+        
+        findViewById(R.id.stop_player).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (player != null) {
+                    ((ViewGroup) findViewById(R.id.player_root)).removeAllViews();
+                    player.destroy();
+                }
+            }
+        });
     }
 
     void addAndLoad(Item item) {
@@ -356,7 +377,7 @@ public class MainActivity extends ListActivity {
         PKMediaEntry entry = new PKMediaEntry().setId(itemId).setMediaType(PKMediaEntry.MediaEntryType.Vod).setSources(Collections.singletonList(localMediaSource));
 
 
-        Player player = PlayKitManager.loadPlayer(this, null);
+        player = PlayKitManager.loadPlayer(this, null);
         
         
         player.prepare(new PKMediaConfig().setMediaEntry(entry));
@@ -371,8 +392,10 @@ public class MainActivity extends ListActivity {
 
         List<Item> items = ItemLoader.loadItems();
         itemAdapter.addAll(items);
-        for (Item item : items) {
-            itemMap.put(item.getId(), item);
+        for (final Item item : items) {
+            if (item != null) {
+                itemMap.put(item.getId(), item);
+            }
         }
     }
 }
