@@ -2,15 +2,14 @@ package com.kaltura.dtg.clear;
 
 import android.text.TextUtils;
 import android.util.Log;
-
 import com.kaltura.android.exoplayer.hls.HlsMasterPlaylist;
 import com.kaltura.android.exoplayer.hls.HlsMediaPlaylist;
+import com.kaltura.android.exoplayer.hls.HlsMediaPlaylist.Segment;
 import com.kaltura.android.exoplayer.hls.HlsPlaylist;
 import com.kaltura.android.exoplayer.hls.HlsPlaylistParser;
 import com.kaltura.android.exoplayer.hls.Variant;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.Utils;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -212,6 +211,9 @@ class HLSParser {
             if (!line.isEmpty() && line.charAt(0) != '#') {
                 lines[i] = Utils.getHashedFileName(line);
             }
+            if(sPlaylistParser.containsEncryptionKey(line)) {
+                lines[i] = replaceRemoteEncryptionKeyWithLocal(line);
+            }
             Log.d(TAG, String.format("rename in playlist: '%s' ==> '%s'", line, lines[i]));
         }
         String modifiedData = TextUtils.join("\n", lines);
@@ -232,7 +234,7 @@ class HLSParser {
         // create download tasks for all chunks.
         List<HlsMediaPlaylist.Segment> segments = mediaPlaylist.segments;
         // Using LinkedHashSet (which is an Ordered Set) to prevent duplicates.
-        // TODO: be smarter about duplicates. 
+        // TODO: be smarter about duplicates.
         LinkedHashSet<DownloadTask> downloadTasks = new LinkedHashSet<>(segments.size());
 
         for (HlsMediaPlaylist.Segment segment : segments) {
@@ -244,6 +246,10 @@ class HLSParser {
                     segmentURL, segmentFile, segment.url, Utils.getHashedFileName(segment.url)));
 
             downloadTasks.add(new DownloadTask(segmentURL, segmentFile));
+
+            if(segment.isEncrypted) {
+                downloadTasks.add(createEncryptionKeyDownloadTask(segment));
+            }
         }
 
         return new ArrayList<>(downloadTasks);
@@ -255,6 +261,42 @@ class HLSParser {
 
     public String getPlaybackPath() {
         return FILTERED_MASTER_M3U8;
+    }
+
+    /**
+     * Modifies encryption remote url to an local one that will be loaded in createDownloadTasks()
+     * @param encryptionKeyLine
+     * @return
+     */
+    private String replaceRemoteEncryptionKeyWithLocal(String encryptionKeyLine) {
+        try {
+            String encryptionUri = sPlaylistParser.extractUriAttribute(encryptionKeyLine);
+            String encryptionKeyFileName = createEncryptionKeyFileName(encryptionUri);
+            return encryptionKeyLine.replace(encryptionUri, encryptionKeyFileName);
+        } catch (Exception e) {
+            return encryptionKeyLine;
+        }
+    }
+
+    /**
+     * @param segment
+     * @return DownloadTask for the remote encryption file. File name matches with the one stored
+     * in replaceRemoteEncryptionKeyWithLocal() method and the variant.m3u8 file
+     * @throws MalformedURLException
+     */
+    private DownloadTask createEncryptionKeyDownloadTask(Segment segment) throws MalformedURLException  {
+        String encryptionKeyFileName = createEncryptionKeyFileName(segment.encryptionKeyUri);
+        File encryptionKeyFile = new File(targetDirectory, encryptionKeyFileName);
+        URL encryptionKeyURL = new URL(segment.encryptionKeyUri);
+        return new DownloadTask(encryptionKeyURL, encryptionKeyFile);
+    }
+
+    /**
+     * @param encryptionKeyUri
+     * @return Encrypted filename for AES-128 key file that should replace the remote key URI
+     */
+    private String createEncryptionKeyFileName(String encryptionKeyUri) {
+        return Utils.getHashedFileName(encryptionKeyUri);
     }
 
     static class DownloadedPlaylist {
