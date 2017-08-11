@@ -1,6 +1,7 @@
 package com.kaltura.dtg.clear;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.kaltura.dtg.AppBuildConfig;
 import com.kaltura.dtg.ContentManager;
@@ -167,6 +168,10 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public void pauseDownloads() {
+        if (provider == null) {
+            return;
+        }
+
         List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
         for (DownloadItem item : downloads) {
             provider.pauseDownload(item);
@@ -175,6 +180,10 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public void resumeDownloads() {
+        if (provider == null) {
+            return;
+        }
+
         List<DownloadItem> downloads = getDownloads(DownloadState.PAUSED);
         for (DownloadItem item : downloads) {
             provider.resumeDownload(item);
@@ -183,27 +192,48 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public DownloadItem findItem(String itemId) {
+        if (provider == null || itemId == null) {
+            return null;
+        }
         return provider.findItem(itemId);
     }
 
     @Override
     public long getDownloadedItemSize(String itemId) {
+        if (provider == null) {
+            return 0L;
+        }
+
         return provider.getDownloadedItemSize(itemId);
     }
 
     @Override
     public long getEstimatedItemSize(String itemId) {
+        if (provider == null || TextUtils.isEmpty(itemId)) {
+            return 0L;
+        }
         return provider.getEstimatedItemSize(itemId);
     }
 
     @Override
     public DownloadItem createItem(String itemId, String contentURL) {
+        if (provider == null || TextUtils.isEmpty(itemId)) {
+            return null;
+        }
+
         return provider.createItem(itemId, contentURL);
     }
 
     @Override
     public void removeItem(String itemId) {
+        if (provider == null || TextUtils.isEmpty(itemId)) {
+            return;
+        }
+
         DownloadItem item = findItem(itemId);
+        if (item == null) {
+            return;
+        }
         // TODO: can the lower-level methods use itemId and not item?
         provider.removeItem(item);
     }
@@ -231,11 +261,18 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public String getPlaybackURL(String itemId) {
+        if (provider == null || TextUtils.isEmpty(itemId)) {
+            return null;
+        }
+
         return provider.getPlaybackURL(itemId);
     }
 
     @Override
     public File getLocalFile(String itemId) {
+        if (provider == null || TextUtils.isEmpty(itemId)) {
+            return null;
+        }
         return provider.getLocalFile(itemId);
     }
 
