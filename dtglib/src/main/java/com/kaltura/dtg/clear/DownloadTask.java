@@ -165,17 +165,17 @@ class DownloadTask {
             if (retryCount < downloadSettings.maxDownloadRetries) {
                 throw new HttpRetryException(e.getMessage(), 1, url.toExternalForm());
             }
-            Log.d(TAG, "Task " + taskId + " failed", e);
+//            Log.d(TAG, "Task " + taskId + " failed", e);
             stopReason = State.ERROR;
             stopError = e;
 
         } catch (InterruptedIOException e) {
             // Not an error -- task is cancelled.
-            Log.d(TAG, "Task " + taskId + " interrupted");
+//            Log.d(TAG, "Task " + taskId + " interrupted");
             stopReason = State.STOPPED;
 
         } catch (IOException e) {
-            Log.d(TAG, "Task " + taskId + " failed", e);
+//            Log.d(TAG, "Task " + taskId + " failed", e);
             stopReason = State.ERROR;
             stopError = e;
 
