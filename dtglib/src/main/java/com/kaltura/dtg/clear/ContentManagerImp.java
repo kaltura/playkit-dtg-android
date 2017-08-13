@@ -2,6 +2,7 @@ package com.kaltura.dtg.clear;
 
 import android.content.Context;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.kaltura.dtg.AppBuildConfig;
 import com.kaltura.dtg.ContentManager;
@@ -16,9 +17,8 @@ import java.util.HashSet;
 import java.util.List;
 
 
-
 public class ContentManagerImp extends ContentManager {
-
+    private static final String TAG = "ContentManagerImp";
 
     private static ContentManager sInstance;
     private final HashSet<DownloadStateListener> stateListeners = new HashSet<>(1);
@@ -133,8 +133,8 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public void start(final OnStartedListener onStartedListener) {
-
-        if (started) {
+        Log.d(TAG, "start Content Manager");
+        if (provider != null) {
             // Call the onstarted callback even if it has already been started
             if (onStartedListener != null) {
                 onStartedListener.onStarted();
@@ -147,10 +147,10 @@ public class ContentManagerImp extends ContentManager {
         provider.start(new OnStartedListener() {
                             @Override
                             public void onStarted() {
-                                
+                                started = true;
                                 if (autoResumeItemsInProgress) {
                                     // Resume all downloads that were in progress on stop.
-                                    List < DownloadItem > downloads = getDownloads(DownloadState.IN_PROGRESS);
+                                    List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
                                     for (DownloadItem download : downloads) {
                                         download.startDownload();
                                     }
@@ -161,13 +161,11 @@ public class ContentManagerImp extends ContentManager {
                                 }
                             }
                         });
-
-
-        started = true;
     }
 
     @Override
     public void pauseDownloads() {
+        checkIfManagerStarted();
         if (provider == null) {
             return;
         }
@@ -180,6 +178,7 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public void resumeDownloads() {
+        checkIfManagerStarted();
         if (provider == null) {
             return;
         }
@@ -192,7 +191,8 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public DownloadItem findItem(String itemId) {
-        if (provider == null || TextUtils.isEmpty(itemId)) {
+        checkIfManagerStarted();
+        if (!isProviderOperationValid(itemId)) {
             return null;
         }
         return provider.findItem(itemId);
@@ -200,6 +200,7 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public long getDownloadedItemSize(String itemId) {
+        checkIfManagerStarted();
         if (provider == null) {
             return 0L;
         }
@@ -209,7 +210,8 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public long getEstimatedItemSize(String itemId) {
-        if (provider == null || TextUtils.isEmpty(itemId)) {
+        checkIfManagerStarted();
+        if (!isProviderOperationValid(itemId)) {
             return 0L;
         }
         return provider.getEstimatedItemSize(itemId);
@@ -217,7 +219,8 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public DownloadItem createItem(String itemId, String contentURL) {
-        if (provider == null || TextUtils.isEmpty(itemId)) {
+        checkIfManagerStarted();
+        if (!isProviderOperationValid(itemId)) {
             return null;
         }
 
@@ -226,7 +229,8 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public void removeItem(String itemId) {
-        if (provider == null || TextUtils.isEmpty(itemId)) {
+        checkIfManagerStarted();
+        if (!isProviderOperationValid(itemId)) {
             return;
         }
 
@@ -253,6 +257,7 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public List<DownloadItem> getDownloads(DownloadState... states) {
+        checkIfManagerStarted();
         if (provider == null) {
             return Collections.emptyList();
         }
@@ -261,19 +266,36 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public String getPlaybackURL(String itemId) {
-        if (provider == null || TextUtils.isEmpty(itemId)) {
+        checkIfManagerStarted();
+        if (!isProviderOperationValid(itemId)) {
             return null;
         }
 
         return provider.getPlaybackURL(itemId);
     }
 
+    private boolean isProviderOperationValid(String itemId) {
+        if (provider == null || TextUtils.isEmpty(itemId)) {
+            Log.e(TAG, "isProviderOperationValid = false");
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public File getLocalFile(String itemId) {
+        checkIfManagerStarted();
         if (provider == null || TextUtils.isEmpty(itemId)) {
+            Log.d(TAG, "getLocalFile ");
             return null;
         }
         return provider.getLocalFile(itemId);
+    }
+
+    private void checkIfManagerStarted() {
+        if (!started) {
+            throw new IllegalStateException("Manager was not started.");
+        }
     }
 
     @Override
