@@ -192,7 +192,7 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public DownloadItem findItem(String itemId) {
-        if (provider == null || itemId == null) {
+        if (provider == null || TextUtils.isEmpty(itemId)) {
             return null;
         }
         return provider.findItem(itemId);
