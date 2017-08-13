@@ -337,7 +337,7 @@ public class DefaultDownloadService extends Service {
         item.setEstimatedSizeBytes(estimatedDownloadSize);
 
         LinkedHashSet<DownloadTask> downloadTasks = dashDownloader.getDownloadTasks();
-        Log.d(TAG, "tasks:" + downloadTasks);
+        //Log.d(TAG, "tasks:" + downloadTasks);
 
         item.setPlaybackPath(dashDownloader.getPlaybackPath());
 
