@@ -24,9 +24,11 @@ import java.net.HttpRetryException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -47,6 +49,8 @@ public class DefaultDownloadService extends Service {
     
     private Handler taskProgressHandler = null;
     private ContentManager.Settings settings;
+    
+    private Set<String> removedItems = new HashSet<>();
 
     private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
 
@@ -63,6 +67,12 @@ public class DefaultDownloadService extends Service {
 
     private void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes, final Exception stopError) {
         String itemId = task.itemId;
+        
+        if (removedItems.contains(itemId)) {
+            // Ignore this report.
+            return;
+        }
+        
         final DefaultDownloadItem item = findItemImpl(itemId);
         if (item == null) {
             Log.e(TAG, "Can't find item by id: " + itemId + "; taskId: " + task.taskId);
@@ -268,7 +278,7 @@ public class DefaultDownloadService extends Service {
 
     public void loadItemMetadata(final DefaultDownloadItem item) {
         assertStarted();
-
+        
         AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
@@ -337,7 +347,7 @@ public class DefaultDownloadService extends Service {
         item.setEstimatedSizeBytes(estimatedDownloadSize);
 
         LinkedHashSet<DownloadTask> downloadTasks = dashDownloader.getDownloadTasks();
-        Log.d(TAG, "tasks:" + downloadTasks);
+        //Log.d(TAG, "tasks:" + downloadTasks);
 
         item.setPlaybackPath(dashDownloader.getPlaybackPath());
 
@@ -464,7 +474,16 @@ public class DefaultDownloadService extends Service {
         if (item == null) {
             return;
         }
+
+        
         pauseDownload(item);
+        
+        // pauseDownload takes time to interrupt all downloads, and the downloads report their
+        // progress. Keep a list of the items that were removed in this session and ignore their
+        // progress.
+        removedItems.add(item.getItemId());
+        
+        
         deleteItemFiles(item.getItemId());
         database.removeItemFromDB(item);
     }
@@ -506,6 +525,10 @@ public class DefaultDownloadService extends Service {
 
     public DefaultDownloadItem createItem(String itemId, String contentURL) {
         assertStarted();
+        
+        // if this item was just removed, unmark it as removed.
+        removedItems.remove(itemId);
+        
 
         DefaultDownloadItem item = findItemImpl(itemId);
         // If item already exists, return null.

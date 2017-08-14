@@ -196,7 +196,7 @@ class Database {
                     try {
                         long rowid = db.insertWithOnConflict(TBL_DOWNLOAD_FILES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
                         if (rowid <= 0) {
-                            Log.d(TAG, "Warning: task not added:" + task.targetFile);
+//                            Log.d(TAG, "Warning: task not added:" + task.targetFile);
                         }
                     } catch (SQLException e) {
                         Log.e(TAG, "Failed to INSERT task: " + task.targetFile, e);

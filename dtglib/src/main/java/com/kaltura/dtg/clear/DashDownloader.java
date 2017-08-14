@@ -80,9 +80,9 @@ abstract class DashDownloader {
             createDownloadTasks(representation, track);
         }
 
-        if (AppBuildConfig.DEBUG) {
-            Log.d(TAG, "download tasks: " + downloadTasks);
-        }
+        //if (AppBuildConfig.DEBUG) {
+        //    Log.d(TAG, "download tasks: " + downloadTasks);
+        //}
     }
 
     private void createDownloadTasks(Representation representation, @NonNull DashTrack dashTrack) throws MalformedURLException {
