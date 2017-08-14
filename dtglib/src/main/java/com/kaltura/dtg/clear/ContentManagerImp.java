@@ -12,7 +12,6 @@ import com.kaltura.dtg.DownloadStateListener;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -164,10 +163,10 @@ public class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public void pauseDownloads() {
+    public void pauseDownloads() throws IllegalStateException {
         checkIfManagerStarted();
         if (provider == null) {
-            return;
+            throw new IllegalStateException("Provider Operation Not Valid");
         }
 
         List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
@@ -177,10 +176,10 @@ public class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public void resumeDownloads() {
+    public void resumeDownloads() throws IllegalStateException {
         checkIfManagerStarted();
         if (provider == null) {
-            return;
+            throw new IllegalStateException("Provider Operation Not Valid");
         }
 
         List<DownloadItem> downloads = getDownloads(DownloadState.PAUSED);
@@ -190,48 +189,48 @@ public class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public DownloadItem findItem(String itemId) {
+    public DownloadItem findItem(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
         if (!isProviderOperationValid(itemId)) {
-            return null;
+            throw new IllegalStateException("Provider Operation Not Valid");
         }
         return provider.findItem(itemId);
     }
 
     @Override
-    public long getDownloadedItemSize(String itemId) {
+    public long getDownloadedItemSize(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
         if (provider == null) {
-            return 0L;
+            throw new IllegalStateException("Provider Operation Not Valid");
         }
 
         return provider.getDownloadedItemSize(itemId);
     }
 
     @Override
-    public long getEstimatedItemSize(String itemId) {
+    public long getEstimatedItemSize(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
         if (!isProviderOperationValid(itemId)) {
-            return 0L;
+            throw new IllegalStateException("Provider Operation Not Valid");
         }
         return provider.getEstimatedItemSize(itemId);
     }
 
     @Override
-    public DownloadItem createItem(String itemId, String contentURL) {
+    public DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException {
         checkIfManagerStarted();
         if (!isProviderOperationValid(itemId)) {
-            return null;
+            throw new IllegalStateException("Provider Operation Not Valid");
         }
 
         return provider.createItem(itemId, contentURL);
     }
 
     @Override
-    public void removeItem(String itemId) {
+    public void removeItem(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
         if (!isProviderOperationValid(itemId)) {
-            return;
+            throw new IllegalStateException("Provider Operation Not Valid");
         }
 
         DownloadItem item = findItem(itemId);
@@ -256,19 +255,19 @@ public class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public List<DownloadItem> getDownloads(DownloadState... states) {
+    public List<DownloadItem> getDownloads(DownloadState... states) throws IllegalStateException {
         checkIfManagerStarted();
         if (provider == null) {
-            return Collections.emptyList();
+            throw new IllegalStateException("Provider Operation Not Valid");
         }
         return new ArrayList<>(provider.getDownloads(states));
     }
 
     @Override
-    public String getPlaybackURL(String itemId) {
+    public String getPlaybackURL(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
         if (!isProviderOperationValid(itemId)) {
-            return null;
+            throw new IllegalStateException("Provider Operation Not Valid");
         }
 
         return provider.getPlaybackURL(itemId);
@@ -276,18 +275,16 @@ public class ContentManagerImp extends ContentManager {
 
     private boolean isProviderOperationValid(String itemId) {
         if (provider == null || TextUtils.isEmpty(itemId)) {
-            Log.e(TAG, "isProviderOperationValid = false");
-            return false;
+            throw new IllegalStateException("Provider Operation Not Valid");
         }
         return true;
     }
 
     @Override
-    public File getLocalFile(String itemId) {
+    public File getLocalFile(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
         if (provider == null || TextUtils.isEmpty(itemId)) {
-            Log.d(TAG, "getLocalFile ");
-            return null;
+            throw new IllegalStateException("Provider Operation Not Valid");
         }
         return provider.getLocalFile(itemId);
     }
