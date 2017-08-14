@@ -350,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
                     uiLog("DONE");
                 } catch (IllegalStateException ex) {
                     ex.printStackTrace();
-                    return;
+                    uiLog("Item not found");
                 }
             }
         });
