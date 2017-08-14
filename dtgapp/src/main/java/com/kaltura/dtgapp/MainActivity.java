@@ -345,8 +345,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 SpinnerItem selected = getSelectedItem();
-                contentManager.removeItem(selected.itemId);
-                uiLog("DONE");
+                try {
+                    contentManager.removeItem(selected.itemId);
+                    uiLog("DONE");
+                } catch (IllegalStateException ex) {
+                    ex.printStackTrace();
+                    return;
+                }
             }
         });
 
