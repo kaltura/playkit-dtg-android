@@ -235,7 +235,7 @@ public class ContentManagerImp extends ContentManager {
 
         DownloadItem item = findItem(itemId);
         if (item == null) {
-            return;
+            throw new IllegalStateException("DownloadItem Is Null");
         }
         // TODO: can the lower-level methods use itemId and not item?
         provider.removeItem(item);
