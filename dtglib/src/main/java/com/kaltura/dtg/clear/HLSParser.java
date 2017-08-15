@@ -247,7 +247,7 @@ class HLSParser {
 
             downloadTasks.add(new DownloadTask(segmentURL, segmentFile));
 
-            if(segment.isEncrypted) {
+            if (segment.isEncrypted) {
                 downloadTasks.add(createEncryptionKeyDownloadTask(segment));
             }
         }
