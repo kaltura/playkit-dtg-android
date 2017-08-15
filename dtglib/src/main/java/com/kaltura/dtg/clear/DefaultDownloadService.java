@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.android.exoplayer.hls.Variant;
@@ -403,9 +404,14 @@ public class DefaultDownloadService extends Service {
 
     public DownloadState startDownload(final String itemId) {
         assertStarted();
-        
-        final DefaultDownloadItem item = findItemImpl(itemId);
+        if (TextUtils.isEmpty(itemId)) {
+            throw new IllegalStateException("Can't download empty itemId");
+        }
 
+        final DefaultDownloadItem item = findItemImpl(itemId);
+        if (item == null) {
+            throw new IllegalStateException("Can't find item in db");
+        }
         item.setState(DownloadState.IN_PROGRESS);
         
         listenerHandler.post(new Runnable() {
