@@ -211,7 +211,7 @@ class HLSParser {
             if (!line.isEmpty() && line.charAt(0) != '#') {
                 lines[i] = Utils.getHashedFileName(line);
             }
-            if(sPlaylistParser.containsEncryptionKey(line)) {
+            if (sPlaylistParser.containsEncryptionKey(line)) {
                 lines[i] = replaceRemoteEncryptionKeyWithLocal(line);
             }
             Log.d(TAG, String.format("rename in playlist: '%s' ==> '%s'", line, lines[i]));
