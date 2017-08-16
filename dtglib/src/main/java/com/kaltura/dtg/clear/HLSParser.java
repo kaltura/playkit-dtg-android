@@ -4,7 +4,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import com.kaltura.android.exoplayer.hls.HlsMasterPlaylist;
 import com.kaltura.android.exoplayer.hls.HlsMediaPlaylist;
-import com.kaltura.android.exoplayer.hls.HlsMediaPlaylist.Segment;
 import com.kaltura.android.exoplayer.hls.HlsPlaylist;
 import com.kaltura.android.exoplayer.hls.HlsPlaylistParser;
 import com.kaltura.android.exoplayer.hls.Variant;
@@ -212,6 +211,10 @@ class HLSParser {
                 lines[i] = Utils.getHashedFileName(line);
             }
             if (sPlaylistParser.containsEncryptionKey(line)) {
+                String encryptionKeyUri = sPlaylistParser.extractUriAttribute(line);
+                String encryptionKeyFileName = createEncryptionKeyFileName(encryptionKeyUri);
+                downloadAndSaveEncryptionKey(sPlaylistParser.extractUriAttribute(line), encryptionKeyFileName);
+
                 lines[i] = replaceRemoteEncryptionKeyWithLocal(line);
             }
             Log.d(TAG, String.format("rename in playlist: '%s' ==> '%s'", line, lines[i]));
@@ -220,6 +223,17 @@ class HLSParser {
 
         saveToFile(modifiedData, downloadedPlaylist.targetFile);
 
+    }
+
+    /**
+     * Downloads the remote encryption file and saves it along with the variant.m3u8 file.
+     * File name matches with the one stored in replaceRemoteEncryptionKeyWithLocal() method and the
+     * variant.m3u8 file
+     * @throws IOException
+     */
+    private void downloadAndSaveEncryptionKey(String url, String fileName) throws IOException {
+        File targetFile = new File(targetDirectory, fileName);
+        Utils.downloadToFile(new URL(url), targetFile, 10 * 1024 * 1024);
     }
 
     public DownloadItem getItem() {
@@ -246,10 +260,6 @@ class HLSParser {
                     segmentURL, segmentFile, segment.url, Utils.getHashedFileName(segment.url)));
 
             downloadTasks.add(new DownloadTask(segmentURL, segmentFile));
-
-            if (segment.isEncrypted) {
-                downloadTasks.add(createEncryptionKeyDownloadTask(segment));
-            }
         }
 
         return new ArrayList<>(downloadTasks);
@@ -276,19 +286,6 @@ class HLSParser {
         } catch (Exception e) {
             return encryptionKeyLine;
         }
-    }
-
-    /**
-     * @param segment
-     * @return DownloadTask for the remote encryption file. File name matches with the one stored
-     * in replaceRemoteEncryptionKeyWithLocal() method and the variant.m3u8 file
-     * @throws MalformedURLException
-     */
-    private DownloadTask createEncryptionKeyDownloadTask(Segment segment) throws MalformedURLException  {
-        String encryptionKeyFileName = createEncryptionKeyFileName(segment.encryptionKeyUri);
-        File encryptionKeyFile = new File(targetDirectory, encryptionKeyFileName);
-        URL encryptionKeyURL = new URL(segment.encryptionKeyUri);
-        return new DownloadTask(encryptionKeyURL, encryptionKeyFile);
     }
 
     /**
