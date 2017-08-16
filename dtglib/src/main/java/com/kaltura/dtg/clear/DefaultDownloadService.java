@@ -413,7 +413,7 @@ public class DefaultDownloadService extends Service {
             throw new IllegalStateException("Can't find item in db");
         }
 
-        if (DownloadState.NEW.equals(item.getState())) {
+        if (item.getState() == DownloadState.NEW) {
             throw new IllegalStateException("Can't start download while itemState == NEW");
         }
 

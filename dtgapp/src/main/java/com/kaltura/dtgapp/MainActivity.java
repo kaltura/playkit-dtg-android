@@ -335,11 +335,11 @@ public class MainActivity extends AppCompatActivity {
                 if (item == null) {
                     uiLog("Item not found");
                 } else {
-                    try {
+                    if (item.getState() != DownloadState.NEW) {
                         item.startDownload();
-                    } catch (IllegalStateException ex){
-                        uiLog(ex.getMessage());
+                        return;
                     }
+                    uiLog("Error, Item STATE == NEW");
                 }
             }
         });
