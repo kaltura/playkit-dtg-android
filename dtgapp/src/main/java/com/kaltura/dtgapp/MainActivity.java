@@ -335,7 +335,11 @@ public class MainActivity extends AppCompatActivity {
                 if (item == null) {
                     uiLog("Item not found");
                 } else {
-                    item.startDownload();
+                    if (item.getState() != DownloadState.NEW) {
+                        item.startDownload();
+                        return;
+                    }
+                    uiLog("Error, Item STATE == NEW");
                 }
             }
         });
@@ -345,8 +349,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 SpinnerItem selected = getSelectedItem();
-                contentManager.removeItem(selected.itemId);
-                uiLog("DONE");
+                try {
+                    contentManager.removeItem(selected.itemId);
+                    uiLog("DONE");
+                } catch (IllegalStateException ex) {
+                    ex.printStackTrace();
+                    uiLog("Item not found");
+                }
             }
         });
 

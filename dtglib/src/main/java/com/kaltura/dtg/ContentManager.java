@@ -48,26 +48,26 @@ public abstract class ContentManager {
     /**
      * Pause all downloads (set their state to PAUSE and stop downloading).
      */
-    public abstract void pauseDownloads();
+    public abstract void pauseDownloads() throws IllegalStateException;
 
     /**
      * Resume all PAUSED downloads.
      */
-    public abstract void resumeDownloads();
+    public abstract void resumeDownloads() throws IllegalStateException;
 
     /**
      * Find and return an item.
      *
      * @return An item identified by itemId, or null if not found.
      */
-    public abstract DownloadItem findItem(String itemId);
+    public abstract DownloadItem findItem(String itemId) throws IllegalStateException;
 
     /**
      * Returns the number of downloaded bytes. 
      * @param itemId item. If null, returns the sum from all items.
      * @return
      */
-    public abstract long getDownloadedItemSize(String itemId);
+    public abstract long getDownloadedItemSize(String itemId) throws IllegalStateException;
 
     /**
      * Returns the number of estimated bytes. This includes the downloaded size and the pending
@@ -75,7 +75,7 @@ public abstract class ContentManager {
      * @param itemId item. If null, returns the sum from all items.
      * @return
      */
-    public abstract long getEstimatedItemSize(String itemId);
+    public abstract long getEstimatedItemSize(String itemId) throws IllegalStateException;
 
     /**
      * Create a new item. Does not start the download and does not retrieve metadata from the network.
@@ -84,13 +84,13 @@ public abstract class ContentManager {
      * @param contentURL
      * @return
      */
-    public abstract DownloadItem createItem(String itemId, String contentURL);
+    public abstract DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException;
 
     /**
      * Remove item entirely. Deletes all files and db records.
      * @param itemId
      */
-    public abstract void removeItem(String itemId);
+    public abstract void removeItem(String itemId) throws IllegalStateException;
 
     public abstract File getAppDataDir(String itemId);
 
@@ -99,14 +99,14 @@ public abstract class ContentManager {
      * @param states
      * @return
      */
-    public abstract List<DownloadItem> getDownloads(DownloadState... states);
+    public abstract List<DownloadItem> getDownloads(DownloadState... states) throws IllegalStateException;
 
     /**
      * Get playback URL of a given item.
      * @param itemId
      * @return
      */
-    public abstract String getPlaybackURL(String itemId);
+    public abstract String getPlaybackURL(String itemId) throws IllegalStateException;
 
     /**
      * Get the File that represents the locally downloaded item.
