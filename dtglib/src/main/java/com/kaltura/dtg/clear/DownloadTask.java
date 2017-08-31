@@ -62,7 +62,7 @@ class DownloadTask {
         
         URL url = this.url;
         File targetFile = this.targetFile;
-        Log.d(TAG, "Task " + taskId + ": download " + url + " to " + targetFile);
+//        Log.d(TAG, "Task " + taskId + ": download " + url + " to " + targetFile);
         
         // Create parent dir if needed
         if (!createParentDir(targetFile)) {
@@ -196,7 +196,7 @@ class DownloadTask {
     }
 
     private void reportProgress(final State state, final int newBytes, Exception stopError) {
-        Log.d(TAG, "progress: " + this.taskId + ", " + state + ", " + newBytes + ", " + stopError);
+//        Log.d(TAG, "progress: " + this.taskId + ", " + state + ", " + newBytes + ", " + stopError);
         listener.onTaskProgress(this, state, newBytes, stopError);
     }
 
