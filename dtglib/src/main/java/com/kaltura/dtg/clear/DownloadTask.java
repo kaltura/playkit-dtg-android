@@ -150,7 +150,7 @@ class DownloadTask {
                 }
 
                 if (progressReportBytes > 0 && progressReportCounter >= PROGRESS_REPORT_COUNT) {
-                    Log.v(TAG, "progressReportBytes:" + progressReportBytes + "; progressReportCounter:" + progressReportCounter);
+//                    Log.v(TAG, "progressReportBytes:" + progressReportBytes + "; progressReportCounter:" + progressReportCounter);
                     reportProgress(State.IN_PROGRESS, progressReportBytes, null);
                     progressReportBytes = 0;
                     progressReportCounter = 0;
