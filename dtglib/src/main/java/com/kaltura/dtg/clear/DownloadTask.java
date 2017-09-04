@@ -22,7 +22,7 @@ import java.net.URL;
  */
 class DownloadTask {
     static final String TAG = "DownloadTask";
-    private static final int PROGRESS_REPORT_COUNT = 20;
+    private static final int PROGRESS_REPORT_COUNT = 100;
 
     // TODO: Hold url and targetFile as Strings, only convert to URL/File when used.
     final String taskId;
@@ -134,6 +134,7 @@ class DownloadTask {
             int byteCount;
             progressReportBytes = 0;
             int progressReportCounter = 0;
+
             while (true) {
                 byteCount = inputStream.read(buffer);
 
