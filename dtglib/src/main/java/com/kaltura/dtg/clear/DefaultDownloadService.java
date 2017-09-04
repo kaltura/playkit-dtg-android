@@ -380,12 +380,14 @@ public class DefaultDownloadService extends Service {
         hlsParser.selectVariant(selectedVariant);
 
         hlsParser.parseVariant();
-        ArrayList<DownloadTask> chunks = hlsParser.createDownloadTasks();
+        ArrayList<DownloadTask> encryptionKeys = hlsParser.createEncryptionKeyDownloadTasks();
+        ArrayList<DownloadTask> chunks = hlsParser.createSegmentDownloadTasks();
         item.setEstimatedSizeBytes(hlsParser.getEstimatedSizeBytes());
 
         // set playback path the the relative url path, excluding the leading slash.
         item.setPlaybackPath(hlsParser.getPlaybackPath());
 
+        addDownloadTasksToDB(item, encryptionKeys);
         addDownloadTasksToDB(item, chunks);
         // TODO: handle db insertion errors
 
