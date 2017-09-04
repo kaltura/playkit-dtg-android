@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -8,22 +9,16 @@
 
     <GridLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:layout_weight="1"
         android:columnCount="1"
         android:rowCount="3">
 
-        <ListView
-            android:id="@android:id/list"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_weight="1"
-            android:drawSelectorOnTop="false"/>
-
         <LinearLayout
             android:id="@+id/player_root"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:background="@android:color/holo_blue_bright"
+            android:layout_height="200dp"
             android:orientation="horizontal"/>
 
         <LinearLayout
@@ -33,11 +28,19 @@
 
             <Button
                 android:id="@+id/stop_player"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Stop player"/>
+                android:text="Stop player"
+                />
         </LinearLayout>
+
+        <ListView
+            android:id="@android:id/list"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_weight="1"
+            android:drawSelectorOnTop="false"/>
 
     </GridLayout>
 

@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -105,6 +106,8 @@ class Item {
 
     DownloadState downloadState;
     boolean drmRegistered;
+    long estimatedSize;
+    long downloadedSize;
 
     Item(String id, String url) {
         this.mediaSource = new PKMediaSource().setId(id).setUrl(url);
@@ -128,12 +131,20 @@ class Item {
     public String toString() {
         String drmState ;
         if (isDrmProtected()) {
-            drmState = isDrmRegistered() ? "registered" : "unregistered";
+            drmState = isDrmRegistered() ? "R" : "U";
         } else {
-            drmState = "clear";
+            drmState = "C";
         }
         
-        return getId() + " -- " + name + " -- " + downloadState + " -- " + drmState;
+        String progress;
+        if (estimatedSize > 0) {
+            float percentComplete = 100f * downloadedSize / estimatedSize;
+            progress = String.format(Locale.ENGLISH, "%.3f%% / %.3fmb", percentComplete, estimatedSize / 1024.0 / 1024);
+        } else {
+            progress = "-?-";
+        }
+        
+        return String.format(Locale.ENGLISH, "[%s] %s -- %s -- DRM:%s", progress, getId(), downloadState, drmState);
     }
 
     String getId() {
@@ -151,7 +162,7 @@ class Item {
 
 
 public class MainActivity extends ListActivity {
-
+    
     private static final String TAG = "MainActivity";
     private ContentManager contentManager;
     private LocalAssetsManager localAssetsManager;
@@ -202,6 +213,8 @@ public class MainActivity extends ListActivity {
         Item item = itemMap.get(downloadItem.getItemId());
         if (item != null) {
             item.downloadState = downloadItem.getState();
+            item.estimatedSize = downloadItem.getEstimatedSizeBytes();
+            item.downloadedSize = downloadItem.getDownloadedSizeBytes();
             notifyDataSetChanged();
         }
     }
@@ -230,7 +243,7 @@ public class MainActivity extends ListActivity {
             
             switch (item.downloadState) {
                 case NEW:
-                    return new Action[] {};
+                    return new Action[] {remove};
                 case INFO_LOADED:
                     return new Action[] {start, pause, remove};
                 case IN_PROGRESS:
@@ -285,8 +298,7 @@ public class MainActivity extends ListActivity {
             @Override
             public void onClick(View v) {
                 if (player != null) {
-                    ((ViewGroup) findViewById(R.id.player_root)).removeAllViews();
-                    player.destroy();
+                    player.stop();
                 }
             }
         });
@@ -313,7 +325,7 @@ public class MainActivity extends ListActivity {
         if (downloadItem != null) {
             item.downloadState = downloadItem.getState();
         }
-        
+
         final Action[] actions = Action.actions(item);
         String[] actionNames = Action.strings(actions);
 
@@ -377,14 +389,18 @@ public class MainActivity extends ListActivity {
         PKMediaEntry entry = new PKMediaEntry().setId(itemId).setMediaType(PKMediaEntry.MediaEntryType.Vod).setSources(Collections.singletonList(localMediaSource));
 
 
-        player = PlayKitManager.loadPlayer(this, null);
+        if (player == null) {
+            player = PlayKitManager.loadPlayer(this, null);
+            ViewGroup playerRoot = (ViewGroup) findViewById(R.id.player_root);
+            playerRoot.addView(player.getView());
+        } else {
+            player.stop();
+        }
         
         
         player.prepare(new PKMediaConfig().setMediaEntry(entry));
         player.play();
 
-        ViewGroup playerRoot = (ViewGroup) findViewById(R.id.player_root);
-        playerRoot.addView(player.getView());
 
     }
 
