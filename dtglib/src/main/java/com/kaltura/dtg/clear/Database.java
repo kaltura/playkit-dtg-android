@@ -433,7 +433,7 @@ class Database {
         });
     }
 
-    synchronized private DefaultDownloadItem readItem(Cursor cursor) {
+    private DefaultDownloadItem readItem(Cursor cursor) {
         String[] columns = cursor.getColumnNames();
 
         // the bare minimum: itemId and contentURL

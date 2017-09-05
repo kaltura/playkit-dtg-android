@@ -22,7 +22,7 @@ import java.net.URL;
  */
 class DownloadTask {
     static final String TAG = "DownloadTask";
-    private static final int PROGRESS_REPORT_COUNT = 20;
+    private static final int PROGRESS_REPORT_COUNT = 100;
 
     // TODO: Hold url and targetFile as Strings, only convert to URL/File when used.
     final String taskId;
@@ -62,7 +62,7 @@ class DownloadTask {
         
         URL url = this.url;
         File targetFile = this.targetFile;
-        Log.d(TAG, "Task " + taskId + ": download " + url + " to " + targetFile);
+//        Log.d(TAG, "Task " + taskId + ": download " + url + " to " + targetFile);
         
         // Create parent dir if needed
         if (!createParentDir(targetFile)) {
@@ -134,6 +134,7 @@ class DownloadTask {
             int byteCount;
             progressReportBytes = 0;
             int progressReportCounter = 0;
+
             while (true) {
                 byteCount = inputStream.read(buffer);
 
@@ -150,7 +151,7 @@ class DownloadTask {
                 }
 
                 if (progressReportBytes > 0 && progressReportCounter >= PROGRESS_REPORT_COUNT) {
-                    Log.v(TAG, "progressReportBytes:" + progressReportBytes + "; progressReportCounter:" + progressReportCounter);
+//                    Log.v(TAG, "progressReportBytes:" + progressReportBytes + "; progressReportCounter:" + progressReportCounter);
                     reportProgress(State.IN_PROGRESS, progressReportBytes, null);
                     progressReportBytes = 0;
                     progressReportCounter = 0;
@@ -196,7 +197,7 @@ class DownloadTask {
     }
 
     private void reportProgress(final State state, final int newBytes, Exception stopError) {
-        Log.d(TAG, "progress: " + this.taskId + ", " + state + ", " + newBytes + ", " + stopError);
+//        Log.d(TAG, "progress: " + this.taskId + ", " + state + ", " + newBytes + ", " + stopError);
         listener.onTaskProgress(this, state, newBytes, stopError);
     }
 

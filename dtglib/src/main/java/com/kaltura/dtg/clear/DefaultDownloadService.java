@@ -366,10 +366,7 @@ public class DefaultDownloadService extends Service {
         item.setEstimatedSizeBytes(length);
         item.setPlaybackPath(fileNameFullPath);
 
-        ArrayList<DownloadTask> downloadTasks = new ArrayList<>(1);
-        downloadTasks.add(downloadTask);
-
-        addDownloadTasksToDB(item, downloadTasks);
+        addDownloadTasksToDB(item, Collections.singletonList(downloadTask));
     }
 
     void addDownloadTasksToDB(DefaultDownloadItem item, List<DownloadTask> tasks) {
