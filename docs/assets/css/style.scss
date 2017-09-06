@@ -1,6 +1,12 @@
+---
+---
+
+@import "{{ site.theme }}";
+
 .page-header{
-  padding: 0px !important;
+  padding: 5px !important;
 }
+
 .page-header .btn {
   display: none !important;
 }
