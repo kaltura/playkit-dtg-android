@@ -194,7 +194,7 @@ public class Utils {
                 throw new IOException("Response code from HEAD request: " + responseCode);
             }
             String contentLength = connection.getHeaderField("Content-Length");
-            if (contentLength != null && !contentLength.equals("")) {
+            if (!TextUtils.isEmpty(contentLength)) {
                 return Long.parseLong(contentLength);
             } else {
                 return -1;

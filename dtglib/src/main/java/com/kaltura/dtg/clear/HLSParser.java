@@ -212,7 +212,7 @@ class HLSParser {
             if (!line.isEmpty() && line.charAt(0) != '#') {
                 lines[i] = Utils.getHashedFileName(line);
             }
-            Log.d(TAG, String.format("rename in playlist: '%s' ==> '%s'", line, lines[i]));
+//            Log.d(TAG, String.format("rename in playlist: '%s' ==> '%s'", line, lines[i]));
         }
         String modifiedData = TextUtils.join("\n", lines);
 
@@ -240,8 +240,8 @@ class HLSParser {
             URL segmentURL = new URL(variantURL, segment.url);
             File segmentFile = new File(targetDirectory, Utils.getHashedFileName(segment.url));
 
-            Log.d(TAG, String.format("rename in file: '%s' ==> '%s' (%s ==> %s)",
-                    segmentURL, segmentFile, segment.url, Utils.getHashedFileName(segment.url)));
+//            Log.d(TAG, String.format("rename in file: '%s' ==> '%s' (%s ==> %s)",
+//                    segmentURL, segmentFile, segment.url, Utils.getHashedFileName(segment.url)));
 
             downloadTasks.add(new DownloadTask(segmentURL, segmentFile));
         }
