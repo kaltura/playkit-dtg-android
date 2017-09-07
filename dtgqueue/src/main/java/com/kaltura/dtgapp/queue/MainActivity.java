@@ -204,7 +204,13 @@ public class MainActivity extends ListActivity {
 
         @Override
         public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
-
+            // select lowest video
+            DownloadItem.Track minVideo = Collections.min(trackSelector.getAvailableTracks(DownloadItem.TrackType.VIDEO), DownloadItem.Track.bitrateComparator);
+            trackSelector.setSelectedTracks(DownloadItem.TrackType.VIDEO, Collections.singletonList(minVideo));
+            
+            // select first audio
+            DownloadItem.Track firstAudio = trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO).get(0);
+            trackSelector.setSelectedTracks(DownloadItem.TrackType.AUDIO, Collections.singletonList(firstAudio));
         }
     };
     private Player player;
@@ -279,20 +285,25 @@ public class MainActivity extends ListActivity {
         itemArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         loadTestItems(itemArrayAdapter);
 
-        contentManager = ContentManager.getInstance(this);
-        contentManager.addDownloadStateListener(cmListener);
-        contentManager.start(new ContentManager.OnStartedListener() {
-            @Override
-            public void onStarted() {
-                for (DownloadItem item : contentManager.getDownloads(DownloadState.values())) {
-                    itemStateChanged(item);
-                }
+        if (contentManager == null) {
+            contentManager = ContentManager.getInstance(this);
+            contentManager.getSettings().maxConcurrentDownloads = 2;
+            contentManager.addDownloadStateListener(cmListener);
+            contentManager.start(new ContentManager.OnStartedListener() {
+                @Override
+                public void onStarted() {
+                    for (DownloadItem item : contentManager.getDownloads(DownloadState.values())) {
+                        itemStateChanged(item);
+                    }
 
-                setListAdapter(itemArrayAdapter);
-            }
-        });
-        
-        localAssetsManager = new LocalAssetsManager(context);
+                    setListAdapter(itemArrayAdapter);
+                }
+            });
+        }
+
+        if (localAssetsManager == null) {
+            localAssetsManager = new LocalAssetsManager(context);
+        }
         
         findViewById(R.id.stop_player).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -347,6 +358,8 @@ public class MainActivity extends ListActivity {
                             case remove:
                                 contentManager.removeItem(item.getId());
                                 item.downloadState = null;
+                                item.downloadedSize = 0;
+                                item.estimatedSize = 0;
                                 notifyDataSetChanged();
                                 break;
                             case pause:
