@@ -447,9 +447,8 @@ public class DefaultDownloadService extends Service {
     public void pauseDownload(final DefaultDownloadItem item) {
         assertStarted();
 
-        ArrayList<DownloadTask> downloadTasks;
         if (item != null) {
-            int countPendingFiles = database.countPendingFiles(item.getItemId(), null);
+            int countPendingFiles = database.countPendingFiles(item.getItemId());
             if (countPendingFiles > 0) {
 
                 pauseItemDownload(item.getItemId());
