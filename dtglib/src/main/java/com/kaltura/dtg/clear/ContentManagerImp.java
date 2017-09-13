@@ -104,11 +104,11 @@ public class ContentManagerImp extends ContentManager {
         AppBuildConfig.init(context);
     }
     
-    public static ContentManager getInstance(Context context, String appName) {
+    public static ContentManager getInstance(Context context, String applicationName) {
         if (sInstance == null) {
             synchronized (ContentManager.class) {
                 if (sInstance == null) {
-                    sInstance = new ContentManagerImp(context, appName);
+                    sInstance = new ContentManagerImp(context, applicationName);
                 }
             }
         }
