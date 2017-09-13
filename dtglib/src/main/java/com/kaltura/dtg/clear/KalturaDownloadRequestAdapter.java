@@ -43,25 +43,4 @@ public class KalturaDownloadRequestAdapter implements DownloadRequestParams.Adap
     public void updateParams(String playSessionId) {
         this.playSessionId = playSessionId;
     }
-
-//    @Override
-//    public String getContentURLForPlayManifest() {
-//        Uri url = Uri.parse(contentUrl);
-//        String lastUrlSegment = url.getLastPathSegment();
-//        if (url.getPath().contains("/playManifest/")) {
-//            Uri fixedManifest = url.buildUpon()
-//                    .appendQueryParameter("playbackType", "offline")
-//                    .appendQueryParameter("clientTag", CLIENT_TAG)
-//                    .appendQueryParameter("referrer", toBase64(applicationName.getBytes()))
-//                    .appendQueryParameter("playSessionId", playerSessionId)
-//                    .build();
-//
-//            if (contentUrl.endsWith(".wvm")) {
-//                // in old android device it will not play wvc if url is not ended in wvm
-//                fixedManifest = fixedManifest.buildUpon().appendQueryParameter("name", lastUrlSegment).build();
-//            }
-//            return fixedManifest.toString();
-//        }
-//        return url.toString();
-//    }
 }
