@@ -93,7 +93,7 @@ public class ContentManagerImp extends ContentManager {
         this.sessionId =  UUID.randomUUID().toString();
         this.applicationName = applicationName;
         this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
-        //DownloadRequestParams downloadRequestParams = adapter.adapt(new DownloadRequestParams(Uri.parse(contentURL), null));
+        
         File filesDir = this.context.getFilesDir();
         itemsDir = new File(filesDir, "dtg/items");
 
