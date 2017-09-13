@@ -279,7 +279,7 @@ public class MainActivity extends ListActivity {
         itemArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         loadTestItems(itemArrayAdapter);
 
-        contentManager = ContentManager.getInstance(this, "123456", "MyApp");
+        contentManager = ContentManager.getInstance(this, "MyApp");
         contentManager.addDownloadStateListener(cmListener);
         contentManager.start(new ContentManager.OnStartedListener() {
             @Override

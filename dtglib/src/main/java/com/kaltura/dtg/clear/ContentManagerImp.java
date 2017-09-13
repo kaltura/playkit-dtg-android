@@ -15,6 +15,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 
 public class ContentManagerImp extends ContentManager {
@@ -87,9 +88,9 @@ public class ContentManagerImp extends ContentManager {
     private DownloadRequestParams.Adapter adapter;
     private Settings settings = new Settings();
 
-    private ContentManagerImp(Context context, String sessionId, String applicationName) {
+    private ContentManagerImp(Context context, String applicationName) {
         this.context = context.getApplicationContext();
-        this.sessionId = sessionId;
+        this.sessionId =  UUID.randomUUID().toString();
         this.applicationName = applicationName;
         this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
         //DownloadRequestParams downloadRequestParams = adapter.adapt(new DownloadRequestParams(Uri.parse(contentURL), null));
@@ -103,11 +104,11 @@ public class ContentManagerImp extends ContentManager {
         AppBuildConfig.init(context);
     }
     
-    public static ContentManager getInstance(Context context, String sessionId, String appName) {
+    public static ContentManager getInstance(Context context, String appName) {
         if (sInstance == null) {
             synchronized (ContentManager.class) {
                 if (sInstance == null) {
-                    sInstance = new ContentManagerImp(context, sessionId, appName);
+                    sInstance = new ContentManagerImp(context, appName);
                 }
             }
         }

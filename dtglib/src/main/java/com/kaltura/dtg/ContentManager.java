@@ -11,8 +11,8 @@ import java.util.List;
  * Created by Noam Tamim @ Kaltura on 28/09/2016.
  */
 public abstract class ContentManager {
-    public static ContentManager getInstance(Context context, String sessionId, String applicationName) {
-        return ContentManagerImp.getInstance(context, sessionId, applicationName);
+    public static ContentManager getInstance(Context context, String applicationName) {
+        return ContentManagerImp.getInstance(context, applicationName);
     }
 
     /**
