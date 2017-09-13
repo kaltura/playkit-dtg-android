@@ -39,8 +39,12 @@ import java.util.concurrent.FutureTask;
 public class DefaultDownloadService extends Service {
 
     private static final String TAG = "DefaultDownloadService";
+    public static final String VERSION_STRING = "3.2.1"; //APP BUILD CONFIG ??
+    public static final String CLIENT_TAG = "playkit-dtg/android-" + VERSION_STRING;
+
     private LocalBinder localBinder = new LocalBinder();
     private Database database;
+    private DownloadRequestParams.Adapter adapter;
     private File downloadsDir;
     private boolean started;
     private DownloadStateListener downloadStateListener;
@@ -312,12 +316,12 @@ public class DefaultDownloadService extends Service {
         if (contentURL.startsWith("widevine")) {
             contentURL = contentURL.replaceFirst("widevine", "http");
         }
-        
+        Uri contentUri = Uri.parse(contentURL);
         URL url = new URL(contentURL);
-        String path = url.getPath().toLowerCase();
-        if (path.endsWith(".m3u8")) {
+        String fileName = contentUri.getLastPathSegment();
+        if (fileName.endsWith(".m3u8")) {
             downloadMetadataHLS(item, itemDataDir);
-        } else if (path.endsWith(".mpd")) {
+        } else if (fileName.endsWith(".mpd")) {
             downloadMetadataDash(item, itemDataDir);
         } else {
             downloadMetadataSimple(url, item, itemDataDir);

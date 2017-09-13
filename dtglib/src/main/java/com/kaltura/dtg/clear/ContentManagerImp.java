@@ -1,6 +1,7 @@
 package com.kaltura.dtg.clear;
 
 import android.content.Context;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -77,14 +78,21 @@ public class ContentManagerImp extends ContentManager {
     
     private int maxConcurrentDownloads;
     private Context context;
+    private String sessionId;
+    private String applicationName;
     private DefaultProviderProxy provider;
     private File itemsDir;
     private boolean started;
     private boolean autoResumeItemsInProgress = true;
+    private DownloadRequestParams.Adapter adapter;
     private Settings settings = new Settings();
 
-    private ContentManagerImp(Context context) {
+    private ContentManagerImp(Context context, String sessionId, String applicationName) {
         this.context = context.getApplicationContext();
+        this.sessionId = sessionId;
+        this.applicationName = applicationName;
+        this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
+        //DownloadRequestParams downloadRequestParams = adapter.adapt(new DownloadRequestParams(Uri.parse(contentURL), null));
         File filesDir = this.context.getFilesDir();
         itemsDir = new File(filesDir, "dtg/items");
 
@@ -95,11 +103,11 @@ public class ContentManagerImp extends ContentManager {
         AppBuildConfig.init(context);
     }
     
-    public static ContentManager getInstance(Context context) {
+    public static ContentManager getInstance(Context context, String sessionId, String appName) {
         if (sInstance == null) {
             synchronized (ContentManager.class) {
                 if (sInstance == null) {
-                    sInstance = new ContentManagerImp(context);
+                    sInstance = new ContentManagerImp(context, sessionId, appName);
                 }
             }
         }
@@ -222,8 +230,8 @@ public class ContentManagerImp extends ContentManager {
         if (!isProviderOperationValid(itemId)) {
             throw new IllegalStateException("Provider Operation Not Valid");
         }
-
-        return provider.createItem(itemId, contentURL);
+        DownloadRequestParams downloadRequestParams = adapter.adapt(new DownloadRequestParams(Uri.parse(contentURL), null));
+        return provider.createItem(itemId, downloadRequestParams.url.toString());
     }
 
     @Override
@@ -306,6 +314,22 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public void setAutoResumeItemsInProgress(boolean autoStartItemsInProgress) {
         this.autoResumeItemsInProgress = autoStartItemsInProgress;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
     }
 }
 
