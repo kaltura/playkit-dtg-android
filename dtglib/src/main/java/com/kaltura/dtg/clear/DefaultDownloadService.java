@@ -13,6 +13,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.android.exoplayer.hls.Variant;
+import com.kaltura.dtg.BuildConfig;
 import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadState;
@@ -39,7 +40,7 @@ import java.util.concurrent.FutureTask;
 public class DefaultDownloadService extends Service {
 
     private static final String TAG = "DefaultDownloadService";
-    public static final String VERSION_STRING = "3.2.1"; //APP BUILD CONFIG ??
+    public static final String VERSION_STRING = BuildConfig.VERSION_NAME;
     public static final String CLIENT_TAG = "playkit-dtg/android-" + VERSION_STRING;
 
     private LocalBinder localBinder = new LocalBinder();
