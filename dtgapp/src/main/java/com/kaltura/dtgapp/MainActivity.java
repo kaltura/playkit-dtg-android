@@ -161,12 +161,12 @@ public class MainActivity extends AppCompatActivity {
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
 
-        final ContentManager contentManager = ContentManager.getInstance(this, "MyApp");
+        final ContentManager contentManager = ContentManager.getInstance(this);
 
         final HashMap<String, Long> downloadStartTime = new HashMap<>();
 
         contentManager.getSettings().maxConcurrentDownloads = 4;
-
+        contentManager.getSettings().applicationName = "JAVA";
         contentManager.addDownloadStateListener(new DownloadStateListener() {
             @Override
             public void onDownloadComplete(DownloadItem item) {
@@ -511,7 +511,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void doCustomAction(String action) {
         String itemId = getSelectedItem().itemId;
-        DownloadItem item = ContentManager.getInstance(this, "MyApp").findItem(itemId);
+        DownloadItem item = ContentManager.getInstance(this).findItem(itemId);
 
         DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
         if (trackSelector != null) {
@@ -552,6 +552,6 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "onDestroy()");
         
-        ContentManager.getInstance(this, null).stop();
+        ContentManager.getInstance(this).stop();
     }
 }

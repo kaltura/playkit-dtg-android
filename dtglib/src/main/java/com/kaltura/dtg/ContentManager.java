@@ -11,8 +11,11 @@ import java.util.List;
  * Created by Noam Tamim @ Kaltura on 28/09/2016.
  */
 public abstract class ContentManager {
-    public static ContentManager getInstance(Context context, String applicationName) {
-        return ContentManagerImp.getInstance(context, applicationName);
+    public static final String VERSION_STRING = BuildConfig.VERSION_NAME;
+    public static final String CLIENT_TAG = "playkit-dtg/android-" + VERSION_STRING;
+
+    public static ContentManager getInstance(Context context) {
+        return ContentManagerImp.getInstance(context);
     }
 
     /**
@@ -125,5 +128,6 @@ public abstract class ContentManager {
         public int maxDownloadRetries = 5;
         public int httpTimeoutMillis = 15000;
         public int maxConcurrentDownloads = 4;
+        public String applicationName = "";
     }
 }

@@ -2,8 +2,9 @@ package com.kaltura.dtg.clear;
 
 import android.net.Uri;
 
+import com.kaltura.dtg.ContentManager;
+
 import static com.kaltura.dtg.Utils.toBase64;
-import static com.kaltura.dtg.clear.DefaultDownloadService.CLIENT_TAG;
 
 
 public class KalturaDownloadRequestAdapter implements DownloadRequestParams.Adapter {
@@ -23,7 +24,7 @@ public class KalturaDownloadRequestAdapter implements DownloadRequestParams.Adap
         if (url.getPath().contains("/playManifest/")) {
             Uri alt = url.buildUpon()
                     .appendQueryParameter("playbackType", "offline")
-                    .appendQueryParameter("clientTag", CLIENT_TAG)
+                    .appendQueryParameter("clientTag", ContentManager.CLIENT_TAG)
                     .appendQueryParameter("referrer", toBase64(applicationName.getBytes()))
                     .appendQueryParameter("playSessionId", playSessionId)
                     .build();

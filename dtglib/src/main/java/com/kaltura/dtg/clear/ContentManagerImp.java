@@ -88,12 +88,9 @@ public class ContentManagerImp extends ContentManager {
     private DownloadRequestParams.Adapter adapter;
     private Settings settings = new Settings();
 
-    private ContentManagerImp(Context context, String applicationName) {
+    private ContentManagerImp(Context context) {
         this.context = context.getApplicationContext();
-        this.sessionId =  UUID.randomUUID().toString();
-        this.applicationName = applicationName;
-        this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
-        
+
         File filesDir = this.context.getFilesDir();
         itemsDir = new File(filesDir, "dtg/items");
 
@@ -104,11 +101,11 @@ public class ContentManagerImp extends ContentManager {
         AppBuildConfig.init(context);
     }
     
-    public static ContentManager getInstance(Context context, String applicationName) {
+    public static ContentManager getInstance(Context context) {
         if (sInstance == null) {
             synchronized (ContentManager.class) {
                 if (sInstance == null) {
-                    sInstance = new ContentManagerImp(context, applicationName);
+                    sInstance = new ContentManagerImp(context);
                 }
             }
         }
@@ -142,6 +139,9 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public void start(final OnStartedListener onStartedListener) {
         Log.d(TAG, "start Content Manager");
+        this.sessionId =  UUID.randomUUID().toString();
+        this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
+        this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
         if (provider != null) {
             // Call the onstarted callback even if it has already been started
             if (onStartedListener != null) {
@@ -321,16 +321,8 @@ public class ContentManagerImp extends ContentManager {
         return sessionId;
     }
 
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
-    }
-
     public String getApplicationName() {
         return applicationName;
-    }
-
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
     }
 }
 
