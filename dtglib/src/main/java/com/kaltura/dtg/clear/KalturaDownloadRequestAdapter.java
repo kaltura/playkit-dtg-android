@@ -2,13 +2,16 @@ package com.kaltura.dtg.clear;
 
 import android.net.Uri;
 
-import com.kaltura.dtg.ContentManager;
-
+import static com.kaltura.dtg.ContentManager.CLIENT_TAG;
 import static com.kaltura.dtg.Utils.toBase64;
 
 
 public class KalturaDownloadRequestAdapter implements DownloadRequestParams.Adapter {
 
+    public static final String PLAYBACK_TYPE_PARAM = "playbackType";
+    public static final String CLIENT_TAG_PARAM = "clientTag";
+    public static final String REFERRER_PARAM = "referrer";
+    public static final String PLAY_SESSION_ID_PARAM = "playSessionId";
     private final String applicationName;
     private String playSessionId;
 
@@ -23,10 +26,10 @@ public class KalturaDownloadRequestAdapter implements DownloadRequestParams.Adap
 
         if (url.getPath().contains("/playManifest/")) {
             Uri alt = url.buildUpon()
-                    .appendQueryParameter("playbackType", "offline")
-                    .appendQueryParameter("clientTag", ContentManager.CLIENT_TAG)
-                    .appendQueryParameter("referrer", toBase64(applicationName.getBytes()))
-                    .appendQueryParameter("playSessionId", playSessionId)
+                    .appendQueryParameter(PLAYBACK_TYPE_PARAM, "offline")
+                    .appendQueryParameter(CLIENT_TAG_PARAM, CLIENT_TAG)
+                    .appendQueryParameter(REFERRER_PARAM, toBase64(applicationName.getBytes()))
+                    .appendQueryParameter(PLAY_SESSION_ID_PARAM, playSessionId)
                     .build();
 
             String lastPathSegment = requestParams.url.getLastPathSegment();
