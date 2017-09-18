@@ -273,6 +273,8 @@ public class DefaultDownloadService extends Service {
             database.close();
             database = null;
             
+            mExecutor.shutdown();
+            
             started = false;
         }
     }
