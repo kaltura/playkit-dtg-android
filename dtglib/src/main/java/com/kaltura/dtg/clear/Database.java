@@ -506,6 +506,10 @@ class Database {
         return items;
     }
 
+    synchronized int countPendingFiles(String itemId) {
+        return countPendingFiles(itemId, null);
+    }
+    
     synchronized int countPendingFiles(String itemId, @Nullable String trackId) {
 
         SQLiteDatabase db = database;
@@ -514,11 +518,14 @@ class Database {
 
         try {
             if (trackId != null) {
-                cursor = db.rawQuery("SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
-                        " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0 AND " + COL_TRACK_REL_ID + "=?", new String[]{itemId, trackId});
+                String sql = "SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
+                        " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0 AND " + COL_TRACK_REL_ID + "==?";
+                cursor = db.rawQuery(sql, new String[]{itemId, trackId});
+                
             } else {
-                cursor = db.rawQuery("SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
-                        " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0", new String[]{itemId});
+                String sql = "SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
+                        " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0";
+                cursor = db.rawQuery(sql, new String[]{itemId});
             }
 
             if (cursor.moveToFirst()) {
