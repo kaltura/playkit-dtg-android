@@ -3,6 +3,7 @@ package com.kaltura.dtg;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -240,5 +241,12 @@ public class Utils {
         String path = Uri.parse(pathOrURL).getPath();
 
         return path.substring(path.lastIndexOf('.'));
+    }
+
+    public static String toBase64(byte[] data) {
+        if (data == null || data.length == 0) {
+            return null;
+        }
+        return Base64.encodeToString(data, Base64.NO_WRAP);
     }
 }
