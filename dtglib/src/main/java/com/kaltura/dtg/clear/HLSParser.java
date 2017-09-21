@@ -258,8 +258,8 @@ class HLSParser {
             URL segmentURL = new URL(variantURL, segment.url);
             File segmentFile = new File(targetDirectory, Utils.getHashedFileName(segment.url));
 
-            Log.d(TAG, String.format("rename in file: '%s' ==> '%s' (%s ==> %s)",
-                    segmentURL, segmentFile, segment.url, Utils.getHashedFileName(segment.url)));
+//            Log.d(TAG, String.format("rename in file: '%s' ==> '%s' (%s ==> %s)",
+//                    segmentURL, segmentFile, segment.url, Utils.getHashedFileName(segment.url)));
 
             downloadTasks.add(new DownloadTask(segmentURL, segmentFile));
         }

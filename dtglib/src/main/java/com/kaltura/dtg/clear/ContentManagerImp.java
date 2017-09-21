@@ -1,6 +1,9 @@
 package com.kaltura.dtg.clear;
 
 import android.content.Context;
+import android.net.Uri;
+import android.text.TextUtils;
+import android.util.Log;
 
 import com.kaltura.dtg.AppBuildConfig;
 import com.kaltura.dtg.ContentManager;
@@ -10,14 +13,13 @@ import com.kaltura.dtg.DownloadStateListener;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-
+import java.util.UUID;
 
 
 public class ContentManagerImp extends ContentManager {
-
+    private static final String TAG = "ContentManagerImp";
 
     private static ContentManager sInstance;
     private final HashSet<DownloadStateListener> stateListeners = new HashSet<>(1);
@@ -77,14 +79,18 @@ public class ContentManagerImp extends ContentManager {
     
     private int maxConcurrentDownloads;
     private Context context;
+    private String sessionId;
+    private String applicationName;
     private DefaultProviderProxy provider;
     private File itemsDir;
     private boolean started;
     private boolean autoResumeItemsInProgress = true;
+    private DownloadRequestParams.Adapter adapter;
     private Settings settings = new Settings();
 
     private ContentManagerImp(Context context) {
         this.context = context.getApplicationContext();
+
         File filesDir = this.context.getFilesDir();
         itemsDir = new File(filesDir, "dtg/items");
 
@@ -132,8 +138,11 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public void start(final OnStartedListener onStartedListener) {
-
-        if (started) {
+        Log.d(TAG, "start Content Manager");
+        this.sessionId =  UUID.randomUUID().toString();
+        this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
+        this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
+        if (provider != null) {
             // Call the onstarted callback even if it has already been started
             if (onStartedListener != null) {
                 onStartedListener.onStarted();
@@ -146,10 +155,10 @@ public class ContentManagerImp extends ContentManager {
         provider.start(new OnStartedListener() {
                             @Override
                             public void onStarted() {
-                                
+                                started = true;
                                 if (autoResumeItemsInProgress) {
                                     // Resume all downloads that were in progress on stop.
-                                    List < DownloadItem > downloads = getDownloads(DownloadState.IN_PROGRESS);
+                                    List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
                                     for (DownloadItem download : downloads) {
                                         download.startDownload();
                                     }
@@ -160,13 +169,15 @@ public class ContentManagerImp extends ContentManager {
                                 }
                             }
                         });
-
-
-        started = true;
     }
 
     @Override
-    public void pauseDownloads() {
+    public void pauseDownloads() throws IllegalStateException {
+        checkIfManagerStarted();
+        if (provider == null) {
+            throw new IllegalStateException("Provider Operation Not Valid");
+        }
+
         List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
         for (DownloadItem item : downloads) {
             provider.pauseDownload(item);
@@ -174,7 +185,12 @@ public class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public void resumeDownloads() {
+    public void resumeDownloads() throws IllegalStateException {
+        checkIfManagerStarted();
+        if (provider == null) {
+            throw new IllegalStateException("Provider Operation Not Valid");
+        }
+
         List<DownloadItem> downloads = getDownloads(DownloadState.PAUSED);
         for (DownloadItem item : downloads) {
             provider.resumeDownload(item);
@@ -182,28 +198,54 @@ public class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public DownloadItem findItem(String itemId) {
+    public DownloadItem findItem(String itemId) throws IllegalStateException {
+        checkIfManagerStarted();
+        if (!isProviderOperationValid(itemId)) {
+            throw new IllegalStateException("Provider Operation Not Valid");
+        }
         return provider.findItem(itemId);
     }
 
     @Override
-    public long getDownloadedItemSize(String itemId) {
+    public long getDownloadedItemSize(String itemId) throws IllegalStateException {
+        checkIfManagerStarted();
+        if (provider == null) {
+            throw new IllegalStateException("Provider Operation Not Valid");
+        }
+
         return provider.getDownloadedItemSize(itemId);
     }
 
     @Override
-    public long getEstimatedItemSize(String itemId) {
+    public long getEstimatedItemSize(String itemId) throws IllegalStateException {
+        checkIfManagerStarted();
+        if (!isProviderOperationValid(itemId)) {
+            throw new IllegalStateException("Provider Operation Not Valid");
+        }
         return provider.getEstimatedItemSize(itemId);
     }
 
     @Override
-    public DownloadItem createItem(String itemId, String contentURL) {
-        return provider.createItem(itemId, contentURL);
+    public DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException {
+        checkIfManagerStarted();
+        if (!isProviderOperationValid(itemId)) {
+            throw new IllegalStateException("Provider Operation Not Valid");
+        }
+        DownloadRequestParams downloadRequestParams = adapter.adapt(new DownloadRequestParams(Uri.parse(contentURL), null));
+        return provider.createItem(itemId, downloadRequestParams.url.toString());
     }
 
     @Override
-    public void removeItem(String itemId) {
+    public void removeItem(String itemId) throws IllegalStateException {
+        checkIfManagerStarted();
+        if (!isProviderOperationValid(itemId)) {
+            throw new IllegalStateException("Provider Operation Not Valid");
+        }
+
         DownloadItem item = findItem(itemId);
+        if (item == null) {
+            throw new IllegalStateException("DownloadItem Is Null");
+        }
         // TODO: can the lower-level methods use itemId and not item?
         provider.removeItem(item);
     }
@@ -222,21 +264,44 @@ public class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public List<DownloadItem> getDownloads(DownloadState... states) {
+    public List<DownloadItem> getDownloads(DownloadState... states) throws IllegalStateException {
+        checkIfManagerStarted();
         if (provider == null) {
-            return Collections.emptyList();
+            throw new IllegalStateException("Provider Operation Not Valid");
         }
         return new ArrayList<>(provider.getDownloads(states));
     }
 
     @Override
-    public String getPlaybackURL(String itemId) {
+    public String getPlaybackURL(String itemId) throws IllegalStateException {
+        checkIfManagerStarted();
+        if (!isProviderOperationValid(itemId)) {
+            throw new IllegalStateException("Provider Operation Not Valid");
+        }
+
         return provider.getPlaybackURL(itemId);
     }
 
+    private boolean isProviderOperationValid(String itemId) {
+        if (provider == null || TextUtils.isEmpty(itemId)) {
+            throw new IllegalStateException("Provider Operation Not Valid");
+        }
+        return true;
+    }
+
     @Override
-    public File getLocalFile(String itemId) {
+    public File getLocalFile(String itemId) throws IllegalStateException {
+        checkIfManagerStarted();
+        if (provider == null || TextUtils.isEmpty(itemId)) {
+            throw new IllegalStateException("Provider Operation Not Valid");
+        }
         return provider.getLocalFile(itemId);
+    }
+
+    private void checkIfManagerStarted() {
+        if (!started) {
+            throw new IllegalStateException("Manager was not started.");
+        }
     }
 
     @Override
@@ -250,6 +315,14 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public void setAutoResumeItemsInProgress(boolean autoStartItemsInProgress) {
         this.autoResumeItemsInProgress = autoStartItemsInProgress;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public String getApplicationName() {
+        return applicationName;
     }
 }
 

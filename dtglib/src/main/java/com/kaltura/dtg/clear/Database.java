@@ -196,7 +196,7 @@ class Database {
                     try {
                         long rowid = db.insertWithOnConflict(TBL_DOWNLOAD_FILES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
                         if (rowid <= 0) {
-                            Log.d(TAG, "Warning: task not added:" + task.targetFile);
+//                            Log.d(TAG, "Warning: task not added:" + task.targetFile);
                         }
                     } catch (SQLException e) {
                         Log.e(TAG, "Failed to INSERT task: " + task.targetFile, e);
@@ -433,7 +433,7 @@ class Database {
         });
     }
 
-    synchronized private DefaultDownloadItem readItem(Cursor cursor) {
+    private DefaultDownloadItem readItem(Cursor cursor) {
         String[] columns = cursor.getColumnNames();
 
         // the bare minimum: itemId and contentURL
@@ -506,6 +506,10 @@ class Database {
         return items;
     }
 
+    synchronized int countPendingFiles(String itemId) {
+        return countPendingFiles(itemId, null);
+    }
+    
     synchronized int countPendingFiles(String itemId, @Nullable String trackId) {
 
         SQLiteDatabase db = database;
@@ -514,11 +518,14 @@ class Database {
 
         try {
             if (trackId != null) {
-                cursor = db.rawQuery("SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
-                        " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0 AND " + COL_TRACK_REL_ID + "=?", new String[]{itemId, trackId});
+                String sql = "SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
+                        " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0 AND " + COL_TRACK_REL_ID + "==?";
+                cursor = db.rawQuery(sql, new String[]{itemId, trackId});
+                
             } else {
-                cursor = db.rawQuery("SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
-                        " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0", new String[]{itemId});
+                String sql = "SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
+                        " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0";
+                cursor = db.rawQuery(sql, new String[]{itemId});
             }
 
             if (cursor.moveToFirst()) {
