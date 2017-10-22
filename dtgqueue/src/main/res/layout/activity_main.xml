@@ -33,6 +33,20 @@
                 android:layout_weight="1"
                 android:text="Stop player"
                 />
+
+            <Button
+                android:id="@+id/stop_service"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Stop"/>
+
+            <Button
+                android:id="@+id/start_service"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Start"/>
         </LinearLayout>
 
         <ListView

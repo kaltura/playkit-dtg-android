@@ -302,6 +302,25 @@ public class MainActivity extends ListActivity {
                 }
             }
         });
+        
+        findViewById(R.id.stop_service).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                contentManager.stop();
+            }
+        });
+        
+        findViewById(R.id.start_service).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                contentManager.start(new ContentManager.OnStartedListener() {
+                    @Override
+                    public void onStarted() {
+                        Log.d(TAG, "onStarted()");
+                    }
+                });
+            }
+        });
     }
 
     void addAndLoad(Item item) {

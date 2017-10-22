@@ -294,7 +294,7 @@ public class ContentManagerImp extends ContentManager {
             throw new IllegalStateException("Manager was not started.");
         }
     }
-
+    
     @Override
     public Settings getSettings() {
         if (started) {
@@ -306,6 +306,11 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public void setAutoResumeItemsInProgress(boolean autoStartItemsInProgress) {
         this.autoResumeItemsInProgress = autoStartItemsInProgress;
+    }
+
+    @Override
+    public boolean isStarted() {
+        return started;
     }
 }
 
