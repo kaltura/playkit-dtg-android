@@ -72,33 +72,38 @@ class DownloadTask {
         }
 
         reportProgress(State.STARTED, 0, null);
-        long remoteFileSize;
-        try {
-            remoteFileSize = Utils.httpHeadGetLength(url);
-        } catch (InterruptedIOException e) {
-            Log.d(TAG, "Task " + taskId + " interrupted (1)");
-            reportProgress(State.STOPPED, 0, null);
-            return;
-        } catch (IOException e) {
-            Log.e(TAG, "HEAD request failed for " + url, e);
-            remoteFileSize = -1;
-        }
 
-        long localFileSize = targetFile.exists() ? targetFile.length() : 0;
+        long localFileSize = targetFile.length();
+        
+        // If file is already downloaded, make sure it's not larger than the remote.
+        if (localFileSize > 0) {
+            try {
+                long remoteFileSize = Utils.httpHeadGetLength(url);
+                
+                // finish before even starting, if file is already complete.
+                if (localFileSize == remoteFileSize) {
+                    // We're done.
+                    reportProgress(State.COMPLETED, 0, null);
+                    return;
+                } else if (localFileSize > remoteFileSize) {
+                    // This is really odd. Delete and try again.
+                    Log.w(TAG, "Target file is longer than remote. Deleting the target.");
+                    if (!targetFile.delete()) {
+                        Log.w(TAG, "Can't delete targetFile");
+                    }
+                    localFileSize = 0;
+                }
 
-        // finish before even starting, if file is already complete.
-        if (localFileSize == remoteFileSize) {
-            // We're done.
-            reportProgress(State.COMPLETED, 0, null);
-            return;
-        } else if (localFileSize > remoteFileSize) {
-            // This is really odd. Delete and try again.
-            Log.w(TAG, "Target file is longer than remote. Deleting the target.");
-            if (!targetFile.delete()) {
-                Log.w(TAG, "Can't delete targetFile");
+            } catch (InterruptedIOException e) {
+                Log.d(TAG, "Task " + taskId + " interrupted (1)");
+                reportProgress(State.STOPPED, 0, null);
+                return;
+            } catch (IOException e) {
+                Log.e(TAG, "HEAD request failed for " + url, e);
+                // Nothing to do, but this is not fatal. Just continue.
             }
-            localFileSize = 0;
         }
+
 
         // Start the actual download.
         InputStream inputStream = null;

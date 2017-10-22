@@ -280,6 +280,7 @@ public class MainActivity extends ListActivity {
         loadTestItems(itemArrayAdapter);
 
         contentManager = ContentManager.getInstance(this);
+        contentManager.getSettings().applicationName = "MyApplication";
         contentManager.addDownloadStateListener(cmListener);
         contentManager.start(new ContentManager.OnStartedListener() {
             @Override

@@ -43,6 +43,7 @@ public class DefaultDownloadService extends Service {
     private final Context context;  // allow mocking
     private LocalBinder localBinder = new LocalBinder();
     private Database database;
+    private DownloadRequestParams.Adapter adapter;
     private File downloadsDir;
     private boolean started;
     private DownloadStateListener downloadStateListener;
@@ -334,12 +335,12 @@ public class DefaultDownloadService extends Service {
         if (contentURL.startsWith("widevine")) {
             contentURL = contentURL.replaceFirst("widevine", "http");
         }
-        
+        Uri contentUri = Uri.parse(contentURL);
         URL url = new URL(contentURL);
-        String path = url.getPath().toLowerCase();
-        if (path.endsWith(".m3u8")) {
+        String fileName = contentUri.getLastPathSegment();
+        if (fileName.endsWith(".m3u8")) {
             downloadMetadataHLS(item, itemDataDir);
-        } else if (path.endsWith(".mpd")) {
+        } else if (fileName.endsWith(".mpd")) {
             downloadMetadataDash(item, itemDataDir);
         } else {
             downloadMetadataSimple(url, item, itemDataDir);
@@ -410,12 +411,14 @@ public class DefaultDownloadService extends Service {
         hlsParser.selectVariant(selectedVariant);
 
         hlsParser.parseVariant();
-        ArrayList<DownloadTask> chunks = hlsParser.createDownloadTasks();
+        ArrayList<DownloadTask> encryptionKeys = hlsParser.createEncryptionKeyDownloadTasks();
+        ArrayList<DownloadTask> chunks = hlsParser.createSegmentDownloadTasks();
         item.setEstimatedSizeBytes(hlsParser.getEstimatedSizeBytes());
 
         // set playback path the the relative url path, excluding the leading slash.
         item.setPlaybackPath(hlsParser.getPlaybackPath());
 
+        addDownloadTasksToDB(item, encryptionKeys);
         addDownloadTasksToDB(item, chunks);
         // TODO: handle db insertion errors
 
@@ -469,10 +472,9 @@ public class DefaultDownloadService extends Service {
     public void pauseDownload(final DefaultDownloadItem item) {
         assertStarted();
 
-        ArrayList<DownloadTask> downloadTasks;
         if (item != null) {
-            downloadTasks = database.readPendingDownloadTasksFromDB(item.getItemId());
-            if (downloadTasks.size() > 0) {
+            int countPendingFiles = database.countPendingFiles(item.getItemId());
+            if (countPendingFiles > 0) {
 
                 pauseItemDownload(item.getItemId());
 
