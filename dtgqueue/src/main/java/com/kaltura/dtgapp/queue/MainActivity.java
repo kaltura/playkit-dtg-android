@@ -3,6 +3,7 @@ package com.kaltura.dtgapp.queue;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -50,6 +51,15 @@ class ItemLoader {
         throw new IllegalArgumentException("No dash source");
     }
 
+    private static PKMediaSource findFirstWVM(List<PKMediaSource> sources) {
+        for (PKMediaSource source : sources) {
+            if (source.getMediaFormat() == PKMediaFormat.wvm) {
+                return source;
+            }
+        }
+        throw new IllegalArgumentException("No wvm source");
+    }
+
     private static List<Item> loadOVPItems(int partnerId, String... entries) {
         SimpleOvpSessionProvider sessionProvider = new SimpleOvpSessionProvider("https://cdnapisec.kaltura.com", partnerId, null);
         CountDownLatch latch = new CountDownLatch(entries.length);
@@ -64,7 +74,14 @@ class ItemLoader {
                 public void onComplete(ResultElement<PKMediaEntry> response) {
                     PKMediaEntry mediaEntry = response.getResponse();
                     if (mediaEntry != null) {
-                        PKMediaSource source = findFirstDash(mediaEntry.getSources());
+                        PKMediaSource source = null;
+
+                        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                            source = findFirstWVM(mediaEntry.getSources());
+                        } else {
+                            source = findFirstDash(mediaEntry.getSources());
+                        }
+
                         Item item = new Item(source, mediaEntry.getName());
                         items.set(index, item);
                     } else {
