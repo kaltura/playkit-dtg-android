@@ -320,6 +320,30 @@ public class MainActivity extends ListActivity {
                 }
             }
         });
+        findViewById(R.id.play_player).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (player != null) {
+                    player.play();
+                }
+            }
+        });
+        findViewById(R.id.pause_player).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (player != null) {
+                    player.pause();
+                }
+            }
+        });
+        findViewById(R.id.seek_player).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (player != null) {
+                    player.seekTo(player.getCurrentPosition() + 15000);
+                }
+            }
+        });
     }
 
     void addAndLoad(Item item) {
