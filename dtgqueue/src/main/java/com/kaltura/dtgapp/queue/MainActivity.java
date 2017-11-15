@@ -388,7 +388,9 @@ public class MainActivity extends ListActivity {
 
     private void registerAsset(final Item item) {
 
-        localAssetsManager.registerAsset(item.getMediaSource(), contentManager.getLocalFile(item.getId()).getAbsolutePath(), item.getId(), new LocalAssetsManager.AssetRegistrationListener() {
+        String absolutePath = contentManager.getLocalFile(item.getId()).getAbsolutePath();
+        PKMediaSource mediaSource = item.getMediaSource();
+        localAssetsManager.registerAsset(mediaSource, absolutePath, item.getId(), new LocalAssetsManager.AssetRegistrationListener() {
             @Override
             public void onRegistered(String localAssetPath) {
                 item.drmRegistered = true;
