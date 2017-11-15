@@ -238,7 +238,9 @@ public class DefaultDownloadService extends Service {
     }
 
     void updateItemInfoInDB(DefaultDownloadItem item, String... columns) {
-        database.updateItemInfo(item, columns);
+        if (database != null) {
+            database.updateItemInfo(item, columns);
+        }
     }
 
     private void assertStarted() {
