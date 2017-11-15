@@ -118,6 +118,8 @@ public abstract class ContentManager {
      */
     public abstract File getLocalFile(String itemId);
 
+    public abstract boolean isStarted();
+
     public interface OnStartedListener {
         void onStarted();
     }

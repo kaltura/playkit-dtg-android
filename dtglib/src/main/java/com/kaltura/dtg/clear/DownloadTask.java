@@ -21,7 +21,7 @@ import java.net.URL;
  * Created by noamt on 5/13/15.
  */
 class DownloadTask {
-    static final String TAG = "DownloadTask";
+    private static final String TAG = "DownloadTask";
     private static final int PROGRESS_REPORT_COUNT = 100;
 
     // TODO: Hold url and targetFile as Strings, only convert to URL/File when used.

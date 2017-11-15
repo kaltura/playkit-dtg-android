@@ -1,6 +1,7 @@
 package com.kaltura.dtg.clear;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -39,14 +40,14 @@ import java.util.concurrent.FutureTask;
 public class DefaultDownloadService extends Service {
 
     private static final String TAG = "DefaultDownloadService";
-
+    private final Context context;  // allow mocking
     private LocalBinder localBinder = new LocalBinder();
     private Database database;
     private DownloadRequestParams.Adapter adapter;
     private File downloadsDir;
     private boolean started;
     private DownloadStateListener downloadStateListener;
-    private ExecutorService mExecutor;
+    private ExecutorService executorService;
     private ItemFutureMap futureMap = new ItemFutureMap();
     private Handler listenerHandler = null;
     
@@ -55,6 +56,14 @@ public class DefaultDownloadService extends Service {
     
     private Set<String> removedItems = new HashSet<>();
 
+    public DefaultDownloadService(Context context) {
+        this.context = context;
+    }
+    
+    public DefaultDownloadService() {
+        this.context = this;
+    }
+    
     private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
 
         @Override
@@ -183,6 +192,8 @@ public class DefaultDownloadService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
+        Log.d(TAG, "*** onUnbind");
+        stop();
         return super.onUnbind(intent);
     }
 
@@ -197,6 +208,13 @@ public class DefaultDownloadService extends Service {
         listenerThread.start();
         taskProgressHandler = new Handler(listenerThread.getLooper());
     }
+    
+    private void stopHandlerThreads() {
+        listenerHandler.getLooper().quit();
+        listenerHandler = null;
+        taskProgressHandler.getLooper().quit();
+        taskProgressHandler = null;
+    }
 
     void pauseItemDownload(String itemId) {
         if (itemId != null) {
@@ -204,7 +222,7 @@ public class DefaultDownloadService extends Service {
         } else {
             futureMap.cancelAll();
         }
-        // Maybe add PAUSE_ALL with mExecutor.purge(); and remove futures
+        // Maybe add PAUSE_ALL with executorService.purge(); and remove futures
     }
 
     void downloadChunks(ArrayList<DownloadTask> chunks, String itemId) {
@@ -214,13 +232,15 @@ public class DefaultDownloadService extends Service {
         for (DownloadTask task : chunks) {
             task.itemId = itemId;
             FutureTask future = futureTask(itemId, task);
-            mExecutor.execute(future);
+            executorService.execute(future);
             futureMap.add(itemId, future);
         }
     }
 
     void updateItemInfoInDB(DefaultDownloadItem item, String... columns) {
-        database.updateItemInfo(item, columns);
+        if (database != null) {
+            database.updateItemInfo(item, columns);
+        }
     }
 
     private void assertStarted() {
@@ -233,10 +253,10 @@ public class DefaultDownloadService extends Service {
 
         Log.d(TAG, "start()");
 
-        File dataDir = new File(getFilesDir(), "dtg/clear");
+        File dataDir = new File(context.getFilesDir(), "dtg/clear");
         makeDirs(dataDir, "provider data directory");
 
-        File extFilesDir = getExternalFilesDir(null);
+        File extFilesDir = context.getExternalFilesDir(null);
         if (extFilesDir != null) {
             downloadsDir = new File(extFilesDir, "dtg/clear");
             makeDirs(downloadsDir, "provider downloads");
@@ -247,22 +267,13 @@ public class DefaultDownloadService extends Service {
 
         File dbFile = new File(dataDir, "downloads.db");
 
-        database = new Database(dbFile, this);
+        database = new Database(dbFile, context);
 
         startHandlerThreads();
 
-        mExecutor = Executors.newFixedThreadPool(settings.maxConcurrentDownloads);
+        executorService = Executors.newFixedThreadPool(settings.maxConcurrentDownloads);
 
         started = true;
-    }
-
-    private void makeDirs(File dataDir, String name) {
-        //noinspection ResultOfMethodCallIgnored
-        dataDir.mkdirs();
-        if (!dataDir.isDirectory()) {
-            Log.e(TAG, "Failed to create " + name + " -- " + dataDir);
-            throw new IllegalStateException("Can't continue without " + name + " -- " + dataDir);
-        }
     }
 
     public void stop() {
@@ -275,7 +286,19 @@ public class DefaultDownloadService extends Service {
             database.close();
             database = null;
             
+            executorService.shutdown();
+            stopHandlerThreads();
+            
             started = false;
+        }
+    }
+
+    private void makeDirs(File dataDir, String name) {
+        //noinspection ResultOfMethodCallIgnored
+        dataDir.mkdirs();
+        if (!dataDir.isDirectory()) {
+            Log.e(TAG, "Failed to create " + name + " -- " + dataDir);
+            throw new IllegalStateException("Can't continue without " + name + " -- " + dataDir);
         }
     }
 
