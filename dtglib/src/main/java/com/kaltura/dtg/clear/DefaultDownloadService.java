@@ -36,6 +36,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultDownloadService extends Service {
 
@@ -46,6 +47,7 @@ public class DefaultDownloadService extends Service {
     private DownloadRequestParams.Adapter adapter;
     private File downloadsDir;
     private boolean started;
+    private boolean stopping;
     private DownloadStateListener downloadStateListener;
     private ExecutorService executorService;
     private ItemFutureMap futureMap = new ItemFutureMap();
@@ -78,6 +80,11 @@ public class DefaultDownloadService extends Service {
     };
 
     private void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes, final Exception stopError) {
+
+        if (stopping) {
+            return;
+        }
+        
         String itemId = task.itemId;
         
         if (removedItems.contains(itemId)) {
@@ -279,18 +286,27 @@ public class DefaultDownloadService extends Service {
     public void stop() {
         
         Log.d(TAG, "stop()");
-        
-        if (started) {
 
-            // close db
-            database.close();
-            database = null;
-            
-            executorService.shutdown();
-            stopHandlerThreads();
-            
-            started = false;
+        if (!started) {
+            return;
         }
+
+        stopping = true;
+
+        executorService.shutdownNow();
+        try {
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Log.e(TAG, "stop: awaitTerminationInterrupted", e);
+        }
+        stopHandlerThreads();
+
+        // close db
+        database.close();
+        database = null;
+
+        started = false;
+        stopping = false;
     }
 
     private void makeDirs(File dataDir, String name) {

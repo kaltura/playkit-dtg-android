@@ -397,6 +397,10 @@ public class MainActivity extends ListActivity {
 
         DownloadState state = null;
 
+        if (!contentManager.isStarted()) {
+            return;
+        }
+
         final DownloadItem downloadItem = contentManager.findItem(item.getId());
         if (downloadItem != null) {
             item.downloadState = downloadItem.getState();

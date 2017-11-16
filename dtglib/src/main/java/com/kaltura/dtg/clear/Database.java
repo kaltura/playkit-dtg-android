@@ -178,7 +178,7 @@ class Database {
         return success;
     }
 
-    void close() {
+    synchronized void close() {
         database.close();
         helper.close();
     }
