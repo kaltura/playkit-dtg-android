@@ -368,6 +368,12 @@ public class DefaultDownloadService extends Service {
     private void downloadMetadataDash(DefaultDownloadItem item, File itemDataDir) throws IOException {
 
         final DashDownloader dashDownloader = new DashDownloadCreator(item.getContentURL(), itemDataDir);
+        
+        // Handle service being stopped
+        if (isServiceStopped()) {
+            Log.w(TAG, "Service not started or being stopped, ignoring DashDownloadCreator");
+            return; 
+        }
 
         DownloadItem.TrackSelector trackSelector = dashDownloader.getTrackSelector();
         
@@ -394,6 +400,10 @@ public class DefaultDownloadService extends Service {
         item.setPlaybackPath(dashDownloader.getPlaybackPath());
 
         addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
+    }
+
+    private boolean isServiceStopped() {
+        return stopping || !started;
     }
 
     private void downloadMetadataSimple(URL url, DefaultDownloadItem item, File itemDataDir) throws IOException {

@@ -158,12 +158,12 @@ class Database {
         return strings;
     }
 
-    private boolean doTransaction(Transaction transaction) {
+    synchronized private boolean doTransaction(Transaction transaction) {
         if (database == null) {
             return false;
         }
 
-        boolean success = false;
+        boolean success;
         try {
             database.beginTransaction();
 
