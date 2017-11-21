@@ -1,6 +1,7 @@
 package com.kaltura.dtg.clear;
 
 import android.content.Context;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -14,6 +15,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 
 public class ContentManagerImp extends ContentManager {
@@ -77,14 +79,18 @@ public class ContentManagerImp extends ContentManager {
     
     private int maxConcurrentDownloads;
     private Context context;
+    private String sessionId;
+    private String applicationName;
     private DefaultProviderProxy provider;
     private File itemsDir;
     private boolean started;
     private boolean autoResumeItemsInProgress = true;
+    private DownloadRequestParams.Adapter adapter;
     private Settings settings = new Settings();
 
     private ContentManagerImp(Context context) {
         this.context = context.getApplicationContext();
+
         File filesDir = this.context.getFilesDir();
         itemsDir = new File(filesDir, "dtg/items");
 
@@ -133,6 +139,9 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public void start(final OnStartedListener onStartedListener) {
         Log.d(TAG, "start Content Manager");
+        this.sessionId =  UUID.randomUUID().toString();
+        this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
+        this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
         if (provider != null) {
             // Call the onstarted callback even if it has already been started
             if (onStartedListener != null) {
@@ -222,8 +231,8 @@ public class ContentManagerImp extends ContentManager {
         if (!isProviderOperationValid(itemId)) {
             throw new IllegalStateException("Provider Operation Not Valid");
         }
-
-        return provider.createItem(itemId, contentURL);
+        DownloadRequestParams downloadRequestParams = adapter.adapt(new DownloadRequestParams(Uri.parse(contentURL), null));
+        return provider.createItem(itemId, downloadRequestParams.url.toString());
     }
 
     @Override
@@ -294,7 +303,7 @@ public class ContentManagerImp extends ContentManager {
             throw new IllegalStateException("Manager was not started.");
         }
     }
-
+    
     @Override
     public Settings getSettings() {
         if (started) {
@@ -306,6 +315,19 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public void setAutoResumeItemsInProgress(boolean autoStartItemsInProgress) {
         this.autoResumeItemsInProgress = autoStartItemsInProgress;
+    }
+
+    @Override
+    public boolean isStarted() {
+        return started;
+    }
+    
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public String getApplicationName() {
+        return applicationName;
     }
 }
 

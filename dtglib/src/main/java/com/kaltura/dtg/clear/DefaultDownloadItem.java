@@ -32,6 +32,7 @@ class DefaultDownloadItem implements DownloadItem {
     DefaultDownloadItem(String itemId, String contentURL) {
         this.itemId = itemId;
         this.contentUrl = contentURL;
+
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.kaltura.dtg.clear;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -35,16 +36,20 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultDownloadService extends Service {
 
     private static final String TAG = "DefaultDownloadService";
+    private final Context context;  // allow mocking
     private LocalBinder localBinder = new LocalBinder();
     private Database database;
+    private DownloadRequestParams.Adapter adapter;
     private File downloadsDir;
     private boolean started;
+    private boolean stopping;
     private DownloadStateListener downloadStateListener;
-    private ExecutorService mExecutor;
+    private ExecutorService executorService;
     private ItemFutureMap futureMap = new ItemFutureMap();
     private Handler listenerHandler = null;
     
@@ -53,20 +58,35 @@ public class DefaultDownloadService extends Service {
     
     private Set<String> removedItems = new HashSet<>();
 
+    public DefaultDownloadService(Context context) {
+        this.context = context;
+    }
+    
+    public DefaultDownloadService() {
+        this.context = this;
+    }
+    
     private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
 
         @Override
         public void onTaskProgress(final DownloadTask task, final DownloadTask.State newState, final int newBytes, final Exception stopError) {
-            taskProgressHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    DefaultDownloadService.this.onTaskProgress(task, newState, newBytes, stopError);
-                }
-            });
+            if (taskProgressHandler.getLooper().getThread().isAlive()) {
+                taskProgressHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        DefaultDownloadService.this.onTaskProgress(task, newState, newBytes, stopError);
+                    }
+                });
+            }
         }
     };
 
     private void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes, final Exception stopError) {
+
+        if (stopping) {
+            return;
+        }
+        
         String itemId = task.itemId;
         
         if (removedItems.contains(itemId)) {
@@ -181,6 +201,8 @@ public class DefaultDownloadService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
+        Log.d(TAG, "*** onUnbind");
+        stop();
         return super.onUnbind(intent);
     }
 
@@ -195,6 +217,13 @@ public class DefaultDownloadService extends Service {
         listenerThread.start();
         taskProgressHandler = new Handler(listenerThread.getLooper());
     }
+    
+    private void stopHandlerThreads() {
+        listenerHandler.getLooper().quit();
+        listenerHandler = null;
+        taskProgressHandler.getLooper().quit();
+        taskProgressHandler = null;
+    }
 
     void pauseItemDownload(String itemId) {
         if (itemId != null) {
@@ -202,7 +231,7 @@ public class DefaultDownloadService extends Service {
         } else {
             futureMap.cancelAll();
         }
-        // Maybe add PAUSE_ALL with mExecutor.purge(); and remove futures
+        // Maybe add PAUSE_ALL with executorService.purge(); and remove futures
     }
 
     void downloadChunks(ArrayList<DownloadTask> chunks, String itemId) {
@@ -212,13 +241,15 @@ public class DefaultDownloadService extends Service {
         for (DownloadTask task : chunks) {
             task.itemId = itemId;
             FutureTask future = futureTask(itemId, task);
-            mExecutor.execute(future);
+            executorService.execute(future);
             futureMap.add(itemId, future);
         }
     }
 
     void updateItemInfoInDB(DefaultDownloadItem item, String... columns) {
-        database.updateItemInfo(item, columns);
+        if (database != null) {
+            database.updateItemInfo(item, columns);
+        }
     }
 
     private void assertStarted() {
@@ -231,10 +262,10 @@ public class DefaultDownloadService extends Service {
 
         Log.d(TAG, "start()");
 
-        File dataDir = new File(getFilesDir(), "dtg/clear");
+        File dataDir = new File(context.getFilesDir(), "dtg/clear");
         makeDirs(dataDir, "provider data directory");
 
-        File extFilesDir = getExternalFilesDir(null);
+        File extFilesDir = context.getExternalFilesDir(null);
         if (extFilesDir != null) {
             downloadsDir = new File(extFilesDir, "dtg/clear");
             makeDirs(downloadsDir, "provider downloads");
@@ -245,13 +276,45 @@ public class DefaultDownloadService extends Service {
 
         File dbFile = new File(dataDir, "downloads.db");
 
-        database = new Database(dbFile, this);
+        database = new Database(dbFile, context);
 
         startHandlerThreads();
 
-        mExecutor = Executors.newFixedThreadPool(settings.maxConcurrentDownloads);
+        executorService = Executors.newFixedThreadPool(settings.maxConcurrentDownloads);
 
         started = true;
+    }
+
+    public void stop() {
+        
+        Log.d(TAG, "stop()");
+
+        if (!started) {
+            return;
+        }
+
+        stopping = true;
+
+        for (DefaultDownloadItem item : getDownloads(new DownloadState[]{DownloadState.IN_PROGRESS})) {
+            pauseItemDownload(item.getItemId());
+        }
+        
+        taskProgressHandler.getLooper().quit();
+
+        executorService.shutdownNow();
+        try {
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Log.e(TAG, "stop: awaitTerminationInterrupted", e);
+        }
+        stopHandlerThreads();
+
+        // close db
+        database.close();
+        database = null;
+
+        started = false;
+        stopping = false;
     }
 
     private void makeDirs(File dataDir, String name) {
@@ -260,20 +323,6 @@ public class DefaultDownloadService extends Service {
         if (!dataDir.isDirectory()) {
             Log.e(TAG, "Failed to create " + name + " -- " + dataDir);
             throw new IllegalStateException("Can't continue without " + name + " -- " + dataDir);
-        }
-    }
-
-    public void stop() {
-        
-        Log.d(TAG, "stop()");
-        
-        if (started) {
-
-            // close db
-            database.close();
-            database = null;
-            
-            started = false;
         }
     }
 
@@ -312,12 +361,12 @@ public class DefaultDownloadService extends Service {
         if (contentURL.startsWith("widevine")) {
             contentURL = contentURL.replaceFirst("widevine", "http");
         }
-        
+        Uri contentUri = Uri.parse(contentURL);
         URL url = new URL(contentURL);
-        String path = url.getPath().toLowerCase();
-        if (path.endsWith(".m3u8")) {
+        String fileName = contentUri.getLastPathSegment();
+        if (fileName.endsWith(".m3u8")) {
             downloadMetadataHLS(item, itemDataDir);
-        } else if (path.endsWith(".mpd")) {
+        } else if (fileName.endsWith(".mpd")) {
             downloadMetadataDash(item, itemDataDir);
         } else {
             downloadMetadataSimple(url, item, itemDataDir);
@@ -327,6 +376,12 @@ public class DefaultDownloadService extends Service {
     private void downloadMetadataDash(DefaultDownloadItem item, File itemDataDir) throws IOException {
 
         final DashDownloader dashDownloader = new DashDownloadCreator(item.getContentURL(), itemDataDir);
+        
+        // Handle service being stopped
+        if (isServiceStopped()) {
+            Log.w(TAG, "Service not started or being stopped, ignoring DashDownloadCreator");
+            return; 
+        }
 
         DownloadItem.TrackSelector trackSelector = dashDownloader.getTrackSelector();
         
@@ -353,6 +408,10 @@ public class DefaultDownloadService extends Service {
         item.setPlaybackPath(dashDownloader.getPlaybackPath());
 
         addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
+    }
+
+    private boolean isServiceStopped() {
+        return stopping || !started;
     }
 
     private void downloadMetadataSimple(URL url, DefaultDownloadItem item, File itemDataDir) throws IOException {
@@ -388,12 +447,14 @@ public class DefaultDownloadService extends Service {
         hlsParser.selectVariant(selectedVariant);
 
         hlsParser.parseVariant();
-        ArrayList<DownloadTask> chunks = hlsParser.createDownloadTasks();
+        ArrayList<DownloadTask> encryptionKeys = hlsParser.createEncryptionKeyDownloadTasks();
+        ArrayList<DownloadTask> chunks = hlsParser.createSegmentDownloadTasks();
         item.setEstimatedSizeBytes(hlsParser.getEstimatedSizeBytes());
 
         // set playback path the the relative url path, excluding the leading slash.
         item.setPlaybackPath(hlsParser.getPlaybackPath());
 
+        addDownloadTasksToDB(item, encryptionKeys);
         addDownloadTasksToDB(item, chunks);
         // TODO: handle db insertion errors
 
@@ -447,10 +508,9 @@ public class DefaultDownloadService extends Service {
     public void pauseDownload(final DefaultDownloadItem item) {
         assertStarted();
 
-        ArrayList<DownloadTask> downloadTasks;
         if (item != null) {
-            downloadTasks = database.readPendingDownloadTasksFromDB(item.getItemId());
-            if (downloadTasks.size() > 0) {
+            int countPendingFiles = database.countPendingFiles(item.getItemId());
+            if (countPendingFiles > 0) {
 
                 pauseItemDownload(item.getItemId());
 

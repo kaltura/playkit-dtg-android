@@ -312,6 +312,23 @@ public final class HlsPlaylistParser implements UriLoadable.Parser<HlsPlaylist> 
         Collections.unmodifiableList(segments));
   }
 
+  /**
+   * @param line
+   * @return URI attribute if it's detected
+   * @throws ParserException
+   */
+  public String extractUriAttribute(String line) throws ParserException {
+    return HlsParserUtil.parseStringAttr(line, URI_ATTR_REGEX, URI_ATTR);
+  }
+
+  /**
+   * @param line
+   * @return true if AES-128 method detected, false otherwise
+   */
+  public Boolean containsEncryptionKey(String line) {
+    return line.contains(METHOD_AES128);
+  }
+
   private static class LineIterator {
 
     private final BufferedReader reader;
