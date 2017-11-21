@@ -21,22 +21,14 @@ before_script:
   - mkdir -p $ANDROID_HOME/licenses
   - echo $android_sdk_license > $ANDROID_HOME/licenses/android-sdk-license
 script:
-  - ./gradlew dtglib:build dtgapp:build
+  - ./gradlew dtglib:build dtgqueue:build
 after_success:
   - ./travis-push-to-bintray.sh
-deploy:
-  provider: releases
-  draft: false
-  skip_cleanup: true
-  file:
-    - dtglib/build/outputs/aar/dtglib-release.aar
-    - dtgapp/build/outputs/apk/dtgapp-debug.apk
-  on:
-    tags: true
-  api-key: $GH_TOKEN
 notifications:
   email:
     recipients:
       - noam.tamim@kaltura.com
+      - gilad.nadav@kaltura.com
+      - Anton.Afanasiev@kaltura.com
     on_success: change
     on_failure: always
