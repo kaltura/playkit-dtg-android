@@ -70,12 +70,14 @@ public class DefaultDownloadService extends Service {
 
         @Override
         public void onTaskProgress(final DownloadTask task, final DownloadTask.State newState, final int newBytes, final Exception stopError) {
-            taskProgressHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    DefaultDownloadService.this.onTaskProgress(task, newState, newBytes, stopError);
-                }
-            });
+            if (taskProgressHandler.getLooper().getThread().isAlive()) {
+                taskProgressHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        DefaultDownloadService.this.onTaskProgress(task, newState, newBytes, stopError);
+                    }
+                });
+            }
         }
     };
 
@@ -292,6 +294,12 @@ public class DefaultDownloadService extends Service {
         }
 
         stopping = true;
+
+        for (DefaultDownloadItem item : getDownloads(new DownloadState[]{DownloadState.IN_PROGRESS})) {
+            pauseItemDownload(item.getItemId());
+        }
+        
+        taskProgressHandler.getLooper().quit();
 
         executorService.shutdownNow();
         try {
