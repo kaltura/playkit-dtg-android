@@ -3,6 +3,7 @@ package com.kaltura.dtgapp.queue;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -12,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
@@ -50,6 +52,15 @@ class ItemLoader {
         throw new IllegalArgumentException("No dash source");
     }
 
+    private static PKMediaSource findFirstWVM(List<PKMediaSource> sources) {
+        for (PKMediaSource source : sources) {
+            if (source.getMediaFormat() == PKMediaFormat.wvm) {
+                return source;
+            }
+        }
+        throw new IllegalArgumentException("No wvm source");
+    }
+
     private static List<Item> loadOVPItems(int partnerId, String... entries) {
         SimpleOvpSessionProvider sessionProvider = new SimpleOvpSessionProvider("https://cdnapisec.kaltura.com", partnerId, null);
         CountDownLatch latch = new CountDownLatch(entries.length);
@@ -64,7 +75,14 @@ class ItemLoader {
                 public void onComplete(ResultElement<PKMediaEntry> response) {
                     PKMediaEntry mediaEntry = response.getResponse();
                     if (mediaEntry != null) {
-                        PKMediaSource source = findFirstDash(mediaEntry.getSources());
+                        PKMediaSource source = null;
+
+                        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                            source = findFirstWVM(mediaEntry.getSources());
+                        } else {
+                            source = findFirstDash(mediaEntry.getSources());
+                        }
+
                         Item item = new Item(source, mediaEntry.getName());
                         items.set(index, item);
                     } else {
@@ -88,8 +106,7 @@ class ItemLoader {
         
         // TODO: fill the list with Items -- each item has a single PKMediaSource with relevant DRM data.
         // Using OVP provider for simplicity
-        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "1_utjroirc", "1_b8ppdt98", "0_3cb7ganx", "1_f93tepsn", 
-                "1_m1vpaory", "1_i18rihuv", "1_cwdmd8il"));
+        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx","1_cwdmd8il"));
         
         // For simple cases (no DRM), no need for MediaSource.
         items.add(new Item("sintel-short-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_9bwuo813/format/mpegdash/protocol/http/a.mpd"));
@@ -234,30 +251,31 @@ public class MainActivity extends ListActivity {
         remove,
         pause,
         register,
+        unregister,
         play;
         
         @NonNull  static Action[] actions(Item item) {
             if (item.downloadState == null) {
-                return new Action[] {add};
+                return new Action[] {add, unregister};
             }
             
             switch (item.downloadState) {
                 case NEW:
-                    return new Action[] {remove};
+                    return new Action[] {remove, unregister};
                 case INFO_LOADED:
-                    return new Action[] {start, pause, remove};
+                    return new Action[] {start, pause, remove, unregister};
                 case IN_PROGRESS:
-                    return new Action[] {start, pause, remove};
+                    return new Action[] {start, pause, remove, unregister};
                 case PAUSED:
-                    return new Action[] {start, remove};
+                    return new Action[] {start, remove, unregister};
                 case COMPLETED:
                     if (!item.isDrmProtected() || item.isDrmRegistered()) {
-                        return new Action[] {play, remove};
+                        return new Action[] {play, remove, unregister};
                     } else {
-                        return new Action[] {register, remove};
+                        return new Action[] {register, remove, unregister};
                     }
                 case FAILED:
-                    return new Action[] {start, remove};
+                    return new Action[] {start, remove, unregister};
             }
             throw new IllegalStateException();
         }
@@ -280,6 +298,7 @@ public class MainActivity extends ListActivity {
         loadTestItems(itemArrayAdapter);
 
         contentManager = ContentManager.getInstance(this);
+        contentManager.getSettings().applicationName = "MyApplication";
         contentManager.addDownloadStateListener(cmListener);
         contentManager.start(new ContentManager.OnStartedListener() {
             @Override
@@ -294,12 +313,69 @@ public class MainActivity extends ListActivity {
         
         localAssetsManager = new LocalAssetsManager(context);
         
-        findViewById(R.id.stop_player).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.download_control).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (player != null) {
-                    player.stop();
-                }
+                String[] actions = {"Start service", "Stop service"};
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Download Action")
+                        .setItems(actions, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                switch (which) {
+                                    case 0:
+                                        contentManager.start(new ContentManager.OnStartedListener() {
+                                            @Override
+                                            public void onStarted() {
+                                                Toast.makeText(context, "Service started", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                        break;
+                                    case 1:
+                                        contentManager.stop();
+                                        break;
+                                }
+
+                            }
+                        }).show();
+            }
+        });
+        
+        findViewById(R.id.player_control).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String[] actions = {"Play", "Pause", "Seek -60", "Seek -15", "Seek +15", "Seek +60"};
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Player Action")
+                        .setItems(actions, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (player == null) {
+                                    return;
+                                }
+                                switch (which) {
+                                    case 0:
+                                        player.play();
+                                        break;
+                                    case 1:
+                                        player.pause();
+                                        break;
+                                    case 2:
+                                        player.seekTo(player.getCurrentPosition() - 60000);
+                                        break;
+                                    case 3:
+                                        player.seekTo(player.getCurrentPosition() - 15000);
+                                        break;
+                                    case 4:
+                                        player.seekTo(player.getCurrentPosition() + 15000);
+                                        break;
+                                    case 5:
+                                        player.seekTo(player.getCurrentPosition() + 60000);
+                                        break;
+                                }
+                            }
+                        }).show();
+                        
             }
         });
     }
@@ -320,6 +396,10 @@ public class MainActivity extends ListActivity {
         Log.d(TAG, "Clicked " + item);
 
         DownloadState state = null;
+
+        if (!contentManager.isStarted()) {
+            return;
+        }
 
         final DownloadItem downloadItem = contentManager.findItem(item.getId());
         if (downloadItem != null) {
@@ -355,6 +435,9 @@ public class MainActivity extends ListActivity {
                             case register:
                                 registerAsset(item);
                                 break;
+                            case unregister:
+                                unregisterAsset(item);
+                                break;
                             case play:
                                 playDownloadedItem(item.getId());
                                 break;
@@ -368,7 +451,9 @@ public class MainActivity extends ListActivity {
 
     private void registerAsset(final Item item) {
 
-        localAssetsManager.registerAsset(item.getMediaSource(), contentManager.getLocalFile(item.getId()).getAbsolutePath(), item.getId(), new LocalAssetsManager.AssetRegistrationListener() {
+        String absolutePath = contentManager.getLocalFile(item.getId()).getAbsolutePath();
+        PKMediaSource mediaSource = item.getMediaSource();
+        localAssetsManager.registerAsset(mediaSource, absolutePath, item.getId(), new LocalAssetsManager.AssetRegistrationListener() {
             @Override
             public void onRegistered(String localAssetPath) {
                 item.drmRegistered = true;
@@ -378,6 +463,19 @@ public class MainActivity extends ListActivity {
             @Override
             public void onFailed(String localAssetPath, Exception error) {
 
+            }
+        });
+    }
+    
+    private void unregisterAsset(final Item item) {
+
+
+        final String localAssetPath = contentManager.getLocalFile(item.getId()).getAbsolutePath();
+        localAssetsManager.unregisterAsset(localAssetPath, item.getId(), new LocalAssetsManager.AssetRemovalListener() {
+            @Override
+            public void onRemoved(String localAssetPath) {
+                item.drmRegistered = false;
+                notifyDataSetChanged();
             }
         });
     }

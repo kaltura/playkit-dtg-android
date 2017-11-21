@@ -51,6 +51,11 @@ class DefaultProviderProxy {
 
     public void start(ContentManager.OnStartedListener startedListener) {
         
+        if (service != null) {
+            Log.d(TAG, "Already started");
+            return;
+        }
+        
         this.onStartedListener = startedListener;
 
         Intent intent = new Intent(context, DefaultDownloadService.class);
@@ -58,10 +63,17 @@ class DefaultProviderProxy {
         Log.d(TAG, "*** Starting service");
 
         context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        // DefaultProviderProxy.onServiceConnected() will set downloadSettings and listener, then call service.start()
     }
 
     public void stop() {
+        if (service == null) {
+            Log.d(TAG, "Not started");
+            return;
+        }
+        
         context.unbindService(serviceConnection);
+        // DefaultDownloadService.onUnbind() will call stop().
     }
 
     public void loadItemMetadata(DownloadItem item) {
