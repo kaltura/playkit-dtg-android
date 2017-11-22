@@ -269,10 +269,14 @@ public class MainActivity extends ListActivity {
                 case PAUSED:
                     return new Action[] {start, remove, unregister};
                 case COMPLETED:
-                    if (!item.isDrmProtected() || item.isDrmRegistered()) {
-                        return new Action[] {play, remove, unregister};
+                    if (item.isDrmProtected()) {
+                        if (item.isDrmRegistered()) {
+                            return new Action[] {play, unregister};
+                        } else {
+                            return new Action[] {register, remove};
+                        }
                     } else {
-                        return new Action[] {register, remove, unregister};
+                        return new Action[] {play, remove};
                     }
                 case FAILED:
                     return new Action[] {start, remove, unregister};
