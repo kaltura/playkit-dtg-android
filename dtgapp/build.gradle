@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 apply from: '../version.gradle'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 25
 
     defaultConfig {
         applicationId "com.kaltura.dtgapp"
@@ -21,5 +21,5 @@ android {
 
 dependencies {
     compile project(':dtglib')
-    compile 'com.android.support:appcompat-v7:26.1.0'
+    compile 'com.android.support:appcompat-v7:25.4.0'
 }

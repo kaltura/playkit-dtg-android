@@ -5,7 +5,7 @@ apply from: 'bintray.gradle'
 group='com.github.kaltura'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 25
 
     defaultConfig {
         minSdkVersion 16
