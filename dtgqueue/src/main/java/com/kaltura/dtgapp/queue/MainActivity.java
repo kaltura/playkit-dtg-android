@@ -263,30 +263,35 @@ public class MainActivity extends ListActivity {
         pause,
         register,
         unregister,
-        play;
-        
+        playOffline,
+        playOnline;
+
         @NonNull  static Action[] actions(Item item) {
             if (item.downloadState == null) {
-                return new Action[] {add, unregister};
+                return new Action[] {add, unregister, playOnline};
             }
             
             switch (item.downloadState) {
                 case NEW:
-                    return new Action[] {remove, unregister};
+                    return new Action[] {remove, unregister, playOnline};
                 case INFO_LOADED:
-                    return new Action[] {start, pause, remove, unregister};
+                    return new Action[] {start, pause, remove, unregister, playOnline};
                 case IN_PROGRESS:
-                    return new Action[] {start, pause, remove, unregister};
+                    return new Action[] {start, pause, remove, unregister, playOnline};
                 case PAUSED:
-                    return new Action[] {start, remove, unregister};
+                    return new Action[] {start, remove, unregister, playOnline};
                 case COMPLETED:
-                    if (!item.isDrmProtected() || item.isDrmRegistered()) {
-                        return new Action[] {play, remove, unregister};
+                    if (item.isDrmProtected()) {
+                        if (item.isDrmRegistered()) {
+                            return new Action[] {playOffline, unregister, playOnline};
+                        } else {
+                            return new Action[] {register, remove, playOnline};
+                        }
                     } else {
-                        return new Action[] {register, remove, unregister};
+                        return new Action[] {playOffline, remove, playOnline};
                     }
                 case FAILED:
-                    return new Action[] {start, remove, unregister};
+                    return new Action[] {start, remove, unregister, playOnline};
             }
             throw new IllegalStateException();
         }
@@ -452,8 +457,11 @@ public class MainActivity extends ListActivity {
                             case unregister:
                                 unregisterAsset(item);
                                 break;
-                            case play:
-                                playDownloadedItem(item.getId());
+                            case playOffline:
+                                playDownloadedItem(item);
+                                break;
+                            case playOnline:
+                                playOnlineItem(item);
                                 break;
                         }
                     }
@@ -461,6 +469,11 @@ public class MainActivity extends ListActivity {
                 .setCancelable(true)
                 .show();
 
+    }
+
+    private void playOnlineItem(Item item) {
+        
+        playItem(item.getId(), item.getMediaSource(), PKMediaEntry.MediaEntryType.Vod);
     }
 
     private void registerAsset(final Item item) {
@@ -494,13 +507,26 @@ public class MainActivity extends ListActivity {
         });
     }
 
-    private void playDownloadedItem(String itemId) {
+    private void playDownloadedItem(Item item) {
 
+        final String itemId = item.getId();
         PKMediaSource localMediaSource = localAssetsManager.getLocalMediaSource(itemId, contentManager.getLocalFile(itemId).getAbsolutePath());
 
-        PKMediaEntry entry = new PKMediaEntry().setId(itemId).setMediaType(PKMediaEntry.MediaEntryType.Vod).setSources(Collections.singletonList(localMediaSource));
+        playItem(itemId, localMediaSource, PKMediaEntry.MediaEntryType.Vod);
+    }
+
+    private void playItem(String itemId, PKMediaSource mediaSource, PKMediaEntry.MediaEntryType type) {
+        PKMediaEntry entry = new PKMediaEntry().setId(itemId).setMediaType(type).setSources(Collections.singletonList(mediaSource));
 
 
+        setupPlayer();
+
+
+        player.prepare(new PKMediaConfig().setMediaEntry(entry));
+        player.play();
+    }
+
+    private void setupPlayer() {
         if (player == null) {
             player = PlayKitManager.loadPlayer(this, null);
             ViewGroup playerRoot = (ViewGroup) findViewById(R.id.player_root);
@@ -508,12 +534,6 @@ public class MainActivity extends ListActivity {
         } else {
             player.stop();
         }
-        
-        
-        player.prepare(new PKMediaConfig().setMediaEntry(entry));
-        player.play();
-
-
     }
 
     private void loadTestItems(final ArrayAdapter<Item> itemAdapter) {

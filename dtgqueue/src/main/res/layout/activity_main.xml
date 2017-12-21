@@ -23,7 +23,31 @@
             android:text="Player Control" />
     </LinearLayout>
 
-    <GridLayout
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
+
+        <LinearLayout
+            android:id="@+id/player_root"
+            android:layout_width="match_parent"
+            android:background="@android:color/holo_blue_bright"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"/>
+
+        <ListView
+            android:id="@android:id/list"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:drawSelectorOnTop="false"/>
+
+
+    </LinearLayout>
+    
+    <!--GridLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -44,7 +68,7 @@
             android:layout_weight="1"
             android:drawSelectorOnTop="false"/>
 
-    </GridLayout>
+    </GridLayout-->
 
 
 </LinearLayout>
