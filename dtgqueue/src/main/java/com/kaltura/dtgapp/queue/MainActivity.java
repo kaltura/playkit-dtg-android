@@ -3,6 +3,8 @@ package com.kaltura.dtgapp.queue;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -34,6 +36,7 @@ import com.kaltura.playkit.mediaproviders.ovp.KalturaOvpMediaProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -98,6 +101,13 @@ class ItemLoader {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        for (Iterator<Item> iterator = items.iterator(); iterator.hasNext();) {
+            Item item = iterator.next();
+            if (item == null) {
+                // Remove the current element from the iterator and the list.
+                iterator.remove();
+            }
+        }
         return items;
     }
 
@@ -106,7 +116,8 @@ class ItemLoader {
         
         // TODO: fill the list with Items -- each item has a single PKMediaSource with relevant DRM data.
         // Using OVP provider for simplicity
-        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx","1_cwdmd8il"));
+        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx", "1_cwdmd8il"));
+
         
         // For simple cases (no DRM), no need for MediaSource.
         items.add(new Item("sintel-short-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_9bwuo813/format/mpegdash/protocol/http/a.mpd"));
@@ -294,9 +305,12 @@ public class MainActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         itemArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         loadTestItems(itemArrayAdapter);
-
+        if (!isNetworkAvailable()) {
+            Toast.makeText(context, "NO NETWORK AVAILABLE", Toast.LENGTH_LONG).show();
+        }
         contentManager = ContentManager.getInstance(this);
         contentManager.getSettings().applicationName = "MyApplication";
         contentManager.addDownloadStateListener(cmListener);
@@ -511,5 +525,12 @@ public class MainActivity extends ListActivity {
                 itemMap.put(item.getId(), item);
             }
         }
+    }
+
+    public boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 }
