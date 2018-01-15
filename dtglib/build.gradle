@@ -5,11 +5,11 @@ apply from: 'bintray.gradle'
 group='com.github.kaltura'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionName dtglibVersion  // defined in version.gradle
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -31,7 +31,7 @@ tasks.withType(Javadoc) {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:25.4.0'
+    compile 'com.android.support:support-v4:26.1.0'
     testCompile 'junit:junit:4.12'
     androidTestCompile 'com.android.support.test:runner:1.0.1'
 }
