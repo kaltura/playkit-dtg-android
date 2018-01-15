@@ -245,11 +245,13 @@ public class MainActivity extends ListActivity {
         @Override
         public void onDownloadMetadata(DownloadItem item, Exception error) {
             itemStateChanged(item);
+
+            // TODO: select tracks, if not selected before.
         }
 
         @Override
         public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
-
+            // TODO: select tracks
         }
     };
     private Player player;
