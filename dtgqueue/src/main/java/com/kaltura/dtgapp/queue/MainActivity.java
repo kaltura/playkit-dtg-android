@@ -31,6 +31,7 @@ import com.kaltura.playkit.api.ovp.SimpleOvpSessionProvider;
 import com.kaltura.playkit.mediaproviders.base.OnMediaLoadCompletion;
 import com.kaltura.playkit.mediaproviders.ovp.KalturaOvpMediaProvider;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -483,7 +484,12 @@ public class MainActivity extends ListActivity {
     private void unregisterAsset(final Item item) {
 
 
-        final String localAssetPath = contentManager.getLocalFile(item.getId()).getAbsolutePath();
+        final File localFile = contentManager.getLocalFile(item.getId());
+        if (localFile == null) {
+            Toast.makeText(this, "File not found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final String localAssetPath = localFile.getAbsolutePath();
         localAssetsManager.unregisterAsset(localAssetPath, item.getId(), new LocalAssetsManager.AssetRemovalListener() {
             @Override
             public void onRemoved(String localAssetPath) {
