@@ -57,6 +57,7 @@ public class DefaultDownloadService extends Service {
     private ContentManager.Settings settings;
     
     private Set<String> removedItems = new HashSet<>();
+    private String NO_MEIDA_EMPTY_FILE = ".nomedia"; // File that will pervent Android to scan Folder for meida
 
     public DefaultDownloadService(Context context) {
         this.context = context;
@@ -269,7 +270,12 @@ public class DefaultDownloadService extends Service {
         if (extFilesDir != null) {
             downloadsDir = new File(extFilesDir, "dtg/clear");
             makeDirs(downloadsDir, "provider downloads");
-
+            File noMediafileExternal = new File(extFilesDir, NO_MEIDA_EMPTY_FILE);
+            try {
+                noMediafileExternal.createNewFile();
+            } catch (IOException e) {
+                throw new IllegalStateException("Can't crearte file: " + NO_MEIDA_EMPTY_FILE);
+            }
         } else {
             downloadsDir = dataDir;
         }
