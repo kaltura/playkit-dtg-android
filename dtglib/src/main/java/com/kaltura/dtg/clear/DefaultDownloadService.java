@@ -318,11 +318,33 @@ public class DefaultDownloadService extends Service {
     }
 
     private void makeDirs(File dataDir, String name) {
-        //noinspection ResultOfMethodCallIgnored
-        dataDir.mkdirs();
-        if (!dataDir.isDirectory()) {
-            Log.e(TAG, "Failed to create " + name + " -- " + dataDir);
-            throw new IllegalStateException("Can't continue without " + name + " -- " + dataDir);
+        makeDirs(dataDir, name, 5);
+    }
+
+    private boolean makeDirs(File dataDir, String name, int retries) {
+
+        String logName = name + " -- " + dataDir;
+        if (dataDir.mkdirs()) {
+            // Normal flow, first run
+            Log.d(TAG, "Created " + logName);
+            return true;
+        }
+
+        if (dataDir.exists()) {
+            if (dataDir.isDirectory()) {
+                // Normal flow, second+ run
+                Log.i(TAG, "Skip creating existing directory: " + logName);
+                return true;
+            } else {
+                Log.e(TAG, "Can't create directory because there's a file there: " + logName);
+                throw new CannotCreateDirectoryException("File exists on path " + dataDir);
+            }
+        } else {
+            Log.e(TAG, "Can't create directory for an unknown reason: " + logName);
+            if (retries > 0) {
+                return makeDirs(dataDir, name, retries-1);
+            }
+            throw new CannotCreateDirectoryException("Unknown reason " + dataDir);
         }
     }
 
@@ -736,6 +758,12 @@ public class DefaultDownloadService extends Service {
     class LocalBinder extends Binder {
         DefaultDownloadService getService() {
             return DefaultDownloadService.this;
+        }
+    }
+
+    public class CannotCreateDirectoryException extends RuntimeException {
+        CannotCreateDirectoryException(String reason) {
+            super(reason);
         }
     }
 }
