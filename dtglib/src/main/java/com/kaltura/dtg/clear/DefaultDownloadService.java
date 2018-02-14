@@ -274,7 +274,7 @@ public class DefaultDownloadService extends Service {
             try {
                 noMediafileExternal.createNewFile();
             } catch (IOException e) {
-                throw new IllegalStateException("Can't crearte file: " + NO_MEDIA_EMPTY_FILE);
+                throw new IllegalStateException("Can't create nomedia file at " + noMediafileExternal);
             }
         } else {
             downloadsDir = dataDir;
