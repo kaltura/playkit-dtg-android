@@ -167,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
 
         contentManager.getSettings().maxConcurrentDownloads = 4;
         contentManager.getSettings().applicationName = "MyAppName";
+        contentManager.getSettings().createNoMediaFileInDownloadsDir = true;
         contentManager.addDownloadStateListener(new DownloadStateListener() {
             @Override
             public void onDownloadComplete(DownloadItem item) {
