@@ -318,7 +318,7 @@ public class DefaultDownloadService extends Service {
     }
 
     private void makeDirs(File dataDir, String name) {
-        makeDirs(dataDir, name, 5);
+        makeDirs(dataDir, name, 2);
     }
 
     private boolean makeDirs(File dataDir, String name, int retries) {
@@ -342,6 +342,11 @@ public class DefaultDownloadService extends Service {
         } else {
             Log.e(TAG, "Can't create directory for an unknown reason: " + logName);
             if (retries > 0) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "InterruptedException while waiting to retry mkdirs", e);
+                }
                 return makeDirs(dataDir, name, retries-1);
             }
             throw new CannotCreateDirectoryException("Unknown reason " + dataDir);
