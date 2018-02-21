@@ -317,39 +317,49 @@ public class DefaultDownloadService extends Service {
         stopping = false;
     }
 
+    // Try to create a directory.
+    // Throws CannotCreateDirectoryException on failure, else returns quietly.
     private void makeDirs(File dataDir, String name) {
 
         String logName = name + " -- " + dataDir;
         for (int i = 2; i >= 0; i--) {
+
+            // Normal flow, second+ run of the app
+            if (dataDir.isDirectory()) {
+                return;
+            }
+
+            // Normal flow, first run
             if (dataDir.mkdirs()) {
-                // Normal flow, first run
                 Log.d(TAG, "Created " + logName);
                 return;
             }
 
             if (dataDir.exists()) {
-                if (dataDir.isDirectory()) {
-                    // Normal flow, second+ run
-                    Log.i(TAG, "Skip creating existing directory: " + logName);
-                    return;
-                } else {
-                    Log.e(TAG, "Can't create directory because there's a file there: " + logName);
+                // Check again if this is a directory, because we're not supposed to get here.
+                if (!dataDir.isDirectory()) {
+                    // Unexpected file, can't recover.
+                    Log.e(TAG, "Can't create directory because there's a non-directory file there: " + logName);
                     throw new CannotCreateDirectoryException("File exists on path " + dataDir);
                 }
-            } else {
-                Log.e(TAG, "Can't create directory for an unknown reason: " + logName);
+            }
 
+            // Path does not exist and directory not created. Let's wait and retry.
+            Log.e(TAG, "Can't create directory for an unknown reason: " + logName);
+
+            if (i == 0) {   // Last attempt has failed.
+                // If we're here, the directory could not be created for an unknown reason.
+                throw new CannotCreateDirectoryException("Unknown reason; " + dataDir);
+            } else {
                 // Wait and retry
-                if (i > 0) {
-                    try {
-                        Thread.sleep(50);
-                    } catch (InterruptedException e) {
-                        Log.e(TAG, "InterruptedException while waiting to retry mkdirs", e);
-                    }
+                try {
+                    // 50 msec is more than enough to force a context switch.
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "InterruptedException while waiting to retry mkdirs", e);
                 }
             }
         }
-        throw new CannotCreateDirectoryException("Unknown reason; " + dataDir);
     }
 
     public void loadItemMetadata(final DefaultDownloadItem item) {
