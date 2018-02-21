@@ -322,7 +322,8 @@ public class DefaultDownloadService extends Service {
     private void makeDirs(File dataDir, String name) {
 
         String logName = name + " -- " + dataDir;
-        for (int i = 2; i >= 0; i--) {
+        int maxTries = 2;
+        for (int i = maxTries; i >= 0; i--) {
 
             // Normal flow, second+ run of the app
             if (dataDir.isDirectory()) {
@@ -331,7 +332,7 @@ public class DefaultDownloadService extends Service {
 
             // Normal flow, first run
             if (dataDir.mkdirs()) {
-                Log.d(TAG, "Created " + logName);
+                Log.d(TAG, "Created (#" + (maxTries-i) + ") " + logName);
                 return;
             }
 
