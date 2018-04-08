@@ -3,6 +3,7 @@ package com.kaltura.dtgapp.queue;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -328,7 +329,7 @@ public class MainActivity extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
 
         itemArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         loadTestItems(itemArrayAdapter);
