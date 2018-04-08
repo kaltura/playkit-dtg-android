@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 
 
 class ItemLoader {
-    
+
     private static PKMediaSource findFirstDash(List<PKMediaSource> sources) {
         for (PKMediaSource source : sources) {
             if (source.getMediaFormat() == PKMediaFormat.dash) {
@@ -116,23 +116,23 @@ class ItemLoader {
 
     static List<Item>  loadItems() {
         List<Item> items = new ArrayList<>();
-        
+
         // TODO: fill the list with Items -- each item has a single PKMediaSource with relevant DRM data.
         // Using OVP provider for simplicity
         items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx","1_cwdmd8il"));
 
         // An item with given URL and License URL.
         items.add(new Item(
-                "test1", "Test 1", PKMediaFormat.dash, PKDrmParams.Scheme.WidevineCENC, 
-                "<CONTENT-URL>", 
+                "test1", "Test 1", PKMediaFormat.dash, PKDrmParams.Scheme.WidevineCENC,
+                "<CONTENT-URL>",
                 "<LICENCE-URL>"
         ));
-        
+
         // For simple cases (no DRM), no need for MediaSource.
         items.add(new Item("sintel-short-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_9bwuo813/format/mpegdash/protocol/http/a.mpd"));
         items.add(new Item("sintel-full-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_w9zx2eti/format/mpegdash/protocol/http/a.mpd"));
         items.add(new Item("kaltura", "http://cdnapi.kaltura.com/p/243342/sp/24334200/playManifest/entryId/1_sf5ovm7u/flavorIds/1_d2uwy7vv,1_jl7y56al/format/applehttp/protocol/http/a.m3u8"));
-        
+
         return items;
     }
 }
@@ -150,12 +150,12 @@ class Item {
         this.mediaSource = new PKMediaSource().setId(id).setUrl(url);
         this.name = id;
     }
-    
+
     Item(PKMediaSource mediaSource, String name) {
         this.mediaSource = mediaSource;
         this.name = name;
     }
-    
+
     Item(String id, String name, PKMediaFormat format, PKDrmParams.Scheme scheme, String url, String licenseUrl) {
         this.mediaSource = new PKMediaSource()
                 .setId(id)
@@ -168,7 +168,7 @@ class Item {
     boolean isDrmRegistered() {
         return drmRegistered;
     }
-    
+
     boolean isDrmProtected() {
         return mediaSource.hasDrmParams();
     }
@@ -181,7 +181,7 @@ class Item {
         } else {
             drmState = "C";
         }
-        
+
         String progress;
         if (estimatedSize > 0) {
             float percentComplete = 100f * downloadedSize / estimatedSize;
@@ -189,7 +189,7 @@ class Item {
         } else {
             progress = "-?-";
         }
-        
+
         return String.format(Locale.ENGLISH, "[%s] %s -- %s -- DRM:%s", progress, getId(), downloadState, drmState);
     }
 
@@ -208,7 +208,7 @@ class Item {
 
 
 public class MainActivity extends ListActivity {
-    
+
     private static final String TAG = "MainActivity";
     private ContentManager contentManager;
     private LocalAssetsManager localAssetsManager;
@@ -266,7 +266,7 @@ public class MainActivity extends ListActivity {
             notifyDataSetChanged();
         }
     }
-    
+
     private void notifyDataSetChanged() {
         getListView().post(new Runnable() {
             @Override
@@ -282,6 +282,7 @@ public class MainActivity extends ListActivity {
         remove,
         pause,
         register,
+        checkStatus,
         unregister,
         playOffline,
         playOnline;
@@ -290,7 +291,7 @@ public class MainActivity extends ListActivity {
             if (item.downloadState == null) {
                 return new Action[] {add, unregister, playOnline};
             }
-            
+
             switch (item.downloadState) {
                 case NEW:
                     return new Action[] {remove, unregister, playOnline};
@@ -303,9 +304,9 @@ public class MainActivity extends ListActivity {
                 case COMPLETED:
                     if (item.isDrmProtected()) {
                         if (item.isDrmRegistered()) {
-                            return new Action[] {playOffline, unregister, playOnline};
+                            return new Action[] {playOffline, unregister, playOnline, checkStatus};
                         } else {
-                            return new Action[] {register, remove, playOnline};
+                            return new Action[] {register, remove, playOnline, checkStatus};
                         }
                     } else {
                         return new Action[] {playOffline, remove, playOnline};
@@ -315,7 +316,7 @@ public class MainActivity extends ListActivity {
             }
             throw new IllegalStateException();
         }
-        
+
         static String[] strings(Action[] actions) {
             List<String> stringActions = new ArrayList<>();
             for (Action action : actions) {
@@ -349,9 +350,9 @@ public class MainActivity extends ListActivity {
                 setListAdapter(itemArrayAdapter);
             }
         });
-        
+
         localAssetsManager = new LocalAssetsManager(context);
-        
+
         findViewById(R.id.download_control).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -379,7 +380,7 @@ public class MainActivity extends ListActivity {
                         }).show();
             }
         });
-        
+
         findViewById(R.id.player_control).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -414,7 +415,7 @@ public class MainActivity extends ListActivity {
                                 }
                             }
                         }).show();
-                        
+
             }
         });
     }
@@ -424,8 +425,8 @@ public class MainActivity extends ListActivity {
         downloadItem.loadMetadata();
         itemStateChanged(downloadItem);
     }
-    
-    
+
+
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
@@ -483,6 +484,9 @@ public class MainActivity extends ListActivity {
                             case playOnline:
                                 playOnlineItem(item);
                                 break;
+                            case checkStatus:
+                                checkAssetStatus(item);
+                                break;
                         }
                     }
                 })
@@ -491,8 +495,18 @@ public class MainActivity extends ListActivity {
 
     }
 
+    private void checkAssetStatus(final Item item) {
+        localAssetsManager.checkAssetStatus(contentManager.getLocalFile(item.getId()).getAbsolutePath(), item.getId(), new LocalAssetsManager.AssetStatusListener() {
+            @Override
+            public void onStatus(String localAssetPath, long expiryTimeSeconds, long availableTimeSeconds, boolean isRegistered) {
+                item.drmRegistered = isRegistered;
+                Toast.makeText(MainActivity.this, "checkAssetStatus: isRegistered = " + isRegistered + " expiryTimeSeconds = " + expiryTimeSeconds, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void playOnlineItem(Item item) {
-        
+
         playItem(item.getId(), item.getMediaSource(), PKMediaEntry.MediaEntryType.Vod);
     }
 
@@ -513,7 +527,7 @@ public class MainActivity extends ListActivity {
             }
         });
     }
-    
+
     private void unregisterAsset(final Item item) {
 
 
