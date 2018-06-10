@@ -57,6 +57,7 @@ public class DefaultDownloadService extends Service {
     private ContentManager.Settings settings;
     
     private Set<String> removedItems = new HashSet<>();
+    private String NO_MEDIA_EMPTY_FILE = ".nomedia"; // File that will pervent Android to scan Folder for media
 
     public DefaultDownloadService(Context context) {
         this.context = context;
@@ -269,7 +270,14 @@ public class DefaultDownloadService extends Service {
         if (extFilesDir != null) {
             downloadsDir = new File(extFilesDir, "dtg/clear");
             makeDirs(downloadsDir, "provider downloads");
-
+            if(settings.createNoMediaFileInDownloadsDir) {
+                File noMediafileExternal = new File(extFilesDir, NO_MEDIA_EMPTY_FILE);
+                try {
+                    noMediafileExternal.createNewFile();
+                } catch (IOException e) {
+                    throw new IllegalStateException("Can't create nomedia file at " + noMediafileExternal);
+                }
+            }
         } else {
             downloadsDir = dataDir;
         }
@@ -731,6 +739,7 @@ public class DefaultDownloadService extends Service {
         this.settings.httpTimeoutMillis = downloadSettings.httpTimeoutMillis;
         this.settings.maxDownloadRetries = downloadSettings.maxDownloadRetries;
         this.settings.maxConcurrentDownloads = downloadSettings.maxConcurrentDownloads;
+        this.settings.createNoMediaFileInDownloadsDir = downloadSettings.createNoMediaFileInDownloadsDir;
     }
 
     class LocalBinder extends Binder {

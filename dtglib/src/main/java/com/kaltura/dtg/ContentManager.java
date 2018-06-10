@@ -131,5 +131,7 @@ public abstract class ContentManager {
         public int httpTimeoutMillis = 15000;
         public int maxConcurrentDownloads = 4;
         public String applicationName = "";
+        //createNoMediaFileInDownloadsDir -> disabling the creation of this file will cause Android FS to index the files in the dtd download dir as media files
+        public boolean createNoMediaFileInDownloadsDir = true;
     }
 }
