@@ -87,6 +87,16 @@ class ItemLoader {
                             source = findFirstWVM(mediaEntry.getSources());
                         } else {
                             source = findFirstDash(mediaEntry.getSources());
+                            // Uncomment to reduce license duration
+                            // for (PKDrmParams params : source.getDrmData()) {
+                            //     if (params.getScheme() == PKDrmParams.Scheme.WidevineCENC) {
+                            //         String url = params.getLicenseUri();
+                            //         url = url.replace("https://", "http://");
+                            //         url = url + "&license_duration=400&rental_duration=600&playback_duration=200";
+                            //         params.setLicenseUri(url);
+                            //     }
+                            // }
+                            //
                         }
 
                         Item item = new Item(source, mediaEntry.getName());
