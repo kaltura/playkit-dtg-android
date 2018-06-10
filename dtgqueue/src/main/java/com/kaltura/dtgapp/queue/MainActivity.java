@@ -282,6 +282,7 @@ public class MainActivity extends ListActivity {
         remove,
         pause,
         register,
+        checkStatus,
         unregister,
         playOffline,
         playOnline;
@@ -293,25 +294,25 @@ public class MainActivity extends ListActivity {
             
             switch (item.downloadState) {
                 case NEW:
-                    return new Action[] {remove, unregister, playOnline};
+                    return new Action[] {remove, checkStatus, unregister, playOnline};
                 case INFO_LOADED:
-                    return new Action[] {start, pause, remove, unregister, playOnline};
+                    return new Action[] {start, pause, remove, register, checkStatus, unregister, playOnline};
                 case IN_PROGRESS:
-                    return new Action[] {start, pause, remove, unregister, playOnline};
+                    return new Action[] {start, pause, remove, register, checkStatus, unregister, playOnline};
                 case PAUSED:
-                    return new Action[] {start, remove, unregister, playOnline};
+                    return new Action[] {start, remove, register, checkStatus, unregister, playOnline};
                 case COMPLETED:
                     if (item.isDrmProtected()) {
                         if (item.isDrmRegistered()) {
-                            return new Action[] {playOffline, unregister, playOnline};
+                            return new Action[] {playOffline, checkStatus, unregister, playOnline};
                         } else {
-                            return new Action[] {register, remove, playOnline};
+                            return new Action[] {register, checkStatus, remove, playOnline};
                         }
                     } else {
                         return new Action[] {playOffline, remove, playOnline};
                     }
                 case FAILED:
-                    return new Action[] {start, remove, unregister, playOnline};
+                    return new Action[] {start, remove, checkStatus, unregister, playOnline};
             }
             throw new IllegalStateException();
         }
@@ -474,6 +475,9 @@ public class MainActivity extends ListActivity {
                             case register:
                                 registerAsset(item);
                                 break;
+                            case checkStatus:
+                                checkStatus(item);
+                                break;
                             case unregister:
                                 unregisterAsset(item);
                                 break;
@@ -488,6 +492,17 @@ public class MainActivity extends ListActivity {
                 })
                 .setCancelable(true)
                 .show();
+
+    }
+
+    private void checkStatus(Item item) {
+        String absolutePath = contentManager.getLocalFile(item.getId()).getAbsolutePath();
+        localAssetsManager.checkAssetStatus(absolutePath, item.getId(), new LocalAssetsManager.AssetStatusListener() {
+            @Override
+            public void onStatus(String localAssetPath, long expiryTimeSeconds, long availableTimeSeconds, boolean isRegistered) {
+                Toast.makeText(MainActivity.this, "" + expiryTimeSeconds +  " " + availableTimeSeconds, Toast.LENGTH_LONG).show();
+            }
+        });
 
     }
 
