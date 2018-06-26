@@ -2,8 +2,6 @@ package com.kaltura.dtg;
 
 import android.content.Context;
 
-import com.kaltura.dtg.clear.ContentManagerImp;
-
 import java.io.File;
 import java.util.List;
 

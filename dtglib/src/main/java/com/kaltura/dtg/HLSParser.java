@@ -1,4 +1,4 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.text.TextUtils;
 import android.util.Log;
@@ -9,8 +9,7 @@ import com.kaltura.android.exoplayer.hls.HlsMediaPlaylist.Segment;
 import com.kaltura.android.exoplayer.hls.HlsPlaylist;
 import com.kaltura.android.exoplayer.hls.HlsPlaylistParser;
 import com.kaltura.android.exoplayer.hls.Variant;
-import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.Utils;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;

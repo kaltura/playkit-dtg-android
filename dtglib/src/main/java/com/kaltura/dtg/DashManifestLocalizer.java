@@ -1,4 +1,4 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;

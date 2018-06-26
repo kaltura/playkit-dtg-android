@@ -1,4 +1,4 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.support.annotation.NonNull;
 import android.util.Log;

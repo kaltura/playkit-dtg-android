@@ -1,9 +1,6 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.util.Log;
-
-import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.DownloadState;
 
 import java.io.IOException;
 import java.util.Date;

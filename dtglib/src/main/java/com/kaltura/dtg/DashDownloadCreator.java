@@ -1,12 +1,10 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.util.Log;
 
 import com.kaltura.android.exoplayer.chunk.Format;
 import com.kaltura.android.exoplayer.dash.mpd.AdaptationSet;
 import com.kaltura.android.exoplayer.dash.mpd.Representation;
-import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.Utils;
 
 import java.io.File;
 import java.io.IOException;

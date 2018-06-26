@@ -1,4 +1,4 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.support.annotation.NonNull;
 import android.util.Base64;
@@ -10,8 +10,6 @@ import com.kaltura.android.exoplayer.dash.mpd.MediaPresentationDescriptionParser
 import com.kaltura.android.exoplayer.dash.mpd.Period;
 import com.kaltura.android.exoplayer.dash.mpd.RangedUri;
 import com.kaltura.android.exoplayer.dash.mpd.Representation;
-import com.kaltura.dtg.AppBuildConfig;
-import com.kaltura.dtg.DownloadItem;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

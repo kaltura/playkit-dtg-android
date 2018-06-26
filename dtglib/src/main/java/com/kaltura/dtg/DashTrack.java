@@ -1,12 +1,10 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
-
-import com.kaltura.dtg.DownloadItem;
 
 import org.json.JSONException;
 import org.json.JSONObject;

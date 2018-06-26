@@ -1,9 +1,6 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.support.annotation.NonNull;
-
-import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.Utils;
 
 import java.io.File;
 import java.io.FileInputStream;

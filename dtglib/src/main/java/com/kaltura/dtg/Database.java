@@ -1,4 +1,4 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -11,10 +11,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
-
-import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.DownloadState;
-import com.kaltura.dtg.Utils;
 
 import java.io.File;
 import java.net.MalformedURLException;
