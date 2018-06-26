@@ -38,52 +38,6 @@ public interface DrmInitData {
   public abstract SchemeInitData get(UUID schemeUuid);
 
   /**
-   * A {@link DrmInitData} implementation that maps UUID onto scheme specific data.
-   */
-  public static final class Mapped implements DrmInitData {
-
-    private final Map<UUID, SchemeInitData> schemeData;
-
-    public Mapped() {
-      schemeData = new HashMap<>();
-    }
-
-    @Override
-    public SchemeInitData get(UUID schemeUuid) {
-      return schemeData.get(schemeUuid);
-    }
-
-    /**
-     * Inserts scheme specific initialization data.
-     *
-     * @param schemeUuid The scheme UUID.
-     * @param schemeInitData The corresponding initialization data.
-     */
-    public void put(UUID schemeUuid, SchemeInitData schemeInitData) {
-      schemeData.put(schemeUuid, schemeInitData);
-    }
-
-  }
-
-  /**
-   * A {@link DrmInitData} implementation that returns the same initialization data for all schemes.
-   */
-  public static final class Universal implements DrmInitData {
-
-    private SchemeInitData data;
-
-    public Universal(SchemeInitData data) {
-      this.data = data;
-    }
-
-    @Override
-    public SchemeInitData get(UUID schemeUuid) {
-      return data;
-    }
-
-  }
-
-  /**
    * Scheme initialization data.
    */
   public static final class SchemeInitData {

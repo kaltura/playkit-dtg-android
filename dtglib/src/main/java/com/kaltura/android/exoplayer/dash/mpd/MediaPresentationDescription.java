@@ -15,7 +15,7 @@
  */
 package com.kaltura.android.exoplayer.dash.mpd;
 
-import com.kaltura.android.exoplayer.util.ManifestFetcher.RedirectingManifest;
+import com.kaltura.android.exoplayer.util.RedirectingManifest;
 
 import java.util.Collections;
 import java.util.List;
