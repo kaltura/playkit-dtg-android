@@ -652,8 +652,8 @@ public class DownloadService extends Service {
         return database.getEstimatedItemSize(itemId);
     }
 
-    public List<BaseTrack> readTracksFromDB(String itemId, DownloadItem.TrackType trackType, BaseTrack.TrackState state) {
-        return database.readTracks(itemId, trackType, state);
+    public List<BaseTrack> readTracksFromDB(String itemId, DownloadItem.TrackType trackType, BaseTrack.TrackState state, AssetFormat assetFormat) {
+        return database.readTracks(itemId, trackType, state, assetFormat);
     }
     
     public void updateTracksInDB(String itemId, Map<DownloadItem.TrackType, List<BaseTrack>> tracksMap, BaseTrack.TrackState state) {

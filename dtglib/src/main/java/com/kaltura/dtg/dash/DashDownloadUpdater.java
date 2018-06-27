@@ -2,6 +2,7 @@ package com.kaltura.dtg.dash;
 
 import android.support.annotation.NonNull;
 
+import com.kaltura.dtg.AssetFormat;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItemImp;
 import com.kaltura.dtg.DownloadItem;
@@ -40,10 +41,10 @@ class DashDownloadUpdater extends DashDownloader {
         originalSelectedTracks = new HashMap<>();
         
         for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
-            List<BaseTrack> availableTracks = this.item.getService().readTracksFromDB(item.getItemId(), type, null);
+            List<BaseTrack> availableTracks = this.item.getService().readTracksFromDB(item.getItemId(), type, null, AssetFormat.dash);
             this.availableTracks.put(type, availableTracks);
 
-            List<BaseTrack> selectedTracks = this.item.getService().readTracksFromDB(item.getItemId(), type, BaseTrack.TrackState.SELECTED);
+            List<BaseTrack> selectedTracks = this.item.getService().readTracksFromDB(item.getItemId(), type, BaseTrack.TrackState.SELECTED, AssetFormat.dash);
             this.selectedTracks.put(type, selectedTracks);
             originalSelectedTracks.put(type, selectedTracks);
         }

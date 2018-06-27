@@ -28,11 +28,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.TreeSet;
 
-/**
- * Created by noamt on 5/20/15.
- */
-
-// Wrapper around ExoPlayer's HlsPlaylistParser. Also saves state (master playlist, selected, etc).
 public class HlsDownloader {
 
     private static final String FILTERED_MASTER_M3U8 = "master.m3u8";
@@ -41,6 +36,7 @@ public class HlsDownloader {
     private static final String TAG = "HlsDownloader";
     // All fields in HlsPlaylistParser are static final, it can be safely shared.
     private static final HlsPlaylistParser sPlaylistParser = new HlsPlaylistParser();
+    public static final int MAX_PLAYLIST_SIZE = 10 * 1024 * 1024;
     private final DownloadItem item;
     private final File targetDirectory;
     private TreeSet<Variant> sortedVariants;
@@ -69,7 +65,7 @@ public class HlsDownloader {
             targetFile = new File(targetDirectory, VARIANT_M3U8);
         }
 
-        byte[] data = Utils.downloadToFile(url, targetFile, 10 * 1024 * 1024);
+        byte[] data = Utils.downloadToFile(url, targetFile, MAX_PLAYLIST_SIZE);
         DownloadedPlaylist downloadedPlaylist = new DownloadedPlaylist(data, targetFile, HlsDownloader.parse(url, data));
         if (downloadedPlaylist.playlist.type != type) {
             throw new IOException(Utils.format("Downloaded playlist (%d) does not match requested type (%d)",

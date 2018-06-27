@@ -3,6 +3,8 @@ package com.kaltura.dtg;
 import android.support.annotation.NonNull;
 
 import com.kaltura.android.exoplayer.dash.mpd.RangedUri;
+import com.kaltura.dtg.dash.DashFactory;
+import com.kaltura.dtg.hls.HlsFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +24,16 @@ public abstract class BaseAbrDownloader {
     protected Map<DownloadItem.TrackType, List<BaseTrack>> selectedTracks;
     protected Map<DownloadItem.TrackType, List<BaseTrack>> availableTracks;
     protected LinkedHashSet<DownloadTask> downloadTasks;
+
+    static BaseAbrDownloader createUpdater(DownloadItemImp item) throws IOException {
+        if (item.getPlaybackPath().endsWith(".mpd")) {
+            return DashFactory.createUpdater(item);
+        } else if (item.getPlaybackPath().endsWith(".m3u8")) {
+            return HlsFactory.createUpdater(item);
+        }
+
+        throw new IllegalArgumentException("Unknown asset type");
+    }
 
     protected BaseAbrDownloader(File targetDir) {
         this.targetDir = targetDir;

@@ -2,9 +2,6 @@ package com.kaltura.dtg;
 
 import android.util.Log;
 
-import com.kaltura.dtg.dash.DashDownloader;
-import com.kaltura.dtg.dash.Factory;
-
 import java.io.IOException;
 import java.util.Date;
 
@@ -150,9 +147,9 @@ public class DownloadItemImp implements DownloadItem {
         // If selection is in progress, return the current selector.
         
         if (trackSelector == null) {
-            DashDownloader updater;
+            BaseAbrDownloader updater;
             try {
-                updater = Factory.createUpdater(this);
+                updater = BaseAbrDownloader.createUpdater(this);
             } catch (IOException e) {
                 Log.e(TAG, "Error initializing updater", e);
                 return null;

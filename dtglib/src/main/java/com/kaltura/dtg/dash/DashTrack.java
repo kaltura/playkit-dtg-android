@@ -1,6 +1,5 @@
 package com.kaltura.dtg.dash;
 
-import android.content.ContentValues;
 import android.database.Cursor;
 import android.text.TextUtils;
 import android.util.Log;
@@ -25,10 +24,6 @@ public class DashTrack extends BaseTrack {
         super(type, language, bitrate);
         this.adaptationIndex = adaptationIndex;
         this.representationIndex = representationIndex;
-    }
-
-    DashTrack(ContentValues contentValues) {
-        super(contentValues);
     }
 
     DashTrack(Cursor cursor) {

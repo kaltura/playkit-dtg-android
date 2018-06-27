@@ -563,7 +563,7 @@ class Database {
         });
     }
     
-    synchronized List<BaseTrack> readTracks(String itemId, DownloadItem.TrackType type, @Nullable BaseTrack.TrackState state) {
+    synchronized List<BaseTrack> readTracks(String itemId, DownloadItem.TrackType type, @Nullable BaseTrack.TrackState state, AssetFormat assetFormat) {
         Cursor cursor = null;
         List<BaseTrack> tracks = new ArrayList<>(10);
         try {
@@ -593,7 +593,7 @@ class Database {
             // TODO: 13/09/2016 Consider order by type+bitrate 
             
             while (cursor.moveToNext()) {
-                BaseTrack track = BaseTrack.create(cursor);
+                BaseTrack track = BaseTrack.create(cursor, assetFormat);
                 tracks.add(track);
             }
             

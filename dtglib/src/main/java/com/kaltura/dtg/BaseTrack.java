@@ -4,7 +4,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 
-import com.kaltura.dtg.dash.Factory;
+import com.kaltura.dtg.dash.DashFactory;
+import com.kaltura.dtg.hls.HlsFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +20,16 @@ public abstract class BaseTrack implements DownloadItem.Track {
     protected int width;
     protected int height;
 
-    public static BaseTrack create(Cursor cursor) {
-        // TODO: 26/06/2018 Detect DASH/HLS track
-        return Factory.createTrack(cursor);
+    public static BaseTrack create(Cursor cursor, AssetFormat assetFormat) {
+
+        switch (assetFormat) {
+            case hls:
+                return HlsFactory.createTrack(cursor);
+            case dash:
+                return DashFactory.createTrack(cursor);
+            default:
+                throw new IllegalArgumentException("Invalid AssetFormat " + assetFormat);
+        }
     }
 
     public static List<BaseTrack> filterByLanguage(@NonNull String language, List<BaseTrack> list) {
@@ -38,15 +46,6 @@ public abstract class BaseTrack implements DownloadItem.Track {
         this.type = type;
         this.language = language;
         this.bitrate = bitrate;
-    }
-
-    protected BaseTrack(ContentValues contentValues) {
-        bitrate = contentValues.getAsLong(Database.COL_TRACK_BITRATE);
-        language = contentValues.getAsString(Database.COL_TRACK_LANGUAGE);
-        String typeName = contentValues.getAsString(Database.COL_TRACK_TYPE);
-        type = DownloadItem.TrackType.valueOf(typeName);
-        String extra = contentValues.getAsString(Database.COL_TRACK_EXTRA);
-        parseExtra(extra);
     }
 
     protected BaseTrack(Cursor cursor) {
