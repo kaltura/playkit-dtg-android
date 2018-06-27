@@ -33,12 +33,12 @@ import java.util.TreeSet;
  */
 
 // Wrapper around ExoPlayer's HlsPlaylistParser. Also saves state (master playlist, selected, etc).
-public class HLSParser {
+public class HlsDownloader {
 
-    public static final String FILTERED_MASTER_M3U8 = "master.m3u8";
-    public static final String VARIANT_M3U8 = "variant.m3u8";
-    public static final String ORIGINAL_MASTER_M3U8 = "ORIGINAL-MASTER.m3u8";
-    private static final String TAG = "HLSParser";
+    private static final String FILTERED_MASTER_M3U8 = "master.m3u8";
+    private static final String VARIANT_M3U8 = "variant.m3u8";
+    private static final String ORIGINAL_MASTER_M3U8 = "ORIGINAL-MASTER.m3u8";
+    private static final String TAG = "HlsDownloader";
     // All fields in HlsPlaylistParser are static final, it can be safely shared.
     private static final HlsPlaylistParser sPlaylistParser = new HlsPlaylistParser();
     private final DownloadItem item;
@@ -53,13 +53,13 @@ public class HLSParser {
     private URL masterURL;
     private URL variantURL;
 
-    public HLSParser(DownloadItem item, File targetDirectory) {
+    private HlsDownloader(DownloadItem item, File targetDirectory) {
         this.item = item;
         this.targetDirectory = targetDirectory;
     }
 
     // Static utils
-    static DownloadedPlaylist downloadAndParsePlaylist(int type, URL url, File targetDirectory, String itemId) throws IOException {
+    private static DownloadedPlaylist downloadAndParsePlaylist(int type, URL url, File targetDirectory, String itemId) throws IOException {
 
         Log.d(TAG, "Downloading playlist: " + url);
         File targetFile;
@@ -70,7 +70,7 @@ public class HLSParser {
         }
 
         byte[] data = Utils.downloadToFile(url, targetFile, 10 * 1024 * 1024);
-        DownloadedPlaylist downloadedPlaylist = new DownloadedPlaylist(data, targetFile, HLSParser.parse(url, data));
+        DownloadedPlaylist downloadedPlaylist = new DownloadedPlaylist(data, targetFile, HlsDownloader.parse(url, data));
         if (downloadedPlaylist.playlist.type != type) {
             throw new IOException(Utils.format("Downloaded playlist (%d) does not match requested type (%d)",
                     downloadedPlaylist.playlist.type, type));
@@ -87,54 +87,34 @@ public class HLSParser {
     }
 
     public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir) throws IOException {
-        HLSParser hlsParser = new HLSParser(item, itemDataDir);
+        HlsDownloader hlsDownloader = new HlsDownloader(item, itemDataDir);
 
 
-        hlsParser.parseMaster();
+        hlsDownloader.parseMaster();
 
         // Select best bitrate
-        TreeSet<Variant> sortedVariants = hlsParser.getSortedVariants();
+        TreeSet<Variant> sortedVariants = hlsDownloader.getSortedVariants();
         Variant selectedVariant = sortedVariants.first();   // first == highest bitrate
-        hlsParser.selectVariant(selectedVariant);
+        hlsDownloader.selectVariant(selectedVariant);
 
-        hlsParser.parseVariant();
-        ArrayList<DownloadTask> encryptionKeys = hlsParser.createEncryptionKeyDownloadTasks();
-        ArrayList<DownloadTask> chunks = hlsParser.createSegmentDownloadTasks();
-        item.setEstimatedSizeBytes(hlsParser.getEstimatedSizeBytes());
+        hlsDownloader.parseVariant();
+        ArrayList<DownloadTask> encryptionKeys = hlsDownloader.createEncryptionKeyDownloadTasks();
+        ArrayList<DownloadTask> chunks = hlsDownloader.createSegmentDownloadTasks();
+        item.setEstimatedSizeBytes(hlsDownloader.getEstimatedSizeBytes());
 
         // set playback path the the relative url path, excluding the leading slash.
-        item.setPlaybackPath(hlsParser.getPlaybackPath());
+        item.setPlaybackPath(hlsDownloader.getPlaybackPath());
 
         downloadService.addDownloadTasksToDB(item, encryptionKeys);
         downloadService.addDownloadTasksToDB(item, chunks);
     }
 
-    public String getFilteredPlaylistPath() {
-        return filteredPlaylistPath;
-    }
-
-    public Variant getSelectedVariant() {
-        return selectedVariant;
-    }
-
-    public URL getVariantURL() {
-        return variantURL;
-    }
-
-    public URL getMasterURL() {
-        return masterURL;
-    }
-
-    public File getTargetDirectory() {
-        return targetDirectory;
-    }
-
-    public TreeSet<Variant> getSortedVariants() {
+    private TreeSet<Variant> getSortedVariants() {
         return sortedVariants;
     }
 
     // Download and parse master playlist
-    public void parseMaster() throws IOException {
+    private void parseMaster() throws IOException {
 
         masterURL = new URL(item.getContentURL());
         DownloadedPlaylist downloadedPlaylist = downloadAndParsePlaylist(HlsPlaylist.TYPE_MASTER, masterURL, targetDirectory, item.getItemId());
@@ -154,11 +134,7 @@ public class HLSParser {
         sortedVariants.addAll(masterPlaylist.variants);
     }
 
-    public HlsMasterPlaylist getMasterPlaylist() {
-        return masterPlaylist;
-    }
-
-    public void selectVariant(Variant selectedVariant) {
+    private void selectVariant(Variant selectedVariant) {
         this.selectedVariant = selectedVariant;
 
         // Remove other variants from file.
@@ -224,7 +200,7 @@ public class HLSParser {
         }
     }
 
-    public void parseVariant() throws IOException {
+    private void parseVariant() throws IOException {
 
         variantURL = new URL(masterURL, selectedVariant.url);
         DownloadedPlaylist downloadedPlaylist = downloadAndParsePlaylist(HlsPlaylist.TYPE_MEDIA, variantURL, targetDirectory, item.getItemId());
@@ -249,15 +225,7 @@ public class HLSParser {
         saveToFile(modifiedData, downloadedPlaylist.targetFile);
     }
 
-    public DownloadItem getItem() {
-        return item;
-    }
-
-    public HlsMediaPlaylist getMediaPlaylist() {
-        return mediaPlaylist;
-    }
-
-    public ArrayList<DownloadTask> createEncryptionKeyDownloadTasks() throws MalformedURLException {
+    private ArrayList<DownloadTask> createEncryptionKeyDownloadTasks() throws MalformedURLException {
         // create download tasks for all chunks.
         List<HlsMediaPlaylist.Segment> segments = mediaPlaylist.segments;
         // Using LinkedHashSet (which is an Ordered Set) to prevent duplicates.
@@ -273,7 +241,7 @@ public class HLSParser {
         return new ArrayList<>(downloadTasks);
     }
 
-    public ArrayList<DownloadTask> createSegmentDownloadTasks() throws MalformedURLException {
+    private ArrayList<DownloadTask> createSegmentDownloadTasks() throws MalformedURLException {
         // create download tasks for all chunks.
         List<HlsMediaPlaylist.Segment> segments = mediaPlaylist.segments;
         // Using LinkedHashSet (which is an Ordered Set) to prevent duplicates.
@@ -294,11 +262,11 @@ public class HLSParser {
         return new ArrayList<>(downloadTasks);
     }
 
-    public long getEstimatedSizeBytes() {
+    private long getEstimatedSizeBytes() {
         return (long) (selectedVariant.format.bitrate / 8.0 * mediaPlaylist.durationUs / 1000 / 1000);
     }
 
-    public String getPlaybackPath() {
+    private String getPlaybackPath() {
         return FILTERED_MASTER_M3U8;
     }
 
@@ -356,7 +324,7 @@ public class HLSParser {
         final File targetFile;
         final HlsPlaylist playlist;
 
-        public DownloadedPlaylist(byte[] data, File targetFile, HlsPlaylist playlist) {
+        DownloadedPlaylist(byte[] data, File targetFile, HlsPlaylist playlist) {
             this.data = new String(data);
             this.targetFile = targetFile;
             this.playlist = playlist;
