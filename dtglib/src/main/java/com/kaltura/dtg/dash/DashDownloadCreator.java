@@ -37,52 +37,12 @@ class DashDownloadCreator extends DashDownloader {
     }
 
     @Override
-    List<BaseTrack> getDownloadedTracks(DownloadItem.TrackType type) {
+    protected List<BaseTrack> getDownloadedTracks(DownloadItem.TrackType type) {
         Log.w(TAG, "Initial selector has no downloaded tracks!");
         return null;
     }
 
-    private void selectDefaultTracks() {
-
-        selectedTracks = new HashMap<>();
-        for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
-            selectedTracks.put(type, new ArrayList<BaseTrack>(1));
-        }
-
-
-        // "Best" == highest bitrate.
-        
-        // Video: simply select best track.
-        List<BaseTrack> availableVideoTracks = getAvailableTracks(DownloadItem.TrackType.VIDEO);
-        if (availableVideoTracks.size() > 0) {
-            BaseTrack selectedVideoTrack = Collections.max(availableVideoTracks, DownloadItem.Track.bitrateComparator);
-            setSelectedTracks(DownloadItem.TrackType.VIDEO, Collections.singletonList(selectedVideoTrack));
-        }
-
-        // Audio: X=(language of first track); Select best track with language==X.
-        List<BaseTrack> availableAudioTracks = getAvailableTracks(DownloadItem.TrackType.AUDIO);
-        if (availableAudioTracks.size() > 0) {
-            String firstAudioLang = availableAudioTracks.get(0).getLanguage();
-            List<BaseTrack> tracks;
-            if (firstAudioLang != null) {
-                tracks = BaseTrack.filterByLanguage(firstAudioLang, availableAudioTracks);
-            } else {
-                tracks = availableAudioTracks;
-            }
-
-            BaseTrack selectedAudioTrack = Collections.max(tracks, DownloadItem.Track.bitrateComparator);
-            setSelectedTracks(DownloadItem.TrackType.AUDIO, Collections.singletonList(selectedAudioTrack));
-        }
-
-        // Text: simply select first track.
-        List<BaseTrack> availableTextTracks = getAvailableTracks(DownloadItem.TrackType.TEXT);
-        if (availableTextTracks.size() > 0) {
-            BaseTrack selectedTextTrack = availableTextTracks.get(0);
-            setSelectedTracks(DownloadItem.TrackType.TEXT, Collections.singletonList(selectedTextTrack));
-        }
-    }
-
-    void apply() throws IOException {
+    protected void apply() throws IOException {
         if (applied) {
             Log.w(TAG, "Ignoring unsupported extra call to apply()");
         } else {

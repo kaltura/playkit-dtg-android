@@ -11,6 +11,7 @@ import com.kaltura.android.exoplayer.dash.mpd.Period;
 import com.kaltura.android.exoplayer.dash.mpd.RangedUri;
 import com.kaltura.android.exoplayer.dash.mpd.Representation;
 import com.kaltura.dtg.AppBuildConfig;
+import com.kaltura.dtg.BaseAbrDownloader;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItemImp;
 import com.kaltura.dtg.DownloadService;
@@ -24,17 +25,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by noamt on 19/06/2016.
  */
-public abstract class DashDownloader {
+public abstract class DashDownloader extends BaseAbrDownloader {
 
     static final String ORIGIN_MANIFEST_MPD = "origin.mpd";
     static final String LOCAL_MANIFEST_MPD = "local.mpd";
@@ -42,20 +40,12 @@ public abstract class DashDownloader {
     private static final String TAG = "DashDownloader";
     String manifestUrl;
 
-    File targetDir;
-
     byte[] originManifestBytes;
     Period currentPeriod;
-    Map<DownloadItem.TrackType, List<BaseTrack>> selectedTracks;
-    Map<DownloadItem.TrackType, List<BaseTrack>> availableTracks;
-    LinkedHashSet<DownloadTask> downloadTasks;
-    private long itemDurationMS;
-    private long estimatedDownloadSize;
 
     DashDownloader(String manifestUrl, File targetDir) {
+        super(targetDir);
         this.manifestUrl = manifestUrl;
-        this.targetDir = targetDir;
-        downloadTasks = new LinkedHashSet<>();
     }
 
     public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir, DownloadStateListener downloadStateListener) throws IOException {
@@ -102,7 +92,8 @@ public abstract class DashDownloader {
         }
     }
 
-    void parseOriginManifest() throws IOException {
+    @Override
+    protected void parseOriginManifest() throws IOException {
         MediaPresentationDescriptionParser mpdParser = new MediaPresentationDescriptionParser();
         MediaPresentationDescription parsedMpd = mpdParser.parse(manifestUrl, new ByteArrayInputStream(originManifestBytes));
 
@@ -116,7 +107,8 @@ public abstract class DashDownloader {
 
     }
 
-    void createDownloadTasks() throws MalformedURLException {
+    @Override
+    protected void createDownloadTasks() throws MalformedURLException {
 
         downloadTasks = new LinkedHashSet<>();
 
@@ -167,11 +159,8 @@ public abstract class DashDownloader {
         estimatedDownloadSize += (itemDurationMS * representation.format.bitrate / 8 / 1000);
     }
 
-    long getEstimatedDownloadSize() {
-        return estimatedDownloadSize;
-    }
-
-    void createLocalManifest() throws IOException {
+    @Override
+    protected void createLocalManifest() throws IOException {
 
         // The localizer needs a raw list of tracks.
         List<BaseTrack> tracks = getSelectedTracks();
@@ -179,32 +168,8 @@ public abstract class DashDownloader {
         createLocalManifest(tracks, originManifestBytes, targetDir);
     }
 
-    @NonNull
-    private List<BaseTrack> getSelectedTracks() {
-        return Utils.flattenTrackList(selectedTracks);
-    }
 
-
-    private void addTask(RangedUri url, String file, String trackId) throws MalformedURLException {
-        File targetFile = new File(targetDir, file);
-        DownloadTask task = new DownloadTask(new URL(url.getUriString()), targetFile);
-        task.setTrackRelativeId(trackId);
-        downloadTasks.add(task);
-    }
-
-    
-    void setSelectedTracks(@NonNull DownloadItem.TrackType type, @NonNull List<BaseTrack> tracks) {
-        selectedTracks.put(type, new ArrayList<>(tracks));
-    }
-
-    List<BaseTrack> getAvailableTracks(DownloadItem.TrackType type) {
-        return Collections.unmodifiableList(availableTracks.get(type));
-    }
-
-    abstract List<BaseTrack> getDownloadedTracks(DownloadItem.TrackType type);
-
-    abstract void apply() throws IOException;
-
+    @Override
     public DownloadItem.TrackSelector getTrackSelector() {
         return new DownloadItem.TrackSelector() {
             private DashDownloader downloader = DashDownloader.this;

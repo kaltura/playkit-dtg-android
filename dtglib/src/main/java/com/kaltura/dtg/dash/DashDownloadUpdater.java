@@ -50,7 +50,7 @@ class DashDownloadUpdater extends DashDownloader {
     }
 
     @Override
-    void setSelectedTracks(@NonNull DownloadItem.TrackType type, @NonNull List<BaseTrack> tracks) {
+    protected void setSelectedTracks(@NonNull DownloadItem.TrackType type, @NonNull List<BaseTrack> tracks) {
         trackSelectionChanged = true;
         super.setSelectedTracks(type, tracks);
     }
@@ -59,7 +59,7 @@ class DashDownloadUpdater extends DashDownloader {
         return item;
     }
 
-    void apply() throws IOException {
+    protected void apply() throws IOException {
         // Update Track table
         if (!trackSelectionChanged) {
             // No change
@@ -86,7 +86,7 @@ class DashDownloadUpdater extends DashDownloader {
         item.getService().addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
         
         // Update item size
-        item.setEstimatedSizeBytes(getEstimatedDownloadSize());
+        item.setEstimatedSizeBytes(estimatedDownloadSize);
         item.getService().updateItemEstimatedSizeInDB(item);
 
         // Update localized manifest
@@ -100,7 +100,7 @@ class DashDownloadUpdater extends DashDownloader {
         originManifestBytes = Utils.fullyReadInputStream(inputStream, MAX_DASH_MANIFEST_SIZE).toByteArray();
     }
     
-    List<BaseTrack> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {
+    protected List<BaseTrack> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {
 
         List<BaseTrack> downloadedTracks = new ArrayList<>();
         
