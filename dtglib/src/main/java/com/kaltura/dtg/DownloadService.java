@@ -14,7 +14,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.dtg.dash.DashDownloader;
-import com.kaltura.dtg.hls.HlsDownloader;
+import com.kaltura.dtg.hls.HlsParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -398,7 +398,7 @@ public class DownloadService extends Service {
             return;
         }
 
-        HlsDownloader.start(this, item, itemDataDir);
+        HlsParser.start(this, item, itemDataDir);
     }
 
     private boolean isServiceStopped() {

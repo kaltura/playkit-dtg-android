@@ -28,15 +28,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.TreeSet;
 
-public class HlsDownloader {
+public class HlsParser {
 
     private static final String FILTERED_MASTER_M3U8 = "master.m3u8";
     private static final String VARIANT_M3U8 = "variant.m3u8";
     private static final String ORIGINAL_MASTER_M3U8 = "ORIGINAL-MASTER.m3u8";
-    private static final String TAG = "HlsDownloader";
+    private static final String TAG = "HlsParser";
     // All fields in HlsPlaylistParser are static final, it can be safely shared.
     private static final HlsPlaylistParser sPlaylistParser = new HlsPlaylistParser();
-    public static final int MAX_PLAYLIST_SIZE = 10 * 1024 * 1024;
+    private static final int MAX_PLAYLIST_SIZE = 10 * 1024 * 1024;
     private final DownloadItem item;
     private final File targetDirectory;
     private TreeSet<Variant> sortedVariants;
@@ -49,7 +49,7 @@ public class HlsDownloader {
     private URL masterURL;
     private URL variantURL;
 
-    private HlsDownloader(DownloadItem item, File targetDirectory) {
+    private HlsParser(DownloadItem item, File targetDirectory) {
         this.item = item;
         this.targetDirectory = targetDirectory;
     }
@@ -66,7 +66,7 @@ public class HlsDownloader {
         }
 
         byte[] data = Utils.downloadToFile(url, targetFile, MAX_PLAYLIST_SIZE);
-        DownloadedPlaylist downloadedPlaylist = new DownloadedPlaylist(data, targetFile, HlsDownloader.parse(url, data));
+        DownloadedPlaylist downloadedPlaylist = new DownloadedPlaylist(data, targetFile, HlsParser.parse(url, data));
         if (downloadedPlaylist.playlist.type != type) {
             throw new IOException(Utils.format("Downloaded playlist (%d) does not match requested type (%d)",
                     downloadedPlaylist.playlist.type, type));
@@ -83,23 +83,23 @@ public class HlsDownloader {
     }
 
     public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir) throws IOException {
-        HlsDownloader hlsDownloader = new HlsDownloader(item, itemDataDir);
+        HlsParser hlsParser = new HlsParser(item, itemDataDir);
 
 
-        hlsDownloader.parseMaster();
+        hlsParser.parseMaster();
 
         // Select best bitrate
-        TreeSet<Variant> sortedVariants = hlsDownloader.getSortedVariants();
+        TreeSet<Variant> sortedVariants = hlsParser.getSortedVariants();
         Variant selectedVariant = sortedVariants.first();   // first == highest bitrate
-        hlsDownloader.selectVariant(selectedVariant);
+        hlsParser.selectVariant(selectedVariant);
 
-        hlsDownloader.parseVariant();
-        ArrayList<DownloadTask> encryptionKeys = hlsDownloader.createEncryptionKeyDownloadTasks();
-        ArrayList<DownloadTask> chunks = hlsDownloader.createSegmentDownloadTasks();
-        item.setEstimatedSizeBytes(hlsDownloader.getEstimatedSizeBytes());
+        hlsParser.parseVariant();
+        ArrayList<DownloadTask> encryptionKeys = hlsParser.createEncryptionKeyDownloadTasks();
+        ArrayList<DownloadTask> chunks = hlsParser.createSegmentDownloadTasks();
+        item.setEstimatedSizeBytes(hlsParser.getEstimatedSizeBytes());
 
         // set playback path the the relative url path, excluding the leading slash.
-        item.setPlaybackPath(hlsDownloader.getPlaybackPath());
+        item.setPlaybackPath(hlsParser.getPlaybackPath());
 
         downloadService.addDownloadTasksToDB(item, encryptionKeys);
         downloadService.addDownloadTasksToDB(item, chunks);
