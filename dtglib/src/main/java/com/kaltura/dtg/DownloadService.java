@@ -32,9 +32,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultDownloadService extends Service {
+public class DownloadService extends Service {
 
-    private static final String TAG = "DefaultDownloadService";
+    private static final String TAG = "DownloadService";
     private final Context context;  // allow mocking
     private LocalBinder localBinder = new LocalBinder();
     private Database database;
@@ -53,11 +53,11 @@ public class DefaultDownloadService extends Service {
     private Set<String> removedItems = new HashSet<>();
     private String NO_MEDIA_EMPTY_FILE = ".nomedia"; // File that will pervent Android to scan Folder for media
 
-    public DefaultDownloadService(Context context) {
+    public DownloadService(Context context) {
         this.context = context;
     }
     
-    public DefaultDownloadService() {
+    public DownloadService() {
         this.context = this;
     }
     
@@ -69,7 +69,7 @@ public class DefaultDownloadService extends Service {
                 taskProgressHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        DefaultDownloadService.this.onTaskProgress(task, newState, newBytes, stopError);
+                        DownloadService.this.onTaskProgress(task, newState, newBytes, stopError);
                     }
                 });
             }
@@ -89,7 +89,7 @@ public class DefaultDownloadService extends Service {
             return;
         }
         
-        final DefaultDownloadItem item = findItemImpl(itemId);
+        final DownloadItemImp item = findItemImpl(itemId);
         if (item == null) {
             Log.e(TAG, "Can't find item by id: " + itemId + "; taskId: " + task.taskId);
             return;
@@ -241,13 +241,13 @@ public class DefaultDownloadService extends Service {
         }
     }
 
-    public void updateItemInfoInDB(DefaultDownloadItem item, String... columns) {
+    public void updateItemInfoInDB(DownloadItemImp item, String... columns) {
         if (database != null) {
             database.updateItemInfo(item, columns);
         }
     }
 
-    public void updateItemEstimatedSizeInDB(DefaultDownloadItem item) {
+    public void updateItemEstimatedSizeInDB(DownloadItemImp item) {
         updateItemInfoInDB(item, Database.COL_ITEM_ESTIMATED_SIZE);
     }
 
@@ -301,7 +301,7 @@ public class DefaultDownloadService extends Service {
 
         stopping = true;
 
-        for (DefaultDownloadItem item : getDownloads(new DownloadState[]{DownloadState.IN_PROGRESS})) {
+        for (DownloadItemImp item : getDownloads(new DownloadState[]{DownloadState.IN_PROGRESS})) {
             pauseItemDownload(item.getItemId());
         }
         
@@ -332,7 +332,7 @@ public class DefaultDownloadService extends Service {
         }
     }
 
-    public void loadItemMetadata(final DefaultDownloadItem item) {
+    public void loadItemMetadata(final DownloadItemImp item) {
         assertStarted();
         
         AsyncTask.execute(new Runnable() {
@@ -360,7 +360,7 @@ public class DefaultDownloadService extends Service {
         return new File(downloadsDir, "items/" + itemId + "/data");    // TODO: make sure name is safe.
     }
 
-    private void downloadMetadata(DefaultDownloadItem item) throws IOException {
+    private void downloadMetadata(DownloadItemImp item) throws IOException {
 
         File itemDataDir = getItemDataDir(item.getItemId());
         String contentURL = item.getContentURL();
@@ -379,7 +379,7 @@ public class DefaultDownloadService extends Service {
         }
     }
 
-    private void downloadMetadataDash(DefaultDownloadItem item, File itemDataDir) throws IOException {
+    private void downloadMetadataDash(DownloadItemImp item, File itemDataDir) throws IOException {
 
         // Handle service being stopped
         if (isServiceStopped()) {
@@ -390,7 +390,7 @@ public class DefaultDownloadService extends Service {
         DashDownloader.start(this, item, itemDataDir, this.downloadStateListener);
     }
 
-    private void downloadMetadataHLS(DefaultDownloadItem item, File itemDataDir) throws IOException {
+    private void downloadMetadataHLS(DownloadItemImp item, File itemDataDir) throws IOException {
 
         // Handle service being stopped
         if (isServiceStopped()) {
@@ -405,7 +405,7 @@ public class DefaultDownloadService extends Service {
         return stopping || !started;
     }
 
-    private void downloadMetadataSimple(URL url, DefaultDownloadItem item, File itemDataDir) throws IOException {
+    private void downloadMetadataSimple(URL url, DownloadItemImp item, File itemDataDir) throws IOException {
 
         long length = Utils.httpHeadGetLength(url);
 
@@ -419,14 +419,14 @@ public class DefaultDownloadService extends Service {
         addDownloadTasksToDB(item, Collections.singletonList(downloadTask));
     }
 
-    public void addDownloadTasksToDB(DefaultDownloadItem item, List<DownloadTask> tasks) {
+    public void addDownloadTasksToDB(DownloadItemImp item, List<DownloadTask> tasks) {
         
         // Filter-out things that are already 
         
         database.addDownloadTasksToDB(item, tasks);
     }
 
-    public void addTracksToDB(DefaultDownloadItem item, List<BaseTrack> availableTracks, List<BaseTrack> selectedTracks) {
+    public void addTracksToDB(DownloadItemImp item, List<BaseTrack> availableTracks, List<BaseTrack> selectedTracks) {
         database.addTracks(item, availableTracks, selectedTracks);
     }
 
@@ -436,7 +436,7 @@ public class DefaultDownloadService extends Service {
             throw new IllegalStateException("Can't download empty itemId");
         }
 
-        final DefaultDownloadItem item = findItemImpl(itemId);
+        final DownloadItemImp item = findItemImpl(itemId);
         if (item == null) {
             throw new IllegalStateException("Can't find item in db");
         }
@@ -475,7 +475,7 @@ public class DefaultDownloadService extends Service {
         return item.getState();
     }
 
-    public void pauseDownload(final DefaultDownloadItem item) {
+    public void pauseDownload(final DownloadItemImp item) {
         assertStarted();
 
         if (item != null) {
@@ -497,7 +497,7 @@ public class DefaultDownloadService extends Service {
         }
     }
 
-    public void resumeDownload(DefaultDownloadItem item) {
+    public void resumeDownload(DownloadItemImp item) {
         assertStarted();
 
         // resume should be considered as download start
@@ -506,7 +506,7 @@ public class DefaultDownloadService extends Service {
         item.updateItemState(itemState);
     }
 
-    public void removeItem(DefaultDownloadItem item) {
+    public void removeItem(DownloadItemImp item) {
         assertStarted();
 
         if (item == null) {
@@ -533,11 +533,11 @@ public class DefaultDownloadService extends Service {
         Utils.deleteRecursive(file);
     }
 
-    private DefaultDownloadItem findItemImpl(String itemId) {
+    private DownloadItemImp findItemImpl(String itemId) {
 
         // TODO: cache items in memory?
         
-        DefaultDownloadItem item = database.findItemInDB(itemId);
+        DownloadItemImp item = database.findItemInDB(itemId);
         if (item != null) {
             item.setProvider(this);
         }
@@ -551,7 +551,7 @@ public class DefaultDownloadService extends Service {
      * @return An item identified by itemId, or null if not found.
      */
     
-    public DefaultDownloadItem findItem(String itemId) {
+    public DownloadItemImp findItem(String itemId) {
         assertStarted();
 
         return findItemImpl(itemId);
@@ -561,14 +561,14 @@ public class DefaultDownloadService extends Service {
         return database.getDownloadedItemSize(itemId);
     }
 
-    public DefaultDownloadItem createItem(String itemId, String contentURL) {
+    public DownloadItemImp createItem(String itemId, String contentURL) {
         assertStarted();
         
         // if this item was just removed, unmark it as removed.
         removedItems.remove(itemId);
         
 
-        DefaultDownloadItem item = findItemImpl(itemId);
+        DownloadItemImp item = findItemImpl(itemId);
         // If item already exists, return null.
         if (item != null) {
             return null;    // don't create, DON'T return db item.
@@ -579,7 +579,7 @@ public class DefaultDownloadService extends Service {
             return null;
         }
 
-        item = new DefaultDownloadItem(itemId, contentURL);
+        item = new DownloadItemImp(itemId, contentURL);
         item.setState(DownloadState.NEW);
         item.setAddedTime(System.currentTimeMillis());
         File itemDataDir = getItemDataDir(itemId);
@@ -600,12 +600,12 @@ public class DefaultDownloadService extends Service {
         database.updateItemState(itemId, state);
     }
 
-    public List<DefaultDownloadItem> getDownloads(DownloadState[] states) {
+    public List<DownloadItemImp> getDownloads(DownloadState[] states) {
         assertStarted();
 
-        ArrayList<DefaultDownloadItem> items = database.readItemsFromDB(states);
+        ArrayList<DownloadItemImp> items = database.readItemsFromDB(states);
 
-        for (DefaultDownloadItem item : items) {
+        for (DownloadItemImp item : items) {
             item.setProvider(this);
         }
 
@@ -623,7 +623,7 @@ public class DefaultDownloadService extends Service {
     public File getLocalFile(String itemId) {
         assertStarted();
 
-        DefaultDownloadItem item = findItemImpl(itemId);
+        DownloadItemImp item = findItemImpl(itemId);
         if (item == null) {
             return null;
         }
@@ -705,8 +705,8 @@ public class DefaultDownloadService extends Service {
     }
 
     class LocalBinder extends Binder {
-        DefaultDownloadService getService() {
-            return DefaultDownloadService.this;
+        DownloadService getService() {
+            return DownloadService.this;
         }
     }
 }

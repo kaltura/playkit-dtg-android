@@ -3,7 +3,7 @@ package com.kaltura.dtg.dash;
 import android.support.annotation.NonNull;
 
 import com.kaltura.dtg.BaseTrack;
-import com.kaltura.dtg.DefaultDownloadItem;
+import com.kaltura.dtg.DownloadItemImp;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.Utils;
 
@@ -22,13 +22,13 @@ public class DashDownloadUpdater extends DashDownloader {
 
     private static final String TAG = "DashDownloadCreator";
 
-    private DefaultDownloadItem item;
+    private DownloadItemImp item;
 
     private Map<DownloadItem.TrackType, List<BaseTrack>> originalSelectedTracks;
     private boolean trackSelectionChanged;
 
 
-    public DashDownloadUpdater(DefaultDownloadItem item) throws IOException {
+    public DashDownloadUpdater(DownloadItemImp item) throws IOException {
         super(item.getContentURL(), new File(item.getDataDir()));
         this.item = item;
 
@@ -55,7 +55,7 @@ public class DashDownloadUpdater extends DashDownloader {
         super.setSelectedTracks(type, tracks);
     }
 
-    DefaultDownloadItem getItem() {
+    DownloadItemImp getItem() {
         return item;
     }
 

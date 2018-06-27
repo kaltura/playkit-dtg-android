@@ -11,13 +11,13 @@ import android.util.Log;
 import java.io.File;
 import java.util.List;
 
-class DefaultProviderProxy {
+class ServiceProxy {
 
-    private static final String TAG = "DefaultProviderProxy";
+    private static final String TAG = "ServiceProxy";
     private Context context;
     private final ContentManager.Settings settings;
 
-    private DefaultDownloadService service;
+    private DownloadService service;
     private DownloadStateListener listener;
 
     private ContentManager.OnStartedListener onStartedListener;
@@ -25,7 +25,7 @@ class DefaultProviderProxy {
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
-            service = ((DefaultDownloadService.LocalBinder) binder).getService();
+            service = ((DownloadService.LocalBinder) binder).getService();
             service.setDownloadStateListener(listener);
             service.setDownloadSettings(settings);
             service.start();
@@ -39,7 +39,7 @@ class DefaultProviderProxy {
         }
     };
 
-    DefaultProviderProxy(Context context, ContentManager.Settings settings) {
+    ServiceProxy(Context context, ContentManager.Settings settings) {
         this.context = context.getApplicationContext();
         this.settings = settings;
     }
@@ -53,12 +53,12 @@ class DefaultProviderProxy {
         
         this.onStartedListener = startedListener;
 
-        Intent intent = new Intent(context, DefaultDownloadService.class);
+        Intent intent = new Intent(context, DownloadService.class);
 
         Log.d(TAG, "*** Starting service");
 
         context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-        // DefaultProviderProxy.onServiceConnected() will set downloadSettings and listener, then call service.start()
+        // ServiceProxy.onServiceConnected() will set downloadSettings and listener, then call service.start()
     }
 
     public void stop() {
@@ -68,11 +68,11 @@ class DefaultProviderProxy {
         }
         
         context.unbindService(serviceConnection);
-        // DefaultDownloadService.onUnbind() will call stop().
+        // DownloadService.onUnbind() will call stop().
     }
 
     public void loadItemMetadata(DownloadItem item) {
-        service.loadItemMetadata((DefaultDownloadItem) item);
+        service.loadItemMetadata((DownloadItemImp) item);
     }
 
     public DownloadState startDownload(String itemId) {
@@ -80,15 +80,15 @@ class DefaultProviderProxy {
     }
 
     public void pauseDownload(DownloadItem item) {
-        service.pauseDownload((DefaultDownloadItem) item);
+        service.pauseDownload((DownloadItemImp) item);
     }
 
     public void resumeDownload(DownloadItem item) {
-        service.resumeDownload((DefaultDownloadItem) item);
+        service.resumeDownload((DownloadItemImp) item);
     }
 
     public void removeItem(DownloadItem item) {
-        service.removeItem((DefaultDownloadItem) item);
+        service.removeItem((DownloadItemImp) item);
     }
 
     public DownloadItem findItem(String itemId) {

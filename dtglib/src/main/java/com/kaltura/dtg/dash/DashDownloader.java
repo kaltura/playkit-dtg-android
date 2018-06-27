@@ -12,8 +12,8 @@ import com.kaltura.android.exoplayer.dash.mpd.RangedUri;
 import com.kaltura.android.exoplayer.dash.mpd.Representation;
 import com.kaltura.dtg.AppBuildConfig;
 import com.kaltura.dtg.BaseTrack;
-import com.kaltura.dtg.DefaultDownloadItem;
-import com.kaltura.dtg.DefaultDownloadService;
+import com.kaltura.dtg.DownloadItemImp;
+import com.kaltura.dtg.DownloadService;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadStateListener;
 import com.kaltura.dtg.DownloadTask;
@@ -40,7 +40,7 @@ public abstract class DashDownloader {
     static final String LOCAL_MANIFEST_MPD = "local.mpd";
     static final int MAX_DASH_MANIFEST_SIZE = 10 * 1024 * 1024;
 
-    public static void start(DefaultDownloadService defaultDownloadService, DefaultDownloadItem item, File itemDataDir, DownloadStateListener downloadStateListener) throws IOException {
+    public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir, DownloadStateListener downloadStateListener) throws IOException {
         final DashDownloader dashDownloader = new DashDownloadCreator(item.getContentURL(), itemDataDir);
 
         DownloadItem.TrackSelector trackSelector = dashDownloader.getTrackSelector();
@@ -57,7 +57,7 @@ public abstract class DashDownloader {
         List<BaseTrack> availableTracks = dashDownloader.getAvailableTracks();
         List<BaseTrack> selectedTracks = dashDownloader.getSelectedTracks();
 
-        defaultDownloadService.addTracksToDB(item, availableTracks, selectedTracks);
+        downloadService.addTracksToDB(item, availableTracks, selectedTracks);
 
         long estimatedDownloadSize = dashDownloader.getEstimatedDownloadSize();
         item.setEstimatedSizeBytes(estimatedDownloadSize);
@@ -67,7 +67,7 @@ public abstract class DashDownloader {
 
         item.setPlaybackPath(dashDownloader.getPlaybackPath());
 
-        defaultDownloadService.addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
+        downloadService.addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
     }
 
     String manifestUrl;

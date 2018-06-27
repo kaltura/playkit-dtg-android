@@ -9,8 +9,8 @@ import com.kaltura.android.exoplayer.hls.HlsMediaPlaylist.Segment;
 import com.kaltura.android.exoplayer.hls.HlsPlaylist;
 import com.kaltura.android.exoplayer.hls.HlsPlaylistParser;
 import com.kaltura.android.exoplayer.hls.Variant;
-import com.kaltura.dtg.DefaultDownloadItem;
-import com.kaltura.dtg.DefaultDownloadService;
+import com.kaltura.dtg.DownloadItemImp;
+import com.kaltura.dtg.DownloadService;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadTask;
 import com.kaltura.dtg.Utils;
@@ -86,7 +86,7 @@ public class HLSParser {
         return hlsPlaylist;
     }
 
-    public static void start(DefaultDownloadService defaultDownloadService, DefaultDownloadItem item, File itemDataDir) throws IOException {
+    public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir) throws IOException {
         HLSParser hlsParser = new HLSParser(item, itemDataDir);
 
 
@@ -105,8 +105,8 @@ public class HLSParser {
         // set playback path the the relative url path, excluding the leading slash.
         item.setPlaybackPath(hlsParser.getPlaybackPath());
 
-        defaultDownloadService.addDownloadTasksToDB(item, encryptionKeys);
-        defaultDownloadService.addDownloadTasksToDB(item, chunks);
+        downloadService.addDownloadTasksToDB(item, encryptionKeys);
+        downloadService.addDownloadTasksToDB(item, chunks);
     }
 
     public String getFilteredPlaylistPath() {

@@ -10,13 +10,13 @@ import java.util.Date;
 /**
  * Created by noamt on 30/05/2016.
  */
-public class DefaultDownloadItem implements DownloadItem {
+public class DownloadItemImp implements DownloadItem {
 
-    private static final String TAG = "DefaultDownloadItem";
+    private static final String TAG = "DownloadItemImp";
     private final String itemId;
     private final String contentUrl;
 
-    private DefaultDownloadService service;
+    private DownloadService service;
     private DownloadState state = DownloadState.NEW;
     private long addedTime;
     private long finishedTime;
@@ -28,7 +28,7 @@ public class DefaultDownloadItem implements DownloadItem {
     
     private TrackSelector trackSelector;
 
-    DefaultDownloadItem(String itemId, String contentURL) {
+    DownloadItemImp(String itemId, String contentURL) {
         this.itemId = itemId;
         this.contentUrl = contentURL;
 
@@ -68,7 +68,7 @@ public class DefaultDownloadItem implements DownloadItem {
         this.playbackPath = playbackPath;
     }
     
-    void setProvider(DefaultDownloadService provider) {
+    void setProvider(DownloadService provider) {
         this.service = provider;
     }
 
@@ -168,7 +168,7 @@ public class DefaultDownloadItem implements DownloadItem {
         this.trackSelector = trackSelector;
     }
 
-    public DefaultDownloadService getService() {
+    public DownloadService getService() {
         return service;
     }
 }

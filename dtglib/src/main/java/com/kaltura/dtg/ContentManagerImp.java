@@ -75,7 +75,7 @@ public class ContentManagerImp extends ContentManager {
     private Context context;
     private String sessionId;
     private String applicationName;
-    private DefaultProviderProxy provider;
+    private ServiceProxy provider;
     private File itemsDir;
     private boolean started;
     private boolean autoResumeItemsInProgress = true;
@@ -144,7 +144,7 @@ public class ContentManagerImp extends ContentManager {
             return;
         }
 
-        provider = new DefaultProviderProxy(context, settings);
+        provider = new ServiceProxy(context, settings);
         provider.setDownloadStateListener(downloadStateRelay);
         provider.start(new OnStartedListener() {
                             @Override
