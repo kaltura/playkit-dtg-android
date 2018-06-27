@@ -55,28 +55,28 @@ public abstract class DashDownloader {
     Map<DownloadItem.TrackType, List<BaseTrack>> availableTracks;
 
     public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir, DownloadStateListener downloadStateListener) throws IOException {
-        final DashDownloader dashDownloader = new DashDownloadCreator(item.getContentURL(), itemDataDir);
+        final DashDownloader downloader = new DashDownloadCreator(item.getContentURL(), itemDataDir);
 
-        DownloadItem.TrackSelector trackSelector = dashDownloader.getTrackSelector();
+        DownloadItem.TrackSelector trackSelector = downloader.getTrackSelector();
 
         item.setTrackSelector(trackSelector);
 
         downloadStateListener.onTracksAvailable(item, trackSelector);
 
-        dashDownloader.apply();
+        downloader.apply();
 
         item.setTrackSelector(null);
 
 
-        List<BaseTrack> availableTracks = dashDownloader.getAvailableTracks();
-        List<BaseTrack> selectedTracks = dashDownloader.getSelectedTracks();
+        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.availableTracks);
+        List<BaseTrack> selectedTracks = downloader.getSelectedTracks();
 
         downloadService.addTracksToDB(item, availableTracks, selectedTracks);
 
-        long estimatedDownloadSize = dashDownloader.estimatedDownloadSize;
+        long estimatedDownloadSize = downloader.estimatedDownloadSize;
         item.setEstimatedSizeBytes(estimatedDownloadSize);
 
-        LinkedHashSet<DownloadTask> downloadTasks = dashDownloader.downloadTasks;
+        LinkedHashSet<DownloadTask> downloadTasks = downloader.downloadTasks;
         //Log.d(TAG, "tasks:" + downloadTasks);
 
         item.setPlaybackPath(LOCAL_MANIFEST_MPD);
@@ -189,7 +189,7 @@ public abstract class DashDownloader {
     }
 
 
-    void addTask(RangedUri url, String file, String trackId) throws MalformedURLException {
+    private void addTask(RangedUri url, String file, String trackId) throws MalformedURLException {
         File targetFile = new File(targetDir, file);
         DownloadTask task = new DownloadTask(new URL(url.getUriString()), targetFile);
         task.setTrackRelativeId(trackId);
@@ -204,11 +204,6 @@ public abstract class DashDownloader {
     List<BaseTrack> getAvailableTracks(DownloadItem.TrackType type) {
         return Collections.unmodifiableList(availableTracks.get(type));
     }
-    
-    List<BaseTrack> getAvailableTracks() {
-        return Utils.flattenTrackList(availableTracks);
-    }
-
 
     abstract List<BaseTrack> getDownloadedTracks(DownloadItem.TrackType type);
 
