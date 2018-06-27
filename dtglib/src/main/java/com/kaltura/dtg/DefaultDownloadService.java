@@ -13,8 +13,8 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.kaltura.android.exoplayer.hls.Variant;
 import com.kaltura.dtg.dash.DashDownloader;
+import com.kaltura.dtg.hls.HLSParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -391,6 +390,17 @@ public class DefaultDownloadService extends Service {
         DashDownloader.start(this, item, itemDataDir, this.downloadStateListener);
     }
 
+    private void downloadMetadataHLS(DefaultDownloadItem item, File itemDataDir) throws IOException {
+
+        // Handle service being stopped
+        if (isServiceStopped()) {
+            Log.w(TAG, "Service not started or being stopped, ignoring DashDownloadCreator");
+            return;
+        }
+
+        HLSParser.start(this, item, itemDataDir);
+    }
+
     private boolean isServiceStopped() {
         return stopping || !started;
     }
@@ -418,31 +428,6 @@ public class DefaultDownloadService extends Service {
 
     public void addTracksToDB(DefaultDownloadItem item, List<BaseTrack> availableTracks, List<BaseTrack> selectedTracks) {
         database.addTracks(item, availableTracks, selectedTracks);
-    }
-
-    private void downloadMetadataHLS(DefaultDownloadItem item, File itemDataDir) throws IOException {
-        HLSParser hlsParser = new HLSParser(item, itemDataDir);
-
-
-        hlsParser.parseMaster();
-
-        // Select best bitrate
-        TreeSet<Variant> sortedVariants = hlsParser.getSortedVariants();
-        Variant selectedVariant = sortedVariants.first();   // first == highest bitrate
-        hlsParser.selectVariant(selectedVariant);
-
-        hlsParser.parseVariant();
-        ArrayList<DownloadTask> encryptionKeys = hlsParser.createEncryptionKeyDownloadTasks();
-        ArrayList<DownloadTask> chunks = hlsParser.createSegmentDownloadTasks();
-        item.setEstimatedSizeBytes(hlsParser.getEstimatedSizeBytes());
-
-        // set playback path the the relative url path, excluding the leading slash.
-        item.setPlaybackPath(hlsParser.getPlaybackPath());
-
-        addDownloadTasksToDB(item, encryptionKeys);
-        addDownloadTasksToDB(item, chunks);
-        // TODO: handle db insertion errors
-
     }
 
     public DownloadState startDownload(final String itemId) {

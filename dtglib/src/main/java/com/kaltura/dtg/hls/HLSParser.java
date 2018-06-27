@@ -1,4 +1,4 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.hls;
 
 import android.text.TextUtils;
 import android.util.Log;
@@ -9,6 +9,11 @@ import com.kaltura.android.exoplayer.hls.HlsMediaPlaylist.Segment;
 import com.kaltura.android.exoplayer.hls.HlsPlaylist;
 import com.kaltura.android.exoplayer.hls.HlsPlaylistParser;
 import com.kaltura.android.exoplayer.hls.Variant;
+import com.kaltura.dtg.DefaultDownloadItem;
+import com.kaltura.dtg.DefaultDownloadService;
+import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadTask;
+import com.kaltura.dtg.Utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -28,7 +33,7 @@ import java.util.TreeSet;
  */
 
 // Wrapper around ExoPlayer's HlsPlaylistParser. Also saves state (master playlist, selected, etc).
-class HLSParser {
+public class HLSParser {
 
     public static final String FILTERED_MASTER_M3U8 = "master.m3u8";
     public static final String VARIANT_M3U8 = "variant.m3u8";
@@ -79,6 +84,29 @@ class HLSParser {
         HlsPlaylist hlsPlaylist = parser.parse(url.toExternalForm(), inputStream);
         inputStream.close();
         return hlsPlaylist;
+    }
+
+    public static void start(DefaultDownloadService defaultDownloadService, DefaultDownloadItem item, File itemDataDir) throws IOException {
+        HLSParser hlsParser = new HLSParser(item, itemDataDir);
+
+
+        hlsParser.parseMaster();
+
+        // Select best bitrate
+        TreeSet<Variant> sortedVariants = hlsParser.getSortedVariants();
+        Variant selectedVariant = sortedVariants.first();   // first == highest bitrate
+        hlsParser.selectVariant(selectedVariant);
+
+        hlsParser.parseVariant();
+        ArrayList<DownloadTask> encryptionKeys = hlsParser.createEncryptionKeyDownloadTasks();
+        ArrayList<DownloadTask> chunks = hlsParser.createSegmentDownloadTasks();
+        item.setEstimatedSizeBytes(hlsParser.getEstimatedSizeBytes());
+
+        // set playback path the the relative url path, excluding the leading slash.
+        item.setPlaybackPath(hlsParser.getPlaybackPath());
+
+        defaultDownloadService.addDownloadTasksToDB(item, encryptionKeys);
+        defaultDownloadService.addDownloadTasksToDB(item, chunks);
     }
 
     public String getFilteredPlaylistPath() {

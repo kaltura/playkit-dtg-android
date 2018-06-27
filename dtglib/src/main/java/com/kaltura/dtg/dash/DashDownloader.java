@@ -230,12 +230,10 @@ public abstract class DashDownloader {
 
     
     void setSelectedTracks(@NonNull DownloadItem.TrackType type, @NonNull List<BaseTrack> tracks) {
-        // FIXME: 07/09/2016 Verify type, null
         selectedTracks.put(type, new ArrayList<>(tracks));
     }
 
     List<BaseTrack> getAvailableTracks(DownloadItem.TrackType type) {
-        // FIXME: 07/09/2016 Verify type
         return Collections.unmodifiableList(availableTracks.get(type));
     }
     
@@ -249,7 +247,6 @@ public abstract class DashDownloader {
     abstract void apply() throws IOException;
 
     public DownloadItem.TrackSelector getTrackSelector() {
-        // TODO: 14/09/2016 Try to unify with DashDownloadCreator's selector 
         return new DownloadItem.TrackSelector() {
             private DashDownloader downloader = DashDownloader.this;
 
@@ -264,7 +261,8 @@ public abstract class DashDownloader {
                 
                 List<BaseTrack> dashTracks = new ArrayList<>(tracks.size());
                 for (DownloadItem.Track track : tracks) {
-                    // We don't have any other track class; leaving the potential ClassCastException on purpose. 
+                    // We don't have any other track class; leaving the potential ClassCastException on purpose.
+                    // FIXME: 27/06/2018 Now we have HLS
                     dashTracks.add((DashTrack) track);
                 }
         
