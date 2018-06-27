@@ -41,6 +41,19 @@ public abstract class DashDownloader {
     static final String LOCAL_MANIFEST_MPD = "local.mpd";
     static final int MAX_DASH_MANIFEST_SIZE = 10 * 1024 * 1024;
 
+    String manifestUrl;
+
+    File targetDir;
+
+    byte[] originManifestBytes;
+    Period currentPeriod;
+
+    private long itemDurationMS;
+    private long estimatedDownloadSize;
+
+    Map<DownloadItem.TrackType, List<BaseTrack>> selectedTracks;
+    Map<DownloadItem.TrackType, List<BaseTrack>> availableTracks;
+
     public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir, DownloadStateListener downloadStateListener) throws IOException {
         final DashDownloader dashDownloader = new DashDownloadCreator(item.getContentURL(), itemDataDir);
 
@@ -60,30 +73,16 @@ public abstract class DashDownloader {
 
         downloadService.addTracksToDB(item, availableTracks, selectedTracks);
 
-        long estimatedDownloadSize = dashDownloader.getEstimatedDownloadSize();
+        long estimatedDownloadSize = dashDownloader.estimatedDownloadSize;
         item.setEstimatedSizeBytes(estimatedDownloadSize);
 
-        LinkedHashSet<DownloadTask> downloadTasks = dashDownloader.getDownloadTasks();
+        LinkedHashSet<DownloadTask> downloadTasks = dashDownloader.downloadTasks;
         //Log.d(TAG, "tasks:" + downloadTasks);
 
-        item.setPlaybackPath(dashDownloader.getPlaybackPath());
+        item.setPlaybackPath(LOCAL_MANIFEST_MPD);
 
         downloadService.addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
     }
-
-    String manifestUrl;
-
-    File targetDir;
-    
-    byte[] originManifestBytes;
-    Period currentPeriod;
-
-    private long itemDurationMS;
-    private long estimatedDownloadSize;
-
-
-    Map<DownloadItem.TrackType, List<BaseTrack>> selectedTracks;
-    Map<DownloadItem.TrackType, List<BaseTrack>> availableTracks;
 
     void parseOriginManifest() throws IOException {
         MediaPresentationDescriptionParser mpdParser = new MediaPresentationDescriptionParser();
@@ -95,7 +94,7 @@ public abstract class DashDownloader {
 
         int periodIndex = 0;
         currentPeriod = parsedMpd.getPeriod(periodIndex);
-        setItemDurationMS(parsedMpd.getPeriodDuration(periodIndex));
+        itemDurationMS = parsedMpd.getPeriodDuration(periodIndex);
         
     }
 
@@ -132,7 +131,7 @@ public abstract class DashDownloader {
         if (representation instanceof Representation.MultiSegmentRepresentation) {
             Representation.MultiSegmentRepresentation rep = (Representation.MultiSegmentRepresentation) representation;
 
-            long periodDurationUs = getItemDurationMS() * 1000;
+            long periodDurationUs = itemDurationMS * 1000;
             int lastSegmentNum = rep.getLastSegmentNum(periodDurationUs);
             for (int segmentNum = rep.getFirstSegmentNum(); segmentNum <= lastSegmentNum; segmentNum++) {
                 RangedUri url = rep.getSegmentUrl(segmentNum);
@@ -147,34 +146,11 @@ public abstract class DashDownloader {
             }
         }
         
-        setEstimatedDownloadSize(getEstimatedDownloadSize() + getItemDurationMS() *representation.format.bitrate / 8 / 1000);
+        estimatedDownloadSize += (itemDurationMS * representation.format.bitrate / 8 / 1000);
     }
 
-    long getItemDurationMS() {
-        return itemDurationMS;
-    }
-
-    void setItemDurationMS(long itemDurationMS) {
-        this.itemDurationMS = itemDurationMS;
-    }
-
-    void setEstimatedDownloadSize(long estimatedDownloadSize) {
-        this.estimatedDownloadSize = estimatedDownloadSize;
-    }
-
-
-//    abstract void parse() throws IOException;
-    
     long getEstimatedDownloadSize() {
         return estimatedDownloadSize;
-    }
-
-    String getPlaybackPath() {
-        return LOCAL_MANIFEST_MPD;
-    }
-
-    LinkedHashSet<DownloadTask> getDownloadTasks() {
-        return downloadTasks;
     }
 
     LinkedHashSet<DownloadTask> downloadTasks;
@@ -193,7 +169,7 @@ public abstract class DashDownloader {
         createLocalManifest(tracks, originManifestBytes, targetDir);
     }
 
-    static void createLocalManifest(List<BaseTrack> tracks, byte[] originManifestBytes, File targetDir) throws IOException {
+    private static void createLocalManifest(List<BaseTrack> tracks, byte[] originManifestBytes, File targetDir) throws IOException {
         DashManifestLocalizer localizer = new DashManifestLocalizer(originManifestBytes, tracks);
         localizer.localize();
 
@@ -208,7 +184,7 @@ public abstract class DashDownloader {
     }
 
     @NonNull
-    List<BaseTrack> getSelectedTracks() {
+    private List<BaseTrack> getSelectedTracks() {
         return Utils.flattenTrackList(selectedTracks);
     }
 
@@ -273,7 +249,6 @@ public abstract class DashDownloader {
             }
         };
     }
-
 }
 
 
