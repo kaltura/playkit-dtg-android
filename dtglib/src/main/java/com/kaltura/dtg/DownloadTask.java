@@ -17,7 +17,7 @@ import java.net.URL;
 /**
  * Created by noamt on 5/13/15.
  */
-class DownloadTask {
+public class DownloadTask {
     private static final String TAG = "DownloadTask";
     private static final int PROGRESS_REPORT_COUNT = 100;
 
@@ -26,6 +26,7 @@ class DownloadTask {
     final URL url;
     final File targetFile;
     String itemId;
+
     String trackRelativeId;
 
     private Listener listener;  // this is the service
@@ -33,18 +34,23 @@ class DownloadTask {
     private int retryCount = 0;
     private ContentManager.Settings downloadSettings;
 
-    DownloadTask(URL url, File targetFile) {
+    public DownloadTask(URL url, File targetFile) {
         this.url = url;
         this.targetFile = targetFile;
         this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
     }
 
-    DownloadTask(String url, String targetFile) throws MalformedURLException {
+    public DownloadTask(String url, String targetFile) throws MalformedURLException {
         this(new URL(url), new File(targetFile));
     }
-    
-    
-    
+
+
+    public DownloadTask setTrackRelativeId(String trackRelativeId) {
+        this.trackRelativeId = trackRelativeId;
+        return this;
+    }
+
+
     @Override
     public String toString() {
         return "<DownloadTask id='" + taskId + "' url='" + url + "' target='" + targetFile + "'>";

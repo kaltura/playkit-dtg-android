@@ -1,10 +1,13 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.dash;
 
 import android.util.Log;
 
 import com.kaltura.android.exoplayer.chunk.Format;
 import com.kaltura.android.exoplayer.dash.mpd.AdaptationSet;
 import com.kaltura.android.exoplayer.dash.mpd.Representation;
+import com.kaltura.dtg.BaseTrack;
+import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +37,7 @@ class DashDownloadCreator extends DashDownloader {
     }
 
     @Override
-    List<DashTrack> getDownloadedTracks(DownloadItem.TrackType type) {
+    List<BaseTrack> getDownloadedTracks(DownloadItem.TrackType type) {
         Log.w(TAG, "Initial selector has no downloaded tracks!");
         return null;
     }
@@ -43,38 +46,38 @@ class DashDownloadCreator extends DashDownloader {
 
         selectedTracks = new HashMap<>();
         for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
-            selectedTracks.put(type, new ArrayList<DashTrack>(1));
+            selectedTracks.put(type, new ArrayList<BaseTrack>(1));
         }
 
 
         // "Best" == highest bitrate.
         
         // Video: simply select best track.
-        List<DashTrack> availableVideoTracks = getAvailableTracks(DownloadItem.TrackType.VIDEO);
+        List<BaseTrack> availableVideoTracks = getAvailableTracks(DownloadItem.TrackType.VIDEO);
         if (availableVideoTracks.size() > 0) {
-            DashTrack selectedVideoTrack = Collections.max(availableVideoTracks, DownloadItem.Track.bitrateComparator);
+            BaseTrack selectedVideoTrack = Collections.max(availableVideoTracks, DownloadItem.Track.bitrateComparator);
             setSelectedTracks(DownloadItem.TrackType.VIDEO, Collections.singletonList(selectedVideoTrack));
         }
 
         // Audio: X=(language of first track); Select best track with language==X.
-        List<DashTrack> availableAudioTracks = getAvailableTracks(DownloadItem.TrackType.AUDIO);
+        List<BaseTrack> availableAudioTracks = getAvailableTracks(DownloadItem.TrackType.AUDIO);
         if (availableAudioTracks.size() > 0) {
             String firstAudioLang = availableAudioTracks.get(0).getLanguage();
-            List<DashTrack> tracks;
+            List<BaseTrack> tracks;
             if (firstAudioLang != null) {
-                tracks = DashTrack.filterByLanguage(firstAudioLang, availableAudioTracks);
+                tracks = BaseTrack.filterByLanguage(firstAudioLang, availableAudioTracks);
             } else {
                 tracks = availableAudioTracks;
             }
-            
-            DashTrack selectedAudioTrack = Collections.max(tracks, DownloadItem.Track.bitrateComparator);
+
+            BaseTrack selectedAudioTrack = Collections.max(tracks, DownloadItem.Track.bitrateComparator);
             setSelectedTracks(DownloadItem.TrackType.AUDIO, Collections.singletonList(selectedAudioTrack));
         }
 
         // Text: simply select first track.
-        List<DashTrack> availableTextTracks = getAvailableTracks(DownloadItem.TrackType.TEXT);
+        List<BaseTrack> availableTextTracks = getAvailableTracks(DownloadItem.TrackType.TEXT);
         if (availableTextTracks.size() > 0) {
-            DashTrack selectedTextTrack = availableTextTracks.get(0);
+            BaseTrack selectedTextTrack = availableTextTracks.get(0);
             setSelectedTracks(DownloadItem.TrackType.TEXT, Collections.singletonList(selectedTextTrack));
         }
     }
@@ -101,7 +104,7 @@ class DashDownloadCreator extends DashDownloader {
 
         availableTracks = new HashMap<>();
         for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
-            availableTracks.put(type, new ArrayList<DashTrack>(1));
+            availableTracks.put(type, new ArrayList<BaseTrack>(1));
         }
         
         ListIterator<AdaptationSet> itAdaptations = adaptationSets.listIterator();

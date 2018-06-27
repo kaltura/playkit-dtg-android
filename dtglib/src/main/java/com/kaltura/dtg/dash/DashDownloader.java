@@ -1,4 +1,4 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.dash;
 
 import android.support.annotation.NonNull;
 import android.util.Base64;
@@ -10,6 +10,13 @@ import com.kaltura.android.exoplayer.dash.mpd.MediaPresentationDescriptionParser
 import com.kaltura.android.exoplayer.dash.mpd.Period;
 import com.kaltura.android.exoplayer.dash.mpd.RangedUri;
 import com.kaltura.android.exoplayer.dash.mpd.Representation;
+import com.kaltura.dtg.AppBuildConfig;
+import com.kaltura.dtg.BaseTrack;
+import com.kaltura.dtg.DefaultDownloadItem;
+import com.kaltura.dtg.DefaultDownloadService;
+import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadStateListener;
+import com.kaltura.dtg.DownloadTask;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -26,18 +33,43 @@ import java.util.Map;
 /**
  * Created by noamt on 19/06/2016.
  */
-abstract class DashDownloader {
+public abstract class DashDownloader {
 
     private static final String TAG = "DashDownloader";
     static final String ORIGIN_MANIFEST_MPD = "origin.mpd";
     static final String LOCAL_MANIFEST_MPD = "local.mpd";
     static final int MAX_DASH_MANIFEST_SIZE = 10 * 1024 * 1024;
 
-    enum TrackState {
-        NOT_SELECTED, SELECTED, DOWNLOADED,
-        UNKNOWN
+    public static void start(DefaultDownloadService defaultDownloadService, DefaultDownloadItem item, File itemDataDir, DownloadStateListener downloadStateListener) throws IOException {
+        final DashDownloader dashDownloader = new DashDownloadCreator(item.getContentURL(), itemDataDir);
+
+        DownloadItem.TrackSelector trackSelector = dashDownloader.getTrackSelector();
+
+        item.setTrackSelector(trackSelector);
+
+        downloadStateListener.onTracksAvailable(item, trackSelector);
+
+        dashDownloader.apply();
+
+        item.setTrackSelector(null);
+
+
+        List<BaseTrack> availableTracks = dashDownloader.getAvailableTracks();
+        List<BaseTrack> selectedTracks = dashDownloader.getSelectedTracks();
+
+        defaultDownloadService.addTracksToDB(item, availableTracks, selectedTracks);
+
+        long estimatedDownloadSize = dashDownloader.getEstimatedDownloadSize();
+        item.setEstimatedSizeBytes(estimatedDownloadSize);
+
+        LinkedHashSet<DownloadTask> downloadTasks = dashDownloader.getDownloadTasks();
+        //Log.d(TAG, "tasks:" + downloadTasks);
+
+        item.setPlaybackPath(dashDownloader.getPlaybackPath());
+
+        defaultDownloadService.addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
     }
-    
+
     String manifestUrl;
 
     File targetDir;
@@ -49,8 +81,8 @@ abstract class DashDownloader {
     private long estimatedDownloadSize;
 
 
-    Map<DownloadItem.TrackType, List<DashTrack>> selectedTracks;
-    Map<DownloadItem.TrackType, List<DashTrack>> availableTracks;
+    Map<DownloadItem.TrackType, List<BaseTrack>> selectedTracks;
+    Map<DownloadItem.TrackType, List<BaseTrack>> availableTracks;
 
     void parseOriginManifest() throws IOException {
         MediaPresentationDescriptionParser mpdParser = new MediaPresentationDescriptionParser();
@@ -70,8 +102,9 @@ abstract class DashDownloader {
         
         downloadTasks = new LinkedHashSet<>();
         
-        List<DashTrack> trackList = getSelectedTracks();
-        for (DashTrack track : trackList) {
+        List<BaseTrack> trackList = getSelectedTracks();
+        for (BaseTrack bt : trackList) {
+            DashTrack track = (DashTrack)bt;
             AdaptationSet adaptationSet = currentPeriod.adaptationSets.get(track.getAdaptationIndex());
             Representation representation = adaptationSet.representations.get(track.getRepresentationIndex());
             
@@ -154,12 +187,12 @@ abstract class DashDownloader {
     void createLocalManifest() throws IOException {
 
         // The localizer needs a raw list of tracks.
-        List<DashTrack> tracks = getSelectedTracks();
+        List<BaseTrack> tracks = getSelectedTracks();
         
         createLocalManifest(tracks, originManifestBytes, targetDir);
     }
 
-    static void createLocalManifest(List<DashTrack> tracks, byte[] originManifestBytes, File targetDir) throws IOException {
+    static void createLocalManifest(List<BaseTrack> tracks, byte[] originManifestBytes, File targetDir) throws IOException {
         DashManifestLocalizer localizer = new DashManifestLocalizer(originManifestBytes, tracks);
         localizer.localize();
 
@@ -174,14 +207,14 @@ abstract class DashDownloader {
     }
 
     @NonNull
-    List<DashTrack> getSelectedTracks() {
+    List<BaseTrack> getSelectedTracks() {
         return flattenTrackList(selectedTracks);
     }
 
     @NonNull
-    static List<DashTrack> flattenTrackList(Map<DownloadItem.TrackType, List<DashTrack>> tracksMap) {
-        List<DashTrack> tracks = new ArrayList<>();
-        for (Map.Entry<DownloadItem.TrackType, List<DashTrack>> entry : tracksMap.entrySet()) {
+    public static List<BaseTrack> flattenTrackList(Map<DownloadItem.TrackType, List<BaseTrack>> tracksMap) {
+        List<BaseTrack> tracks = new ArrayList<>();
+        for (Map.Entry<DownloadItem.TrackType, List<BaseTrack>> entry : tracksMap.entrySet()) {
             tracks.addAll(entry.getValue());
         }
         return tracks;
@@ -191,45 +224,45 @@ abstract class DashDownloader {
     void addTask(RangedUri url, String file, String trackId) throws MalformedURLException {
         File targetFile = new File(targetDir, file);
         DownloadTask task = new DownloadTask(new URL(url.getUriString()), targetFile);
-        task.trackRelativeId = trackId;
+        task.setTrackRelativeId(trackId);
         downloadTasks.add(task);
     }
 
     
-    void setSelectedTracks(@NonNull DownloadItem.TrackType type, @NonNull List<DashTrack> tracks) {
+    void setSelectedTracks(@NonNull DownloadItem.TrackType type, @NonNull List<BaseTrack> tracks) {
         // FIXME: 07/09/2016 Verify type, null
         selectedTracks.put(type, new ArrayList<>(tracks));
     }
 
-    List<DashTrack> getAvailableTracks(DownloadItem.TrackType type) {
+    List<BaseTrack> getAvailableTracks(DownloadItem.TrackType type) {
         // FIXME: 07/09/2016 Verify type
         return Collections.unmodifiableList(availableTracks.get(type));
     }
     
-    List<DashTrack> getAvailableTracks() {
+    List<BaseTrack> getAvailableTracks() {
         return flattenTrackList(availableTracks);
     }
 
 
-    abstract List<DashTrack> getDownloadedTracks(DownloadItem.TrackType type);
+    abstract List<BaseTrack> getDownloadedTracks(DownloadItem.TrackType type);
 
     abstract void apply() throws IOException;
 
-    DownloadItem.TrackSelector getTrackSelector() {
+    public DownloadItem.TrackSelector getTrackSelector() {
         // TODO: 14/09/2016 Try to unify with DashDownloadCreator's selector 
         return new DownloadItem.TrackSelector() {
             private DashDownloader downloader = DashDownloader.this;
 
             @Override
             public List<DownloadItem.Track> getAvailableTracks(@NonNull final DownloadItem.TrackType type) {
-                List<DashTrack> tracks = downloader.getAvailableTracks(type);
+                List<BaseTrack> tracks = downloader.getAvailableTracks(type);
                 return new ArrayList<DownloadItem.Track>(tracks);
             }
 
             @Override
             public void setSelectedTracks(@NonNull DownloadItem.TrackType type, @NonNull List<DownloadItem.Track> tracks) {
                 
-                List<DashTrack> dashTracks = new ArrayList<>(tracks.size());
+                List<BaseTrack> dashTracks = new ArrayList<>(tracks.size());
                 for (DownloadItem.Track track : tracks) {
                     // We don't have any other track class; leaving the potential ClassCastException on purpose. 
                     dashTracks.add((DashTrack) track);
@@ -240,7 +273,7 @@ abstract class DashDownloader {
 
             @Override
             public List<DownloadItem.Track> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {
-                List<DashTrack> tracks = downloader.getDownloadedTracks(type);
+                List<BaseTrack> tracks = downloader.getDownloadedTracks(type);
                 return new ArrayList<DownloadItem.Track>(tracks);
             }
 

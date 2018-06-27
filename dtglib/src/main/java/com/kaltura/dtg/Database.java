@@ -535,15 +535,15 @@ class Database {
         return count;
     }
 
-    synchronized void addTracks(final DefaultDownloadItem item, final List<DashTrack> availableTracks, final List<DashTrack> selectedTracks) {
+    public synchronized void addTracks(final DefaultDownloadItem item, final List<BaseTrack> availableTracks, final List<BaseTrack> selectedTracks) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
                 
-                for (DashTrack track : availableTracks) {
+                for (BaseTrack track : availableTracks) {
                     ContentValues values = track.toContentValues();
                     values.put(COL_ITEM_ID, item.getItemId());
-                    values.put(COL_TRACK_STATE, DashDownloader.TrackState.NOT_SELECTED.name());
+                    values.put(COL_TRACK_STATE, BaseTrack.TrackState.NOT_SELECTED.name());
                     try {
                         db.insertOrThrow(TBL_TRACK, null, values);
                     } catch (SQLiteConstraintException e) {
@@ -551,9 +551,9 @@ class Database {
                     }
                 }
 
-                for (DashTrack track : selectedTracks) {
+                for (BaseTrack track : selectedTracks) {
                     ContentValues values = new ContentValues();
-                    values.put(COL_TRACK_STATE, DashDownloader.TrackState.SELECTED.name());
+                    values.put(COL_TRACK_STATE, BaseTrack.TrackState.SELECTED.name());
                     db.update(TBL_TRACK, values, COL_ITEM_ID + "=? AND " + COL_TRACK_REL_ID + "=?", 
                             strings(item.getItemId(), track.getRelativeId()));
                 }
@@ -563,9 +563,9 @@ class Database {
         });
     }
     
-    synchronized List<DashTrack> readTracks(String itemId, DownloadItem.TrackType type, @Nullable DashDownloader.TrackState state) {
+    synchronized List<BaseTrack> readTracks(String itemId, DownloadItem.TrackType type, @Nullable BaseTrack.TrackState state) {
         Cursor cursor = null;
-        List<DashTrack> tracks = new ArrayList<>(10);
+        List<BaseTrack> tracks = new ArrayList<>(10);
         try {
             List<String> selectionCols = new ArrayList<>();
             List<String> selectionArgs = new ArrayList<>();
@@ -586,14 +586,14 @@ class Database {
             String selection = TextUtils.join("=? AND ", selectionCols) + "=?";
             String[] selectionArgsArray = selectionArgs.toArray(new String[selectionArgs.size()]);
             cursor = database.query(TBL_TRACK,
-                    DashTrack.REQUIRED_DB_FIELDS,
+                    BaseTrack.REQUIRED_DB_FIELDS,
                     selection,
                     selectionArgsArray,
                     null, null, COL_TRACK_ID + " ASC");
             // TODO: 13/09/2016 Consider order by type+bitrate 
             
             while (cursor.moveToNext()) {
-                DashTrack track = new DashTrack(cursor);
+                BaseTrack track = BaseTrack.create(cursor);
                 tracks.add(track);
             }
             
@@ -604,7 +604,7 @@ class Database {
         return tracks;
     }
 
-    synchronized void updateTracksState(final String itemId, final List<DashTrack> tracks, final DashDownloader.TrackState newState) {
+    synchronized void updateTracksState(final String itemId, final List<BaseTrack> tracks, final BaseTrack.TrackState newState) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -612,7 +612,7 @@ class Database {
                 ContentValues values = new ContentValues();
                 values.put(COL_TRACK_STATE, newState.name());
 
-                for (DashTrack track : tracks) {
+                for (BaseTrack track : tracks) {
                     db.update(TBL_TRACK, values, COL_ITEM_ID + "=? AND " + COL_TRACK_REL_ID + "=?", strings(itemId, track.getRelativeId()));
                 }
                 

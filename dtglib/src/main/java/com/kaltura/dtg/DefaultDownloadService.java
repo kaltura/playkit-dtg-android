@@ -14,6 +14,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.android.exoplayer.hls.Variant;
+import com.kaltura.dtg.dash.DashDownloader;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +23,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -242,10 +242,14 @@ public class DefaultDownloadService extends Service {
         }
     }
 
-    void updateItemInfoInDB(DefaultDownloadItem item, String... columns) {
+    public void updateItemInfoInDB(DefaultDownloadItem item, String... columns) {
         if (database != null) {
             database.updateItemInfo(item, columns);
         }
+    }
+
+    public void updateItemEstimatedSizeInDB(DefaultDownloadItem item) {
+        updateItemInfoInDB(item, Database.COL_ITEM_ESTIMATED_SIZE);
     }
 
     private void assertStarted() {
@@ -378,39 +382,13 @@ public class DefaultDownloadService extends Service {
 
     private void downloadMetadataDash(DefaultDownloadItem item, File itemDataDir) throws IOException {
 
-        final DashDownloader dashDownloader = new DashDownloadCreator(item.getContentURL(), itemDataDir);
-        
         // Handle service being stopped
         if (isServiceStopped()) {
             Log.w(TAG, "Service not started or being stopped, ignoring DashDownloadCreator");
-            return; 
+            return;
         }
 
-        DownloadItem.TrackSelector trackSelector = dashDownloader.getTrackSelector();
-        
-        item.setTrackSelector(trackSelector);
-        
-        downloadStateListener.onTracksAvailable(item, trackSelector);
-        
-        dashDownloader.apply();
-
-        item.setTrackSelector(null);
-
-
-        List<DashTrack> availableTracks = dashDownloader.getAvailableTracks();
-        List<DashTrack> selectedTracks = dashDownloader.getSelectedTracks();
-        
-        database.addTracks(item, availableTracks, selectedTracks);
-
-        long estimatedDownloadSize = dashDownloader.getEstimatedDownloadSize();
-        item.setEstimatedSizeBytes(estimatedDownloadSize);
-
-        LinkedHashSet<DownloadTask> downloadTasks = dashDownloader.getDownloadTasks();
-        //Log.d(TAG, "tasks:" + downloadTasks);
-
-        item.setPlaybackPath(dashDownloader.getPlaybackPath());
-
-        addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
+        DashDownloader.start(this, item, itemDataDir, this.downloadStateListener);
     }
 
     private boolean isServiceStopped() {
@@ -431,11 +409,15 @@ public class DefaultDownloadService extends Service {
         addDownloadTasksToDB(item, Collections.singletonList(downloadTask));
     }
 
-    void addDownloadTasksToDB(DefaultDownloadItem item, List<DownloadTask> tasks) {
+    public void addDownloadTasksToDB(DefaultDownloadItem item, List<DownloadTask> tasks) {
         
         // Filter-out things that are already 
         
         database.addDownloadTasksToDB(item, tasks);
+    }
+
+    public void addTracksToDB(DefaultDownloadItem item, List<BaseTrack> availableTracks, List<BaseTrack> selectedTracks) {
+        database.addTracks(item, availableTracks, selectedTracks);
     }
 
     private void downloadMetadataHLS(DefaultDownloadItem item, File itemDataDir) throws IOException {
@@ -685,15 +667,15 @@ public class DefaultDownloadService extends Service {
         return database.getEstimatedItemSize(itemId);
     }
 
-    List<DashTrack> readTracksFromDB(String itemId, DownloadItem.TrackType trackType, DashDownloader.TrackState state) {
+    public List<BaseTrack> readTracksFromDB(String itemId, DownloadItem.TrackType trackType, BaseTrack.TrackState state) {
         return database.readTracks(itemId, trackType, state);
     }
     
-    void updateTracksInDB(String itemId, Map<DownloadItem.TrackType, List<DashTrack>> tracksMap, DashDownloader.TrackState state) {
+    public void updateTracksInDB(String itemId, Map<DownloadItem.TrackType, List<BaseTrack>> tracksMap, BaseTrack.TrackState state) {
         database.updateTracksState(itemId, DashDownloader.flattenTrackList(tracksMap), state);
     }
 
-    int countPendingFiles(String itemId, @Nullable String trackId) {
+    public int countPendingFiles(String itemId, @Nullable String trackId) {
         return database.countPendingFiles(itemId, trackId);
     }
 

@@ -1,4 +1,6 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.dash;
+
+import com.kaltura.dtg.BaseTrack;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -22,13 +24,13 @@ class DashManifestLocalizer {
     public static final String MEDIA_ATTRIBUTE = "media";
     public static final String INITIALIZATION_ATTRIBUTE = "initialization";
     private final byte[] originManifestBytes;
-    private final List<DashTrack> keepTracks;
+    private final List<BaseTrack> keepTracks;
     private byte[] localManifestBytes;
     private XmlPullParser parser;
     private XmlSerializer serializer;
 
 
-    DashManifestLocalizer(byte[] originManifestBytes, List<DashTrack> keepTracks) {
+    DashManifestLocalizer(byte[] originManifestBytes, List<BaseTrack> keepTracks) {
         this.originManifestBytes = originManifestBytes;
         this.keepTracks = keepTracks;
     }
@@ -67,8 +69,9 @@ class DashManifestLocalizer {
     
     boolean shouldKeepAdaptationSet(int index) {
         // TODO: make the search more efficient
-        for (DashTrack keepTrack : keepTracks) {
-            if (keepTrack.getAdaptationIndex() == index) {
+        for (BaseTrack keepTrack : keepTracks) {
+            DashTrack dashTrack = (DashTrack) keepTrack;
+            if (dashTrack.getAdaptationIndex() == index) {
                 return true;
             }
         }
@@ -77,8 +80,9 @@ class DashManifestLocalizer {
     
     boolean shouldKeepRepresentation(int adaptationIndex, int representationIndex) {
         // TODO: make the search more efficient
-        for (DashTrack keepTrack : keepTracks) {
-            if (keepTrack.getAdaptationIndex() == adaptationIndex && keepTrack.getRepresentationIndex() == representationIndex) {
+        for (BaseTrack keepTrack : keepTracks) {
+            DashTrack dashTrack = (DashTrack) keepTrack;
+            if (dashTrack.getAdaptationIndex() == adaptationIndex && dashTrack.getRepresentationIndex() == representationIndex) {
                 return true;
             }
         }

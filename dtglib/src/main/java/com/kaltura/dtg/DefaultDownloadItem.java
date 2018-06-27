@@ -2,13 +2,15 @@ package com.kaltura.dtg;
 
 import android.util.Log;
 
+import com.kaltura.dtg.dash.DashDownloadUpdater;
+
 import java.io.IOException;
 import java.util.Date;
 
 /**
  * Created by noamt on 30/05/2016.
  */
-class DefaultDownloadItem implements DownloadItem {
+public class DefaultDownloadItem implements DownloadItem {
 
     private static final String TAG = "DefaultDownloadItem";
     private final String itemId;
@@ -50,7 +52,7 @@ class DefaultDownloadItem implements DownloadItem {
         return contentUrl;
     }
 
-    String getDataDir() {
+    public String getDataDir() {
         return dataDir;
     }
 
@@ -62,7 +64,7 @@ class DefaultDownloadItem implements DownloadItem {
         return playbackPath;
     }
 
-    void setPlaybackPath(String playbackPath) {
+    public void setPlaybackPath(String playbackPath) {
         this.playbackPath = playbackPath;
     }
     
@@ -95,7 +97,7 @@ class DefaultDownloadItem implements DownloadItem {
         return estimatedSizeBytes;
     }
     
-    void setEstimatedSizeBytes(long bytes) {
+    public void setEstimatedSizeBytes(long bytes) {
         estimatedSizeBytes = bytes;
     }
 
@@ -162,11 +164,11 @@ class DefaultDownloadItem implements DownloadItem {
         return trackSelector;
     }
 
-    void setTrackSelector(TrackSelector trackSelector) {
+    public void setTrackSelector(TrackSelector trackSelector) {
         this.trackSelector = trackSelector;
     }
 
-    DefaultDownloadService getService() {
+    public DefaultDownloadService getService() {
         return service;
     }
 }
