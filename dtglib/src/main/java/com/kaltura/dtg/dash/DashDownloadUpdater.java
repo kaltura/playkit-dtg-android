@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * Created by noamt on 13/09/2016.
  */
-public class DashDownloadUpdater extends DashDownloader {
+class DashDownloadUpdater extends DashDownloader {
 
     private static final String TAG = "DashDownloadCreator";
 
@@ -28,7 +28,7 @@ public class DashDownloadUpdater extends DashDownloader {
     private boolean trackSelectionChanged;
 
 
-    public DashDownloadUpdater(DownloadItemImp item) throws IOException {
+    DashDownloadUpdater(DownloadItemImp item) throws IOException {
         super(item.getContentURL(), new File(item.getDataDir()));
         this.item = item;
 
@@ -106,7 +106,7 @@ public class DashDownloadUpdater extends DashDownloader {
         
         for (BaseTrack dashTrack : selectedTracks.get(type)) {
             
-            if (item.getService().countPendingFiles(item.getItemId(), dashTrack.getRelativeId()) == 0) {
+            if (item.getService().countPendingFiles(item.getItemId(), dashTrack) == 0) {
                 downloadedTracks.add(dashTrack);
             }
         }

@@ -31,7 +31,7 @@ public class DashTrack extends BaseTrack {
         super(contentValues);
     }
 
-    public DashTrack(Cursor cursor) {
+    DashTrack(Cursor cursor) {
         super(cursor);
     }
 
@@ -48,7 +48,7 @@ public class DashTrack extends BaseTrack {
     }
 
     @Override
-    public String getRelativeId() {
+    protected String getRelativeId() {
         return "a" + getAdaptationIndex() + "r" + getRepresentationIndex();
     }
 
@@ -107,15 +107,15 @@ public class DashTrack extends BaseTrack {
     }
 
     @Override
-    protected JSONObject dumpExtra() {
-        JSONObject extra = null;
+    protected String dumpExtra() {
         try {
-            extra = new JSONObject()
+            return new JSONObject()
                     .put(DashTrack.ORIGINAL_ADAPTATION_SET_INDEX, getAdaptationIndex())
-                    .put(DashTrack.ORIGINAL_REPRESENTATION_INDEX, getRepresentationIndex());
+                    .put(DashTrack.ORIGINAL_REPRESENTATION_INDEX, getRepresentationIndex())
+                    .toString();
         } catch (JSONException e) {
             Log.e(DashTrack.TAG, "Failed converting to JSON");
+            return null;
         }
-        return extra;
     }
 }

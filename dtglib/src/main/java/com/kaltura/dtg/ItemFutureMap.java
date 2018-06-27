@@ -54,7 +54,7 @@ class ItemFutureMap {
         }
     }
 
-    synchronized public void cancelAll() {
+    synchronized void cancelAll() {
         for (String itemId : new HashSet<>(map.keySet())) {
             cancelItem(itemId);
         }

@@ -657,11 +657,11 @@ public class DownloadService extends Service {
     }
     
     public void updateTracksInDB(String itemId, Map<DownloadItem.TrackType, List<BaseTrack>> tracksMap, BaseTrack.TrackState state) {
-        database.updateTracksState(itemId, DashDownloader.flattenTrackList(tracksMap), state);
+        database.updateTracksState(itemId, Utils.flattenTrackList(tracksMap), state);
     }
 
-    public int countPendingFiles(String itemId, @Nullable String trackId) {
-        return database.countPendingFiles(itemId, trackId);
+    public int countPendingFiles(String itemId, @Nullable BaseTrack track) {
+        return database.countPendingFiles(itemId, track != null ? track.getRelativeId() : null);
     }
 
     private FutureTask futureTask(final String itemId, final DownloadTask task) {

@@ -535,7 +535,7 @@ class Database {
         return count;
     }
 
-    public synchronized void addTracks(final DownloadItemImp item, final List<BaseTrack> availableTracks, final List<BaseTrack> selectedTracks) {
+    synchronized void addTracks(final DownloadItemImp item, final List<BaseTrack> availableTracks, final List<BaseTrack> selectedTracks) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {

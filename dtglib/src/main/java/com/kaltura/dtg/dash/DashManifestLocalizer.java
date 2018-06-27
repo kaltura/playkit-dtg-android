@@ -17,12 +17,13 @@ import java.util.List;
  */
 class DashManifestLocalizer {
 
-    public static final String REPRESENTATION_TAG = "Representation";
-    public static final String ADAPTATION_SET_TAG = "AdaptationSet";
-    public static final String SEGMENT_TEMPLATE_TAG = "SegmentTemplate";
-    public static final String BASE_URL_TAG = "BaseURL";
-    public static final String MEDIA_ATTRIBUTE = "media";
-    public static final String INITIALIZATION_ATTRIBUTE = "initialization";
+    private static final String REPRESENTATION_TAG = "Representation";
+    private static final String ADAPTATION_SET_TAG = "AdaptationSet";
+    private static final String SEGMENT_TEMPLATE_TAG = "SegmentTemplate";
+    private static final String BASE_URL_TAG = "BaseURL";
+    private static final String MEDIA_ATTRIBUTE = "media";
+    private static final String INITIALIZATION_ATTRIBUTE = "initialization";
+
     private final byte[] originManifestBytes;
     private final List<BaseTrack> keepTracks;
     private byte[] localManifestBytes;
@@ -35,7 +36,7 @@ class DashManifestLocalizer {
         this.keepTracks = keepTracks;
     }
 
-    public byte[] getLocalManifestBytes() {
+    byte[] getLocalManifestBytes() {
         return localManifestBytes;
     }
 

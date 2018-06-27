@@ -4,9 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 
-import com.kaltura.dtg.dash.DashTrack;
-
-import org.json.JSONObject;
+import com.kaltura.dtg.dash.Factory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +12,7 @@ import java.util.List;
 public abstract class BaseTrack implements DownloadItem.Track {
     static final String[] REQUIRED_DB_FIELDS =
             {Database.COL_TRACK_ID, Database.COL_TRACK_TYPE, Database.COL_TRACK_LANGUAGE, Database.COL_TRACK_BITRATE, Database.COL_TRACK_EXTRA};
+
     protected DownloadItem.TrackType type;
     protected String language;
     protected long bitrate;
@@ -22,7 +21,7 @@ public abstract class BaseTrack implements DownloadItem.Track {
 
     public static BaseTrack create(Cursor cursor) {
         // TODO: 26/06/2018 Detect DASH/HLS track
-        return new DashTrack(cursor);
+        return Factory.createTrack(cursor);
     }
 
     public static List<BaseTrack> filterByLanguage(@NonNull String language, List<BaseTrack> list) {
@@ -42,14 +41,6 @@ public abstract class BaseTrack implements DownloadItem.Track {
     }
 
     protected BaseTrack(ContentValues contentValues) {
-        parseContentValues(contentValues);
-    }
-
-    protected BaseTrack(Cursor cursor) {
-        parseCursor(cursor);
-    }
-
-    private void parseContentValues(ContentValues contentValues) {
         bitrate = contentValues.getAsLong(Database.COL_TRACK_BITRATE);
         language = contentValues.getAsString(Database.COL_TRACK_LANGUAGE);
         String typeName = contentValues.getAsString(Database.COL_TRACK_TYPE);
@@ -58,7 +49,7 @@ public abstract class BaseTrack implements DownloadItem.Track {
         parseExtra(extra);
     }
 
-    private void parseCursor(Cursor cursor) {
+    protected BaseTrack(Cursor cursor) {
         String[] columns = cursor.getColumnNames();
         for (int i = 0; i < columns.length; i++) {
             switch (columns[i]) {
@@ -78,23 +69,23 @@ public abstract class BaseTrack implements DownloadItem.Track {
         }
     }
 
-    protected abstract void parseExtra(String extra);
-
     protected ContentValues toContentValues() {
         ContentValues values = new ContentValues();
         values.put(Database.COL_TRACK_LANGUAGE, getLanguage());
         values.put(Database.COL_TRACK_BITRATE, getBitrate());
         values.put(Database.COL_TRACK_TYPE, getType().name());
         values.put(Database.COL_TRACK_REL_ID, getRelativeId());
-        JSONObject extra = dumpExtra();
+        String extra = dumpExtra();
         if (extra != null) {
-            values.put(Database.COL_TRACK_EXTRA, extra.toString());
+            values.put(Database.COL_TRACK_EXTRA, extra);
         }
 
         return values;
     }
 
-    protected abstract JSONObject dumpExtra();
+    protected abstract void parseExtra(String extra);
+    protected abstract String dumpExtra();
+    protected abstract String getRelativeId();
 
     @Override
     public DownloadItem.TrackType getType() {
@@ -110,8 +101,6 @@ public abstract class BaseTrack implements DownloadItem.Track {
     public long getBitrate() {
         return bitrate;
     }
-
-    public abstract String getRelativeId();
 
     @Override
     public int getHeight() {

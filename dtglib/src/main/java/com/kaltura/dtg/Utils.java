@@ -16,8 +16,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Created by noamt on 5/13/15.
@@ -248,5 +251,14 @@ public class Utils {
             return null;
         }
         return Base64.encodeToString(data, Base64.NO_WRAP);
+    }
+
+    @NonNull
+    public static List<BaseTrack> flattenTrackList(Map<DownloadItem.TrackType, List<BaseTrack>> tracksMap) {
+        List<BaseTrack> tracks = new ArrayList<>();
+        for (Map.Entry<DownloadItem.TrackType, List<BaseTrack>> entry : tracksMap.entrySet()) {
+            tracks.addAll(entry.getValue());
+        }
+        return tracks;
     }
 }

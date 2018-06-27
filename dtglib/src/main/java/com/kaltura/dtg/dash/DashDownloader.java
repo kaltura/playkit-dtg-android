@@ -17,6 +17,7 @@ import com.kaltura.dtg.DownloadService;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadStateListener;
 import com.kaltura.dtg.DownloadTask;
+import com.kaltura.dtg.Utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -208,16 +209,7 @@ public abstract class DashDownloader {
 
     @NonNull
     List<BaseTrack> getSelectedTracks() {
-        return flattenTrackList(selectedTracks);
-    }
-
-    @NonNull
-    public static List<BaseTrack> flattenTrackList(Map<DownloadItem.TrackType, List<BaseTrack>> tracksMap) {
-        List<BaseTrack> tracks = new ArrayList<>();
-        for (Map.Entry<DownloadItem.TrackType, List<BaseTrack>> entry : tracksMap.entrySet()) {
-            tracks.addAll(entry.getValue());
-        }
-        return tracks;
+        return Utils.flattenTrackList(selectedTracks);
     }
 
 
@@ -238,7 +230,7 @@ public abstract class DashDownloader {
     }
     
     List<BaseTrack> getAvailableTracks() {
-        return flattenTrackList(availableTracks);
+        return Utils.flattenTrackList(availableTracks);
     }
 
 
