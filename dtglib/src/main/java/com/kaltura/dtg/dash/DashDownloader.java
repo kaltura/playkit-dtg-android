@@ -62,15 +62,15 @@ public abstract class DashDownloader extends BaseAbrDownloader {
         item.setTrackSelector(null);
 
 
-        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.availableTracks);
-        List<BaseTrack> selectedTracks = downloader.getSelectedTracks();
+        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.getAvailableTracks());
+        List<BaseTrack> selectedTracks = downloader.getSelectedTracksFlat();
 
         downloadService.addTracksToDB(item, availableTracks, selectedTracks);
 
-        long estimatedDownloadSize = downloader.estimatedDownloadSize;
+        long estimatedDownloadSize = downloader.getEstimatedDownloadSize();
         item.setEstimatedSizeBytes(estimatedDownloadSize);
 
-        LinkedHashSet<DownloadTask> downloadTasks = downloader.downloadTasks;
+        LinkedHashSet<DownloadTask> downloadTasks = downloader.getDownloadTasks();
         //Log.d(TAG, "tasks:" + downloadTasks);
 
         item.setPlaybackPath(LOCAL_MANIFEST_MPD);
@@ -103,16 +103,16 @@ public abstract class DashDownloader extends BaseAbrDownloader {
 
         int periodIndex = 0;
         currentPeriod = parsedMpd.getPeriod(periodIndex);
-        itemDurationMS = parsedMpd.getPeriodDuration(periodIndex);
+        setItemDurationMS(parsedMpd.getPeriodDuration(periodIndex));
 
     }
 
     @Override
     protected void createDownloadTasks() throws MalformedURLException {
 
-        downloadTasks = new LinkedHashSet<>();
+        setDownloadTasks(new LinkedHashSet<DownloadTask>());
 
-        List<BaseTrack> trackList = getSelectedTracks();
+        List<BaseTrack> trackList = getSelectedTracksFlat();
         for (BaseTrack bt : trackList) {
             DashTrack track = (DashTrack)bt;
             AdaptationSet adaptationSet = currentPeriod.adaptationSets.get(track.getAdaptationIndex());
@@ -141,7 +141,7 @@ public abstract class DashDownloader extends BaseAbrDownloader {
         if (representation instanceof Representation.MultiSegmentRepresentation) {
             Representation.MultiSegmentRepresentation rep = (Representation.MultiSegmentRepresentation) representation;
 
-            long periodDurationUs = itemDurationMS * 1000;
+            long periodDurationUs = getItemDurationMS() * 1000;
             int lastSegmentNum = rep.getLastSegmentNum(periodDurationUs);
             for (int segmentNum = rep.getFirstSegmentNum(); segmentNum <= lastSegmentNum; segmentNum++) {
                 RangedUri url = rep.getSegmentUrl(segmentNum);
@@ -156,16 +156,16 @@ public abstract class DashDownloader extends BaseAbrDownloader {
             }
         }
 
-        estimatedDownloadSize += (itemDurationMS * representation.format.bitrate / 8 / 1000);
+        setEstimatedDownloadSize(getEstimatedDownloadSize() + (getItemDurationMS() * representation.format.bitrate / 8 / 1000));
     }
 
     @Override
     protected void createLocalManifest() throws IOException {
 
         // The localizer needs a raw list of tracks.
-        List<BaseTrack> tracks = getSelectedTracks();
+        List<BaseTrack> tracks = getSelectedTracksFlat();
 
-        createLocalManifest(tracks, originManifestBytes, targetDir);
+        createLocalManifest(tracks, originManifestBytes, getTargetDir());
     }
 
 

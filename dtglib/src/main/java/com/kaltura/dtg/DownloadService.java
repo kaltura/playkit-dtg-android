@@ -13,6 +13,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.kaltura.dtg.DownloadItem.TrackType;
 import com.kaltura.dtg.dash.DashDownloader;
 import com.kaltura.dtg.hls.HlsParser;
 
@@ -652,11 +653,11 @@ public class DownloadService extends Service {
         return database.getEstimatedItemSize(itemId);
     }
 
-    public List<BaseTrack> readTracksFromDB(String itemId, DownloadItem.TrackType trackType, BaseTrack.TrackState state, AssetFormat assetFormat) {
+    public List<BaseTrack> readTracksFromDB(String itemId, TrackType trackType, BaseTrack.TrackState state, AssetFormat assetFormat) {
         return database.readTracks(itemId, trackType, state, assetFormat);
     }
     
-    public void updateTracksInDB(String itemId, Map<DownloadItem.TrackType, List<BaseTrack>> tracksMap, BaseTrack.TrackState state) {
+    public void updateTracksInDB(String itemId, Map<TrackType, List<BaseTrack>> tracksMap, BaseTrack.TrackState state) {
         database.updateTracksState(itemId, Utils.flattenTrackList(tracksMap), state);
     }
 

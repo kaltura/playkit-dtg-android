@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 
 import com.kaltura.dtg.AssetFormat;
 import com.kaltura.dtg.BaseTrack;
+import com.kaltura.dtg.DownloadItem.TrackType;
 import com.kaltura.dtg.DownloadItemImp;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.Utils;
@@ -25,7 +26,7 @@ class DashDownloadUpdater extends DashDownloader {
 
     private DownloadItemImp item;
 
-    private Map<DownloadItem.TrackType, List<BaseTrack>> originalSelectedTracks;
+    private Map<TrackType, List<BaseTrack>> originalSelectedTracks;
     private boolean trackSelectionChanged;
 
 
@@ -36,22 +37,22 @@ class DashDownloadUpdater extends DashDownloader {
         loadOriginManifest();
         parseOriginManifest();
 
-        selectedTracks = new HashMap<>();
-        availableTracks = new HashMap<>();
+        setSelectedTracksMap(new HashMap<TrackType, List<BaseTrack>>());
+        setAvailableTracks(new HashMap<TrackType, List<BaseTrack>>());
         originalSelectedTracks = new HashMap<>();
         
-        for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
+        for (TrackType type : TrackType.values()) {
             List<BaseTrack> availableTracks = this.item.getService().readTracksFromDB(item.getItemId(), type, null, AssetFormat.dash);
-            this.availableTracks.put(type, availableTracks);
+            this.getAvailableTracks().put(type, availableTracks);
 
             List<BaseTrack> selectedTracks = this.item.getService().readTracksFromDB(item.getItemId(), type, BaseTrack.TrackState.SELECTED, AssetFormat.dash);
-            this.selectedTracks.put(type, selectedTracks);
+            this.setSelectedTracks(type, selectedTracks);
             originalSelectedTracks.put(type, selectedTracks);
         }
     }
 
     @Override
-    protected void setSelectedTracks(@NonNull DownloadItem.TrackType type, @NonNull List<BaseTrack> tracks) {
+    protected void setSelectedTracks(@NonNull TrackType type, @NonNull List<BaseTrack> tracks) {
         trackSelectionChanged = true;
         super.setSelectedTracks(type, tracks);
     }
@@ -67,11 +68,11 @@ class DashDownloadUpdater extends DashDownloader {
             return;
         }
 
-        Map<DownloadItem.TrackType, List<BaseTrack>> tracksToUnselect = new HashMap<>();
-        for (DownloadItem.TrackType trackType : DownloadItem.TrackType.values()) {
+        Map<TrackType, List<BaseTrack>> tracksToUnselect = new HashMap<>();
+        for (TrackType trackType : TrackType.values()) {
             List<BaseTrack> unselect = new ArrayList<>();
             for (BaseTrack dashTrack : originalSelectedTracks.get(trackType)) {
-                if (! selectedTracks.get(trackType).contains(dashTrack)) {
+                if (!getSelectedTracks(trackType).contains(dashTrack)) {
                     unselect.add(dashTrack);
                 }
             }
@@ -80,14 +81,14 @@ class DashDownloadUpdater extends DashDownloader {
         }
         
         item.getService().updateTracksInDB(item.getItemId(), tracksToUnselect, BaseTrack.TrackState.NOT_SELECTED);
-        item.getService().updateTracksInDB(item.getItemId(), selectedTracks, BaseTrack.TrackState.SELECTED);
+        item.getService().updateTracksInDB(item.getItemId(), getSelectedTracksMap(), BaseTrack.TrackState.SELECTED);
 
         // Add DownloadTasks
         createDownloadTasks();
-        item.getService().addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
+        item.getService().addDownloadTasksToDB(item, new ArrayList<>(getDownloadTasks()));
         
         // Update item size
-        item.setEstimatedSizeBytes(estimatedDownloadSize);
+        item.setEstimatedSizeBytes(getEstimatedDownloadSize());
         item.getService().updateItemEstimatedSizeInDB(item);
 
         // Update localized manifest
@@ -101,12 +102,11 @@ class DashDownloadUpdater extends DashDownloader {
         originManifestBytes = Utils.fullyReadInputStream(inputStream, MAX_DASH_MANIFEST_SIZE).toByteArray();
     }
     
-    protected List<BaseTrack> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {
+    protected List<BaseTrack> getDownloadedTracks(@NonNull TrackType type) {
 
         List<BaseTrack> downloadedTracks = new ArrayList<>();
         
-        for (BaseTrack dashTrack : selectedTracks.get(type)) {
-            
+        for (BaseTrack dashTrack : getSelectedTracks(type)) {
             if (item.getService().countPendingFiles(item.getItemId(), dashTrack) == 0) {
                 downloadedTracks.add(dashTrack);
             }

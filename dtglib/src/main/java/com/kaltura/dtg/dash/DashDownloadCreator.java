@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -54,7 +53,7 @@ class DashDownloadCreator extends DashDownloader {
 
     private void downloadManifest() throws IOException {
         URL url = new URL(manifestUrl);
-        File targetFile = new File(targetDir, ORIGIN_MANIFEST_MPD);
+        File targetFile = new File(getTargetDir(), ORIGIN_MANIFEST_MPD);
         originManifestBytes = Utils.downloadToFile(url, targetFile, MAX_DASH_MANIFEST_SIZE);
     }
 
@@ -62,9 +61,9 @@ class DashDownloadCreator extends DashDownloader {
 
         List<AdaptationSet> adaptationSets = currentPeriod.adaptationSets;
 
-        availableTracks = new HashMap<>();
+        setAvailableTracks(new HashMap<DownloadItem.TrackType, List<BaseTrack>>());
         for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
-            availableTracks.put(type, new ArrayList<BaseTrack>(1));
+            setAvailableTracks(type, new ArrayList<BaseTrack>(1));
         }
         
         ListIterator<AdaptationSet> itAdaptations = adaptationSets.listIterator();
@@ -96,9 +95,10 @@ class DashDownloadCreator extends DashDownloader {
                     DashTrack track = new DashTrack(type, format.language, format.bitrate, adaptationIndex, representationIndex);
                     track.setHeight(format.height);
                     track.setWidth(format.width);
-                    availableTracks.get(type).add(track);
+                    getAvailableTracks().get(type).add(track);
                 }
             }
         }
     }
+
 }
