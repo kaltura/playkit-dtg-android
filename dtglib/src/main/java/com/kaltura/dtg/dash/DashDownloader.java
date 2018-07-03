@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -168,42 +169,11 @@ public abstract class DashDownloader extends BaseAbrDownloader {
         createLocalManifest(tracks, originManifestBytes, getTargetDir());
     }
 
-
-    @Override
-    public DownloadItem.TrackSelector getTrackSelector() {
-        return new DownloadItem.TrackSelector() {
-            private DashDownloader downloader = DashDownloader.this;
-
-            @Override
-            public List<DownloadItem.Track> getAvailableTracks(@NonNull final DownloadItem.TrackType type) {
-                List<BaseTrack> tracks = downloader.getAvailableTracks(type);
-                return new ArrayList<DownloadItem.Track>(tracks);
-            }
-
-            @Override
-            public void setSelectedTracks(@NonNull DownloadItem.TrackType type, @NonNull List<DownloadItem.Track> tracks) {
-                
-                List<BaseTrack> dashTracks = new ArrayList<>(tracks.size());
-                for (DownloadItem.Track track : tracks) {
-                    // We don't have any other track class; leaving the potential ClassCastException on purpose.
-                    // FIXME: 27/06/2018 Now we have HLS
-                    dashTracks.add((DashTrack) track);
-                }
-        
-                downloader.setSelectedTracks(type, dashTracks);
-            }
-
-            @Override
-            public List<DownloadItem.Track> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {
-                List<BaseTrack> tracks = downloader.getDownloadedTracks(type);
-                return new ArrayList<DownloadItem.Track>(tracks);
-            }
-
-            @Override
-            public void apply() throws IOException {
-                downloader.apply();
-            }
-        };
+    void addTask(RangedUri url, String file, String trackId) throws MalformedURLException {
+        File targetFile = new File(getTargetDir(), file);
+        DownloadTask task = new DownloadTask(new URL(url.getUriString()), targetFile);
+        task.setTrackRelativeId(trackId);
+        getDownloadTasks().add(task);
     }
 }
 

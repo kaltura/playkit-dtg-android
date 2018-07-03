@@ -33,7 +33,9 @@ public interface DownloadItem {
 
     enum TrackType {
         VIDEO, AUDIO, TEXT,
-        UNKNOWN
+        UNKNOWN;
+
+        public static final TrackType[] valid = {VIDEO, AUDIO, TEXT};
     }
     
     interface TrackSelector {

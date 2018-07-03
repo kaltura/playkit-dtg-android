@@ -17,12 +17,15 @@ package com.kaltura.android.exoplayer.chunk;
 
 import com.kaltura.android.exoplayer.util.Assertions;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
  * Defines the high level format of a media stream.
  */
-public class Format {
+public class Format implements Serializable {
+
+  private static final long serialVersionUID = -897510931864618403L;
 
   /**
    * Sorts {@link Format} objects in order of decreasing bandwidth.

@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
@@ -186,6 +187,14 @@ public class Utils {
         }
     }
 
+    public static InputStream openUrl(String urlString) throws IOException {
+        final URL url = new URL(urlString);
+        final HttpURLConnection conn = ((HttpURLConnection) url.openConnection());
+        conn.setRequestMethod("GET");
+        conn.connect();
+        return new BufferedInputStream(conn.getInputStream());
+    }
+
     public static long httpHeadGetLength(URL url) throws IOException {
         HttpURLConnection connection = null;
         try {
@@ -260,5 +269,23 @@ public class Utils {
             tracks.addAll(entry.getValue());
         }
         return tracks;
+    }
+
+    public static String resolveUrl(String baseUrl, String maybeRelative) {
+        if (maybeRelative == null) {
+            return null;
+        }
+        Uri uri = Uri.parse(maybeRelative);
+        if (uri.isAbsolute()) {
+            return maybeRelative;
+        }
+
+        // resolve with baseUrl
+        final Uri trackUri = Uri.parse(baseUrl);
+        final List<String> pathSegments = new ArrayList<>(trackUri.getPathSegments());
+        pathSegments.remove(pathSegments.size() - 1);
+        final String pathWithoutLastSegment = TextUtils.join("/", pathSegments);
+        uri = trackUri.buildUpon().encodedPath(pathWithoutLastSegment).appendEncodedPath(maybeRelative).build();
+        return uri.toString();
     }
 }

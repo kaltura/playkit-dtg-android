@@ -2,15 +2,12 @@ package com.kaltura.dtg;
 
 import android.support.annotation.NonNull;
 
-import com.kaltura.android.exoplayer.dash.mpd.RangedUri;
 import com.kaltura.dtg.DownloadItem.TrackType;
 import com.kaltura.dtg.dash.DashFactory;
 import com.kaltura.dtg.hls.HlsFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,11 +29,13 @@ public abstract class BaseAbrDownloader {
 
     protected abstract void parseOriginManifest() throws IOException;
 
-    protected abstract void createDownloadTasks() throws MalformedURLException;
+    protected abstract void createDownloadTasks() throws IOException;
 
     protected abstract void createLocalManifest() throws IOException;
 
-    public abstract DownloadItem.TrackSelector getTrackSelector();
+    public DownloadItem.TrackSelector getTrackSelector() {
+        return new DefaultTrackSelector(this);
+    }
 
 
     static BaseAbrDownloader createUpdater(DownloadItemImp item) throws IOException {
@@ -55,9 +54,9 @@ public abstract class BaseAbrDownloader {
     }
 
     protected void selectDefaultTracks() {
-
+        // FIXME: 30/06/2018 Create selectedTracks locally
         setSelectedTracksMap(new HashMap<TrackType, List<BaseTrack>>());
-        for (TrackType type : TrackType.values()) {
+        for (TrackType type : TrackType.valid) {
             setSelectedTracks(type, new ArrayList<BaseTrack>(1));
         }
 
@@ -147,6 +146,10 @@ public abstract class BaseAbrDownloader {
         return availableTracks;
     }
 
+    protected List<BaseTrack> getAvailableTracksFlat() {
+        return Utils.flattenTrackList(availableTracks);
+    }
+
     protected void setAvailableTracks(Map<TrackType, List<BaseTrack>> availableTracks) {
         this.availableTracks = availableTracks;
     }
@@ -159,13 +162,6 @@ public abstract class BaseAbrDownloader {
         this.downloadTasks = downloadTasks;
     }
 
-
-    protected void addTask(RangedUri url, String file, String trackId) throws MalformedURLException {
-        File targetFile = new File(getTargetDir(), file);
-        DownloadTask task = new DownloadTask(new URL(url.getUriString()), targetFile);
-        task.setTrackRelativeId(trackId);
-        getDownloadTasks().add(task);
-    }
 
     protected void setAvailableTracks(TrackType type, ArrayList<BaseTrack> tracks) {
         availableTracks.put(type, tracks);

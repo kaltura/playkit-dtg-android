@@ -25,10 +25,14 @@ public final class Variant implements FormatWrapper {
 
   public final String url;
   public final Format format;
+  public final int firstLineNum;
+  public final int lastLineNum;
 
-  public Variant(String url, Format format) {
+  public Variant(String url, Format format, int firstLineNum, int lastLineNum) {
     this.url = url;
     this.format = format;
+    this.firstLineNum = firstLineNum;
+    this.lastLineNum = lastLineNum;
   }
 
   @Override

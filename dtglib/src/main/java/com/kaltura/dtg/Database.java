@@ -548,6 +548,7 @@ class Database {
                         db.insertOrThrow(TBL_TRACK, null, values);
                     } catch (SQLiteConstraintException e) {
                         Log.w(TAG, "Insert failed", e);
+                        Log.w(TAG, "execute: itemId=" + item.getItemId() + " rel=" + track.getRelativeId());
                     }
                 }
 

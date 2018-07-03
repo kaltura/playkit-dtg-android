@@ -139,8 +139,8 @@ public class DownloadItemImp implements DownloadItem {
     @Override
     public TrackSelector getTrackSelector() {
         
-        if (playbackPath ==null || !playbackPath.endsWith(".mpd")) {
-            Log.w(TAG, "Track selection is only supported for dash");
+        if (playbackPath == null || !(playbackPath.endsWith(".mpd") || playbackPath.endsWith(".m3u8"))) {
+            Log.w(TAG, "Track selection is only supported for dash/hls");
             return null;
         }
         
@@ -152,6 +152,9 @@ public class DownloadItemImp implements DownloadItem {
                 updater = BaseAbrDownloader.createUpdater(this);
             } catch (IOException e) {
                 Log.e(TAG, "Error initializing updater", e);
+                return null;
+            }
+            if (updater == null) {
                 return null;
             }
             TrackSelector trackSelector = updater.getTrackSelector();

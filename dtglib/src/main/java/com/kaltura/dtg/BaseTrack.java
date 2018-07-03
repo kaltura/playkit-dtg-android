@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 
+import com.kaltura.android.exoplayer.chunk.Format;
 import com.kaltura.dtg.dash.DashFactory;
 import com.kaltura.dtg.hls.HlsFactory;
 
@@ -19,6 +20,7 @@ public abstract class BaseTrack implements DownloadItem.Track {
     protected long bitrate;
     protected int width;
     protected int height;
+    protected String codecs;
 
     public static BaseTrack create(Cursor cursor, AssetFormat assetFormat) {
 
@@ -40,6 +42,15 @@ public abstract class BaseTrack implements DownloadItem.Track {
             }
         }
         return filtered;
+    }
+
+    protected BaseTrack(DownloadItem.TrackType type, Format format) {
+        this.type = type;
+        this.bitrate = format.bitrate;
+        this.codecs = format.codecs;
+        this.height = format.height;
+        this.width = format.width;
+        this.language = format.language;
     }
 
     protected BaseTrack(DownloadItem.TrackType type, String language, long bitrate) {
@@ -109,14 +120,6 @@ public abstract class BaseTrack implements DownloadItem.Track {
     @Override
     public int getWidth() {
         return width;
-    }
-
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
     }
 
     public enum TrackState {

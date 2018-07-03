@@ -6,7 +6,7 @@ import com.kaltura.android.exoplayer.chunk.Format;
 import com.kaltura.android.exoplayer.dash.mpd.AdaptationSet;
 import com.kaltura.android.exoplayer.dash.mpd.Representation;
 import com.kaltura.dtg.BaseTrack;
-import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadItem.TrackType;
 import com.kaltura.dtg.Utils;
 
 import java.io.File;
@@ -36,7 +36,7 @@ class DashDownloadCreator extends DashDownloader {
     }
 
     @Override
-    protected List<BaseTrack> getDownloadedTracks(DownloadItem.TrackType type) {
+    protected List<BaseTrack> getDownloadedTracks(TrackType type) {
         Log.w(TAG, "Initial selector has no downloaded tracks!");
         return null;
     }
@@ -61,8 +61,8 @@ class DashDownloadCreator extends DashDownloader {
 
         List<AdaptationSet> adaptationSets = currentPeriod.adaptationSets;
 
-        setAvailableTracks(new HashMap<DownloadItem.TrackType, List<BaseTrack>>());
-        for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
+        setAvailableTracks(new HashMap<TrackType, List<BaseTrack>>());
+        for (TrackType type : TrackType.valid) {
             setAvailableTracks(type, new ArrayList<BaseTrack>(1));
         }
         
@@ -75,24 +75,24 @@ class DashDownloadCreator extends DashDownloader {
             while (itRepresentations.hasNext()) {
                 int representationIndex = itRepresentations.nextIndex();
                 Representation representation = itRepresentations.next();
-                DownloadItem.TrackType type;
+                TrackType type;
                 switch (adaptationSet.type) {
                     case AdaptationSet.TYPE_VIDEO:
-                        type = DownloadItem.TrackType.VIDEO;
+                        type = TrackType.VIDEO;
                         break;
                     case AdaptationSet.TYPE_AUDIO:
-                        type = DownloadItem.TrackType.AUDIO;
+                        type = TrackType.AUDIO;
                         break;
                     case AdaptationSet.TYPE_TEXT:
-                        type = DownloadItem.TrackType.TEXT;
+                        type = TrackType.TEXT;
                         break;
                     default:
-                        type = DownloadItem.TrackType.UNKNOWN;
+                        type = TrackType.UNKNOWN;
                         break;
                 }
-                if (type != DownloadItem.TrackType.UNKNOWN) {
+                if (type != TrackType.UNKNOWN) {
                     Format format = representation.format;
-                    DashTrack track = new DashTrack(type, format.language, format.bitrate, adaptationIndex, representationIndex);
+                    DashTrack track = new DashTrack(type, format, adaptationIndex, representationIndex);
                     track.setHeight(format.height);
                     track.setWidth(format.width);
                     getAvailableTracks().get(type).add(track);

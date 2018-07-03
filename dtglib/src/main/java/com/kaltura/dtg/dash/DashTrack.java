@@ -4,6 +4,7 @@ import android.database.Cursor;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.kaltura.android.exoplayer.chunk.Format;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItem;
 
@@ -20,8 +21,8 @@ public class DashTrack extends BaseTrack {
     private int adaptationIndex;
     private int representationIndex;
 
-    DashTrack(DownloadItem.TrackType type, String language, long bitrate, int adaptationIndex, int representationIndex) {
-        super(type, language, bitrate);
+    DashTrack(DownloadItem.TrackType type, Format format, int adaptationIndex, int representationIndex) {
+        super(type, format);
         this.adaptationIndex = adaptationIndex;
         this.representationIndex = representationIndex;
     }
@@ -112,5 +113,13 @@ public class DashTrack extends BaseTrack {
             Log.e(DashTrack.TAG, "Failed converting to JSON");
             return null;
         }
+    }
+
+    void setHeight(int height) {
+        this.height = height;
+    }
+
+    void setWidth(int width) {
+        this.width = width;
     }
 }
