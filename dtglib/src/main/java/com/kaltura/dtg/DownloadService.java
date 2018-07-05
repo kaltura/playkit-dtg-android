@@ -400,8 +400,6 @@ public class DownloadService extends Service {
         }
 
         HlsDownloader.start(this, item, itemDataDir, downloadStateListener);
-
-//        HlsParser.start(this, item, itemDataDir);
     }
 
     private boolean isServiceStopped() {

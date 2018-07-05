@@ -47,17 +47,6 @@ public class HlsAsset implements Serializable {
         }
     }
 
-//    private static byte[] download(String url) throws IOException {
-//        InputStream inputStream = null;
-//        try {
-//            inputStream = Utils.openUrl(url);
-//            return Utils.fullyReadInputStream(inputStream, MAX_DOWNLOAD_SIZE).toByteArray();
-//
-//        } finally {
-//            Utils.safeClose(inputStream);
-//        }
-//    }
-
     public HlsAsset parse(final String masterUrl, final byte[] masterBytes) {
         this.masterUrl = masterUrl;
         this.masterBytes = masterBytes;
@@ -72,31 +61,6 @@ public class HlsAsset implements Serializable {
         parseVariants(masterPlaylist.audios, audioTracks, DownloadItem.TrackType.AUDIO);
         parseVariants(masterPlaylist.subtitles, textTracks, DownloadItem.TrackType.TEXT);
     }
-//
-//    public void load(final String masterUrl, final MasterLoadingListener listener) {
-//
-//        this.masterUrl = masterUrl;
-//        AsyncTask.execute(new Runnable() {
-//            @Override
-//            public void run() {
-//                try {
-//                    masterBytes = download(masterUrl);
-//
-//                    pa
-//
-//                    if (listener != null) {
-//                        listener.onMasterLoaded(HlsAsset.this);
-//                    }
-//
-//                } catch (IOException e) {
-//                    if (listener != null) {
-//                        listener.onMasterLoadingFailed(e);
-//                    }
-//                }
-//            }
-//        });
-//
-//    }
 
     public String getMasterUrl() {
         return masterUrl;
@@ -164,37 +128,6 @@ public class HlsAsset implements Serializable {
             }
         }
 
-//        public void load(final MediaLoadingListener listener) {
-//            AsyncTask.execute(new Runnable() {
-//                @Override
-//                public void run() {
-//                    try {
-//                        Track track = Track.this;
-//                        final byte[] bytes = download(url);
-//                        final HlsMediaPlaylist mediaPlaylist = (HlsMediaPlaylist) exoParse(url, bytes);
-//
-//                        track.bytes = bytes;
-//                        track.durationMs = mediaPlaylist.durationUs / 1000;
-//
-//                        track.chunks = new ArrayList<>(mediaPlaylist.segments.size());
-//                        for (HlsMediaPlaylist.Segment segment : mediaPlaylist.segments) {
-//                            track.chunks.add(new Chunk(segment));
-//                        }
-//
-//                        if (listener != null) {
-//                            listener.onMediaLoaded(track);
-//                        }
-//
-//
-//                    } catch (IOException e) {
-//                        if (listener != null) {
-//                            listener.onMediaLoadingFailed(e);
-//                        }
-//                    }
-//                }
-//            });
-//        }
-
         public long getDurationMs() {
             return durationMs;
         }
@@ -258,16 +191,5 @@ public class HlsAsset implements Serializable {
             this.encryptionKeyUri = Utils.resolveUrl(trackUrl, segment.encryptionKeyUri);
             this.encryptionKeyLineNum = segment.encryptionKeyLineNum;
         }
-
     }
-
-//    public interface MasterLoadingListener {
-//        void onMasterLoaded(HlsAsset hlsAsset);
-//        void onMasterLoadingFailed(IOException exception);
-//    }
-//
-//    public interface MediaLoadingListener {
-//        void onMediaLoaded(Track track);
-//        void onMediaLoadingFailed(IOException exception);
-//    }
 }

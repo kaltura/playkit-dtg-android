@@ -39,11 +39,6 @@ class Database {
     static final String COL_ITEM_ESTIMATED_SIZE = "ItemEstimatedSize";
     static final String COL_ITEM_DOWNLOADED_SIZE = "ItemDownloadedSize";
     static final String COL_ITEM_PLAYBACK_PATH = "ItemPlaybackPath";
-//    static final String TBL_STORAGE = "Storage";
-//    static final String COL_STORAGE_ITEM_ID = "StorageId";
-//    static final String COL_STORAGE_OWNER_ID = "OwnerId";
-//    static final String COL_STORAGE_ITEM_KEY = "ItemKey";
-//    static final String COL_STORAGE_ITEM = "Item";
     static final String[] ALL_ITEM_COLS = new String[]{COL_ITEM_ID, COL_CONTENT_URL,
             COL_ITEM_STATE, COL_ITEM_ADD_TIME, COL_ITEM_ESTIMATED_SIZE, COL_ITEM_DOWNLOADED_SIZE,
             COL_ITEM_PLAYBACK_PATH, COL_ITEM_DATA_DIR};

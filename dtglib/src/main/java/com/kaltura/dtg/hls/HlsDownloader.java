@@ -41,7 +41,6 @@ public abstract class HlsDownloader extends BaseAbrDownloader {
     protected final String masterPlaylistUrl;
 
     protected byte[] originMasterPlaylistBytes;
-//    protected HlsModel hlsModel;
     protected HlsAsset hlsAsset;
 
     HlsDownloader(String masterPlaylistUrl, File targetDir) {
@@ -82,18 +81,7 @@ public abstract class HlsDownloader extends BaseAbrDownloader {
 
     @Override
     protected void parseOriginManifest() throws IOException {
-        // FIXME: 28/06/2018
-
-
-
         this.hlsAsset = new HlsAsset().parse(masterPlaylistUrl, originMasterPlaylistBytes);
-
-
-
-//        HlsModel hls = new HlsModel(masterPlaylistUrl, originMasterPlaylistBytes);
-//        hls.parseMaster();
-//
-//        this.hlsModel = hls;
     }
 
     @Override
@@ -114,37 +102,6 @@ public abstract class HlsDownloader extends BaseAbrDownloader {
         }
 
         setDownloadTasks(tasks);
-
-//        for (BaseTrack bt : trackList) {
-//            final HlsAsset.Track track = (HlsAsset.Track) bt;
-//            final String mediaPlaylistUrl = track.url;
-//
-//            URL url = new URL(mediaPlaylistUrl);
-//            File targetDir = getTrackTargetDir(track);
-//
-//            File targetFile = new File(targetDir, ORIGIN_M3U8);
-//            final byte[] bytes = Utils.downloadToFile(url, targetFile, MAX_PLAYLIST_SIZE);
-//
-////            hlsModel.parseTrack(track, bytes);
-//        }
-
-
-
-
-
-
-
-//        List<BaseTrack> trackList = getSelectedTracksFlat();
-//        for (BaseTrack bt : trackList) {
-//            DashTrack track = (DashTrack)bt;
-//            AdaptationSet adaptationSet = currentPeriod.adaptationSets.get(track.getAdaptationIndex());
-//            Representation representation = adaptationSet.representations.get(track.getRepresentationIndex());
-//
-//            createDownloadTasks(representation, track);
-//        }
-
-
-        // FIXME: 28/06/2018
     }
 
     private static void maybeAddTask(LinkedHashSet<DownloadTask> tasks, String relativeId, File trackTargetDir, int lineNum, String type, String url) throws MalformedURLException {
@@ -182,14 +139,10 @@ public abstract class HlsDownloader extends BaseAbrDownloader {
 
         createLocalMasterPlaylist();
 
-
         // Now localize the media playlists
         createLocalMediaPlaylist(hlsAsset.videoTracks);
         createLocalMediaPlaylist(hlsAsset.audioTracks);
         createLocalMediaPlaylist(hlsAsset.textTracks);
-
-
-        // FIXME: 28/06/2018
     }
 
     private void createLocalMediaPlaylist(List<HlsAsset.Track> tracks) throws IOException {

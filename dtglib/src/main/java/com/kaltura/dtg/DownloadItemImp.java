@@ -87,7 +87,6 @@ public class DownloadItemImp implements DownloadItem {
     @Override
     public void startDownload() {
         service.startDownload(this.getItemId());
-//        this.setState(state);
     }
     
     @Override

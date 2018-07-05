@@ -65,18 +65,6 @@ public class Utils {
         return map;
     }
 
-    public static String dropTables(String... tables) {
-        // TODO: what's this doing?
-        StringBuilder sb = new StringBuilder();
-        for (String table : tables) {
-            // semicolon supported in sqlite?
-            //sb.append("DROP TABLE IF EXISTS ").append(table).append(";\n");
-        }
-        String str = sb.toString();
-        Log.i("DBUtils", "Drop tables:\n" + str);
-        return str;
-    }
-    
     public static long dirSize(File dir) {
 
         if (dir.exists()) {
