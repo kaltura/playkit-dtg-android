@@ -89,9 +89,9 @@ public class ContentManagerImp extends ContentManager {
         itemsDir = new File(filesDir, "dtg/items");
 
         // make sure all directories are there.
-        filesDir.mkdirs();
-        itemsDir.mkdirs();
-        
+        Utils.mkdirsOrThrow(filesDir);
+        Utils.mkdirsOrThrow(itemsDir);
+
         AppBuildConfig.init(context);
     }
     

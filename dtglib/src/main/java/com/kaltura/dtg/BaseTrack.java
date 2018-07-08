@@ -26,9 +26,9 @@ public abstract class BaseTrack implements DownloadItem.Track {
 
         switch (assetFormat) {
             case hls:
-                return HlsFactory.createTrack(cursor);
+                return HlsFactory.newTrack(cursor);
             case dash:
-                return DashFactory.createTrack(cursor);
+                return DashFactory.newTrack(cursor);
             default:
                 throw new IllegalArgumentException("Invalid AssetFormat " + assetFormat);
         }

@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.android.exoplayer.ParserException;
+import com.kaltura.dtg.AssetFormat;
 import com.kaltura.dtg.BaseAbrDownloader;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItem;
@@ -25,31 +26,30 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
-public abstract class HlsDownloader extends BaseAbrDownloader {
+public class HlsDownloader extends BaseAbrDownloader {
     private static final String TAG = "HlsDownloader";
-    protected static final int MAX_PLAYLIST_SIZE = 10 * 1024 * 1024;
-    protected static final String ORIGIN_M3U8 = "origin.m3u8";
-    protected static final String LOCAL_MASTER = "master.m3u8";
-    protected static final String LOCAL_MEDIA = "media.m3u8";
+    private static final String ORIGIN_M3U8 = "origin.m3u8";
+    private static final String LOCAL_MASTER = "master.m3u8";
+    private static final String LOCAL_MEDIA = "media.m3u8";
+    private static final int AUDIO_BITRATE_FOR_ESTIMATION = 64 * 1024;
 
-    protected final String masterPlaylistUrl;
+    private HlsAsset hlsAsset;
+    private boolean applied;
 
-    protected byte[] originMasterPlaylistBytes;
-    protected HlsAsset hlsAsset;
-
-    HlsDownloader(String masterPlaylistUrl, File targetDir) {
-        super(targetDir);
-        this.masterPlaylistUrl = masterPlaylistUrl;
+    HlsDownloader(DownloadItemImp item) {
+        super(item);
     }
 
     public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir, DownloadStateListener downloadStateListener) throws IOException {
-        final HlsDownloader downloader = new HlsDownloadCreator(item.getContentURL(), itemDataDir);
+        final BaseAbrDownloader downloader = new HlsDownloader(item).initForCreate();
 
         DownloadItem.TrackSelector trackSelector = downloader.getTrackSelector();
 
@@ -80,17 +80,19 @@ public abstract class HlsDownloader extends BaseAbrDownloader {
     }
 
     @Override
-    protected void parseOriginManifest() throws IOException {
-        this.hlsAsset = new HlsAsset().parse(masterPlaylistUrl, originMasterPlaylistBytes);
+    public void parseOriginManifest() {
+        this.hlsAsset = new HlsAsset().parse(manifestUrl, originManifestBytes);
     }
 
     @Override
-    protected void createDownloadTasks() throws IOException {
+    public void createDownloadTasks() throws IOException {
 
         final LinkedHashSet<DownloadTask> tasks = new LinkedHashSet<>();
         List<BaseTrack> trackList = getSelectedTracksFlat();
 
         Log.d(TAG, "createDownloadTasks: " + trackList);
+
+        long totalEstimatedSize = 0;
 
         for (BaseTrack baseTrack : trackList) {
             final HlsAsset.Track track = (HlsAsset.Track) baseTrack;
@@ -99,9 +101,18 @@ public abstract class HlsDownloader extends BaseAbrDownloader {
                 maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.lineNum, "media", chunk.url);
                 maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.encryptionKeyLineNum, "key", chunk.encryptionKeyUri);
             }
+
+            // Update size
+            int bitrate = track.getType() == DownloadItem.TrackType.VIDEO ? track.format.bitrate :
+                    track.getType() == DownloadItem.TrackType.AUDIO ? AUDIO_BITRATE_FOR_ESTIMATION : 0;
+
+            if (bitrate > 0 && track.durationMs > 0) {
+                totalEstimatedSize += bitrate * track.durationMs / 1000 / 8;
+            }
         }
 
         setDownloadTasks(tasks);
+        setEstimatedDownloadSize(totalEstimatedSize);
     }
 
     private static void maybeAddTask(LinkedHashSet<DownloadTask> tasks, String relativeId, File trackTargetDir, int lineNum, String type, String url) throws MalformedURLException {
@@ -119,7 +130,7 @@ public abstract class HlsDownloader extends BaseAbrDownloader {
     }
 
     @NonNull
-    File getTrackTargetDir(HlsAsset.Track track) {
+    private File getTrackTargetDir(HlsAsset.Track track) {
         return new File(getTargetDir(), "track-" + track.getRelativeId());
     }
 
@@ -135,7 +146,7 @@ public abstract class HlsDownloader extends BaseAbrDownloader {
     }
 
     @Override
-    protected void createLocalManifest() throws IOException {
+    public void createLocalManifest() throws IOException {
 
         createLocalMasterPlaylist();
 
@@ -143,6 +154,16 @@ public abstract class HlsDownloader extends BaseAbrDownloader {
         createLocalMediaPlaylist(hlsAsset.videoTracks);
         createLocalMediaPlaylist(hlsAsset.audioTracks);
         createLocalMediaPlaylist(hlsAsset.textTracks);
+    }
+
+    @Override
+    public AssetFormat getAssetFormat() {
+        return AssetFormat.hls;
+    }
+
+    @Override
+    public String storedOriginManifestName() {
+        return ORIGIN_M3U8;
     }
 
     private void createLocalMediaPlaylist(List<HlsAsset.Track> tracks) throws IOException {
@@ -213,7 +234,7 @@ public abstract class HlsDownloader extends BaseAbrDownloader {
     }
 
     @NonNull
-    File getLocalMasterFile() {
+    private File getLocalMasterFile() {
         return new File(getTargetDir(), LOCAL_MASTER);
     }
 
@@ -246,14 +267,50 @@ public abstract class HlsDownloader extends BaseAbrDownloader {
         return TextUtils.isEmpty(line) ? null : line;
     }
 
-    protected void downloadMasterPlaylist() throws IOException {
-        URL url = new URL(masterPlaylistUrl);
-        File targetFile = getOriginalMasterFile();
-        originMasterPlaylistBytes = Utils.downloadToFile(url, targetFile, MAX_PLAYLIST_SIZE);
+    @NonNull
+    private File getOriginalMasterFile() {
+        return new File(getTargetDir(), ORIGIN_M3U8);
     }
 
-    @NonNull
-    File getOriginalMasterFile() {
-        return new File(getTargetDir(), ORIGIN_M3U8);
+    @Override
+    protected void createTracks() {
+
+        Map<DownloadItem.TrackType, List<BaseTrack>> availableTracks = new HashMap<>();
+
+        for (DownloadItem.TrackType trackType : DownloadItem.TrackType.values()) {
+            availableTracks.put(trackType, new ArrayList<BaseTrack>());
+        }
+
+        addTracks(availableTracks, hlsAsset.videoTracks, DownloadItem.TrackType.VIDEO);
+        addTracks(availableTracks, hlsAsset.audioTracks, DownloadItem.TrackType.AUDIO);
+        addTracks(availableTracks, hlsAsset.textTracks, DownloadItem.TrackType.TEXT);
+
+        setAvailableTracksMap(availableTracks);
+    }
+
+    private void addTracks(Map<DownloadItem.TrackType, List<BaseTrack>> trackMap, List<HlsAsset.Track> tracks, DownloadItem.TrackType trackType) {
+        for (HlsAsset.Track track : tracks) {
+            trackMap.get(trackType).add(track);
+        }
+    }
+
+    @Override
+    protected void applyInitialTrackSelection() throws IOException {
+        if (applied) {
+            Log.w(TAG, "Ignoring unsupported extra call to apply()");
+            return;
+        }
+
+        // Download
+        for (BaseTrack bt : getSelectedTracksFlat()) {
+            final HlsAsset.Track track = (HlsAsset.Track) bt;
+            final File trackTargetDir = getTrackTargetDir(track);
+            Utils.mkdirsOrThrow(trackTargetDir);
+            final File targetFile = new File(trackTargetDir, ORIGIN_M3U8);
+            final byte[] bytes = Utils.downloadToFile(new URL(track.url), targetFile, MAX_MANIFEST_SIZE);
+            track.parse(bytes);
+        }
+
+        super.applyInitialTrackSelection();
     }
 }

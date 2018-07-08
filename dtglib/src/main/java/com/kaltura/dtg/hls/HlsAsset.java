@@ -1,5 +1,6 @@
 package com.kaltura.dtg.hls;
 
+import android.database.Cursor;
 import android.util.Log;
 
 import com.kaltura.android.exoplayer.chunk.Format;
@@ -24,7 +25,6 @@ import java.util.List;
 
 public class HlsAsset implements Serializable {
 
-    private static final int MAX_DOWNLOAD_SIZE = 10 * 1024 * 1024;
     private static final String TAG = "HlsAsset";
     private static final long serialVersionUID = 764126803479953467L;
 
@@ -109,6 +109,10 @@ public class HlsAsset implements Serializable {
             this.format = variant.format;
             this.firstMasterLine = variant.firstLineNum;
             this.lastMasterLine = variant.lastLineNum;
+        }
+
+        public Track(Cursor cursor) {
+            super(cursor);
         }
 
         public Track parse(byte[] bytes) {

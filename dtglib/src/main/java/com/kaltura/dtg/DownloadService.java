@@ -325,8 +325,7 @@ public class DownloadService extends Service {
     }
 
     private void makeDirs(File dataDir, String name) {
-        //noinspection ResultOfMethodCallIgnored
-        dataDir.mkdirs();
+        Utils.mkdirsOrThrow(dataDir);
         if (!dataDir.isDirectory()) {
             Log.e(TAG, "Failed to create " + name + " -- " + dataDir);
             throw new IllegalStateException("Can't continue without " + name + " -- " + dataDir);

@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 
+import com.kaltura.android.exoplayer.chunk.Format;
 import com.kaltura.android.exoplayer.dash.mpd.AdaptationSet;
 import com.kaltura.android.exoplayer.dash.mpd.MediaPresentationDescription;
 import com.kaltura.android.exoplayer.dash.mpd.MediaPresentationDescriptionParser;
@@ -11,6 +12,7 @@ import com.kaltura.android.exoplayer.dash.mpd.Period;
 import com.kaltura.android.exoplayer.dash.mpd.RangedUri;
 import com.kaltura.android.exoplayer.dash.mpd.Representation;
 import com.kaltura.dtg.AppBuildConfig;
+import com.kaltura.dtg.AssetFormat;
 import com.kaltura.dtg.BaseAbrDownloader;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItemImp;
@@ -27,30 +29,34 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Created by noamt on 19/06/2016.
  */
-public abstract class DashDownloader extends BaseAbrDownloader {
+public class DashDownloader extends BaseAbrDownloader {
 
     static final String ORIGIN_MANIFEST_MPD = "origin.mpd";
     static final String LOCAL_MANIFEST_MPD = "local.mpd";
-    static final int MAX_DASH_MANIFEST_SIZE = 10 * 1024 * 1024;
     private static final String TAG = "DashDownloader";
-    String manifestUrl;
 
-    byte[] originManifestBytes;
     Period currentPeriod;
 
-    DashDownloader(String manifestUrl, File targetDir) {
-        super(targetDir);
-        this.manifestUrl = manifestUrl;
+    DashDownloader(DownloadItemImp item) {
+        super(item);
+    }
+
+
+    @Override
+    protected AssetFormat getAssetFormat() {
+        return AssetFormat.dash;
     }
 
     public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir, DownloadStateListener downloadStateListener) throws IOException {
-        final DashDownloader downloader = new DashDownloadCreator(item.getContentURL(), itemDataDir);
+        final BaseAbrDownloader downloader = new DashDownloader(item).initForCreate();
 
         DownloadItem.TrackSelector trackSelector = downloader.getTrackSelector();
 
@@ -169,12 +175,62 @@ public abstract class DashDownloader extends BaseAbrDownloader {
         createLocalManifest(tracks, originManifestBytes, getTargetDir());
     }
 
-    void addTask(RangedUri url, String file, String trackId) throws MalformedURLException {
+    @Override
+    public String storedOriginManifestName() {
+        return ORIGIN_MANIFEST_MPD;
+    }
+
+    private void addTask(RangedUri url, String file, String trackId) throws MalformedURLException {
         File targetFile = new File(getTargetDir(), file);
         DownloadTask task = new DownloadTask(new URL(url.getUriString()), targetFile);
         task.setTrackRelativeId(trackId);
         getDownloadTasks().add(task);
     }
+
+    @Override
+    protected void createTracks() {
+
+        List<AdaptationSet> adaptationSets = currentPeriod.adaptationSets;
+
+        setAvailableTracksMap(new HashMap<DownloadItem.TrackType, List<BaseTrack>>());
+        for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
+            setAvailableTracks(type, new ArrayList<BaseTrack>(1));
+        }
+
+        ListIterator<AdaptationSet> itAdaptations = adaptationSets.listIterator();
+        while (itAdaptations.hasNext()) {
+            int adaptationIndex = itAdaptations.nextIndex();
+            AdaptationSet adaptationSet = itAdaptations.next();
+
+            ListIterator<Representation> itRepresentations = adaptationSet.representations.listIterator();
+            while (itRepresentations.hasNext()) {
+                int representationIndex = itRepresentations.nextIndex();
+                Representation representation = itRepresentations.next();
+                DownloadItem.TrackType type;
+                switch (adaptationSet.type) {
+                    case AdaptationSet.TYPE_VIDEO:
+                        type = DownloadItem.TrackType.VIDEO;
+                        break;
+                    case AdaptationSet.TYPE_AUDIO:
+                        type = DownloadItem.TrackType.AUDIO;
+                        break;
+                    case AdaptationSet.TYPE_TEXT:
+                        type = DownloadItem.TrackType.TEXT;
+                        break;
+                    default:
+                        Log.w(TAG, "createTracks: Unknown AdaptationSet type: " + adaptationSet.type);
+                        continue;
+                }
+
+                Format format = representation.format;
+                DashTrack track = new DashTrack(type, format, adaptationIndex, representationIndex);
+                track.setHeight(format.height);
+                track.setWidth(format.width);
+                getAvailableTracks().get(type).add(track);
+            }
+        }
+    }
+
 }
 
 

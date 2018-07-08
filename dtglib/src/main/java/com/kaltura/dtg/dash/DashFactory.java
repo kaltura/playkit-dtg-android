@@ -9,11 +9,11 @@ import com.kaltura.dtg.DownloadItemImp;
 import java.io.IOException;
 
 public class DashFactory {
-    public static BaseTrack createTrack(Cursor cursor) {
+    public static BaseTrack newTrack(Cursor cursor) {
         return new DashTrack(cursor);
     }
 
-    public static BaseAbrDownloader createUpdater(DownloadItemImp item) throws IOException {
-        return new DashDownloadUpdater(item);
+    public static BaseAbrDownloader newUpdater(DownloadItemImp item) throws IOException {
+        return new DashDownloader(item).initForUpdate();
     }
 }

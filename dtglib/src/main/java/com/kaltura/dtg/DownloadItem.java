@@ -32,10 +32,7 @@ public interface DownloadItem {
     TrackSelector getTrackSelector();
 
     enum TrackType {
-        VIDEO, AUDIO, TEXT,
-        UNKNOWN;
-
-        public static final TrackType[] valid = {VIDEO, AUDIO, TEXT};
+        VIDEO, AUDIO, TEXT
     }
     
     interface TrackSelector {
@@ -49,16 +46,14 @@ public interface DownloadItem {
         Comparator<Track> bitrateComparator = new Comparator<DownloadItem.Track>() {
             @Override
             public int compare(DownloadItem.Track lhs, DownloadItem.Track rhs) {
-                return lhs.getBitrate() == rhs.getBitrate() ? 0 :
-                        lhs.getBitrate() < rhs.getBitrate() ? -1 : 1;
+                return (int) (lhs.getBitrate() - rhs.getBitrate());
             }
         };
 
         Comparator<Track> heightComparator = new Comparator<DownloadItem.Track>() {
             @Override
             public int compare(DownloadItem.Track lhs, DownloadItem.Track rhs) {
-                return lhs.getHeight() == rhs.getHeight() ? 0 :
-                        lhs.getHeight() < rhs.getHeight() ? -1 : 1;
+                return lhs.getHeight() - rhs.getHeight();
             }
         };
 

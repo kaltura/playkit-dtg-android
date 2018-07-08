@@ -213,18 +213,21 @@ public class Utils {
         byte data[] = new byte[1024];
         int count;
 
-        while ((count = inputStream.read(data)) != -1) {
-            int maxCount = byteLimit - bos.size();
-            if (count > maxCount) {
-                bos.write(data, 0, maxCount);
-                break;
-            } else {
-                bos.write(data, 0, count);
+        try {
+            while ((count = inputStream.read(data)) != -1) {
+                int maxCount = byteLimit - bos.size();
+                if (count > maxCount) {
+                    bos.write(data, 0, maxCount);
+                    break;
+                } else {
+                    bos.write(data, 0, count);
+                }
             }
+            bos.flush();
+        } finally {
+            safeClose(bos);
+            safeClose(inputStream);
         }
-        bos.flush();
-        bos.close();
-        inputStream.close();
         return bos;
     }
 
@@ -275,5 +278,17 @@ public class Utils {
         final String pathWithoutLastSegment = TextUtils.join("/", pathSegments);
         uri = trackUri.buildUpon().encodedPath(pathWithoutLastSegment).appendEncodedPath(maybeRelative).build();
         return uri.toString();
+    }
+
+    public static boolean mkdirs(File dir) {
+        return dir.mkdirs() || dir.isDirectory();
+    }
+
+    public static void mkdirsOrThrow(File dir) {
+        if (dir.mkdirs() || dir.isDirectory()) {
+            return;
+        }
+
+        throw new IllegalStateException("Can't create directory " + dir);
     }
 }

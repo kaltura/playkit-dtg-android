@@ -57,8 +57,7 @@ public class DownloadTask {
     }
 
     private boolean createParentDir(File targetFile) {
-        File parent = targetFile.getParentFile();
-        return parent.mkdirs() || parent.isDirectory();
+        return Utils.mkdirs(targetFile.getParentFile());
     }
     
     void download() throws HttpRetryException {

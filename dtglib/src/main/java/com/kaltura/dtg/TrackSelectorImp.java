@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultTrackSelector implements DownloadItem.TrackSelector {
+public class TrackSelectorImp implements DownloadItem.TrackSelector {
     private BaseAbrDownloader downloader;
 
-    public DefaultTrackSelector(BaseAbrDownloader downloader) {
+    public TrackSelectorImp(BaseAbrDownloader downloader) {
         this.downloader = downloader;
     }
 
