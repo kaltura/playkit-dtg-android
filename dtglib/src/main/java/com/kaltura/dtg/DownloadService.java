@@ -380,9 +380,9 @@ public class DownloadService extends Service {
 
         AbrDownloader downloader = null;
 
-        if (fileName.endsWith(".m3u8")) {
+        if (fileName.endsWith(AssetFormat.hls.extension())) {
             downloader = new HlsDownloader(item);
-        } else if (fileName.endsWith(".mpd")) {
+        } else if (fileName.endsWith(AssetFormat.dash.extension())) {
             downloader = new DashDownloader(item);
         }
 
@@ -424,17 +424,6 @@ public class DownloadService extends Service {
         item.setPlaybackPath(downloader.storedLocalManifestName());
 
         addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
-    }
-
-    private void downloadMetadataHLS(DownloadItemImp item, File itemDataDir) throws IOException {
-
-        // Handle service being stopped
-        if (isServiceStopped()) {
-            Log.w(TAG, "Service not started or being stopped, ignoring DashDownloadCreator");
-            return;
-        }
-
-        HlsDownloader.start(this, item, itemDataDir, downloadStateListener);
     }
 
     private boolean isServiceStopped() {

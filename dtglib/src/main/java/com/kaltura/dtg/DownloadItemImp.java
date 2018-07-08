@@ -138,7 +138,7 @@ public class DownloadItemImp implements DownloadItem {
     @Override
     public TrackSelector getTrackSelector() {
         
-        if (playbackPath == null || !(playbackPath.endsWith(".mpd") || playbackPath.endsWith(".m3u8"))) {
+        if (playbackPath == null || !(playbackPath.endsWith(AssetFormat.dash.extension()) || playbackPath.endsWith(AssetFormat.hls.extension()))) {
             Log.w(TAG, "Track selection is only supported for dash/hls");
             return null;
         }
