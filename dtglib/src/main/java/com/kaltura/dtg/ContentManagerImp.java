@@ -91,8 +91,6 @@ public class ContentManagerImp extends ContentManager {
         // make sure all directories are there.
         Utils.mkdirsOrThrow(filesDir);
         Utils.mkdirsOrThrow(itemsDir);
-
-        AppBuildConfig.init(context);
     }
     
     public static ContentManager getInstance(Context context) {

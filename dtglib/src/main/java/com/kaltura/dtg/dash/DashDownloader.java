@@ -12,9 +12,9 @@ import com.kaltura.android.exoplayer.dash.mpd.Period;
 import com.kaltura.android.exoplayer.dash.mpd.RangedUri;
 import com.kaltura.android.exoplayer.dash.mpd.Representation;
 import com.kaltura.dtg.AbrDownloader;
-import com.kaltura.dtg.AppBuildConfig;
 import com.kaltura.dtg.AssetFormat;
 import com.kaltura.dtg.BaseTrack;
+import com.kaltura.dtg.BuildConfig;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadItemImp;
 import com.kaltura.dtg.DownloadTask;
@@ -61,7 +61,7 @@ public class DashDownloader extends AbrDownloader {
         outputStream.write(localManifestBytes);
         outputStream.close();
 
-        if (AppBuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG) {
             Log.d(TAG, "local manifest: " + Base64.encodeToString(localManifestBytes, Base64.NO_WRAP));
         }
     }
