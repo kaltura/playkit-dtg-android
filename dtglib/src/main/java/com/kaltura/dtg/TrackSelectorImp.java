@@ -1,5 +1,6 @@
 package com.kaltura.dtg;
 
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import java.io.IOException;
@@ -42,7 +43,17 @@ public class TrackSelectorImp implements DownloadItem.TrackSelector {
     }
 
     @Override
-    public void apply() throws IOException {
-        downloader.apply();
+    public void apply() {
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    downloader.apply();
+                } catch (IOException e) {
+                    // FIXME: 08/07/2018 Handle errors
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

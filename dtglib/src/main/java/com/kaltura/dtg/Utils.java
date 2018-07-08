@@ -10,6 +10,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -175,6 +176,10 @@ public class Utils {
         }
     }
 
+    public static byte[] downloadToFile(String url, File targetFile, int maxReturnSize) throws IOException {
+        return downloadToFile(new URL(url), targetFile, maxReturnSize);
+    }
+
     public static InputStream openUrl(String urlString) throws IOException {
         final URL url = new URL(urlString);
         final HttpURLConnection conn = ((HttpURLConnection) url.openConnection());
@@ -290,5 +295,10 @@ public class Utils {
         }
 
         throw new IllegalStateException("Can't create directory " + dir);
+    }
+
+    public static byte[] readFile(File file, int byteLimit) throws IOException {
+        FileInputStream inputStream = new FileInputStream(file);
+        return fullyReadInputStream(inputStream, byteLimit).toByteArray();
     }
 }

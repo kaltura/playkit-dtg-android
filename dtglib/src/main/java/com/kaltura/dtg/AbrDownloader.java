@@ -8,7 +8,6 @@ import com.kaltura.dtg.dash.DashDownloader;
 import com.kaltura.dtg.hls.HlsDownloader;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -92,8 +91,7 @@ public abstract class AbrDownloader {
     }
 
     private void loadStoredOriginManifest() throws IOException {
-        FileInputStream inputStream = new FileInputStream(new File(targetDir, storedOriginManifestName()));
-        this.originManifestBytes = Utils.fullyReadInputStream(inputStream, MAX_MANIFEST_SIZE).toByteArray();
+        originManifestBytes = Utils.readFile(new File(targetDir, storedOriginManifestName()), MAX_MANIFEST_SIZE);
         Log.d(TAG, "loadStoredOriginManifest: " + this.originManifestBytes.length + " bytes");
     }
 

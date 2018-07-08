@@ -2,7 +2,6 @@ package com.kaltura.dtg;
 
 import android.support.annotation.NonNull;
 
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 
@@ -40,7 +39,7 @@ public interface DownloadItem {
         List<Track> getDownloadedTracks(@NonNull TrackType type);
         List<Track> getSelectedTracks(@NonNull TrackType type);
         void setSelectedTracks(@NonNull TrackType type, @NonNull List<Track> tracks);
-        void apply() throws IOException;
+        void apply();
     }
 
     interface Track {

@@ -59,14 +59,6 @@ public class HlsAsset {
         parseVariants(masterPlaylist.subtitles, textTracks, DownloadItem.TrackType.TEXT);
     }
 
-    public String getMasterUrl() {
-        return masterUrl;
-    }
-
-    public long getDurationMs() {
-        return durationMs;
-    }
-
     public List<Track> getVideoTracks() {
         return Collections.unmodifiableList(videoTracks);
     }
@@ -90,6 +82,7 @@ public class HlsAsset {
     public static class Track extends BaseTrack {
         private static final String ORIGINAL_MASTER_FIRST_LINE = "ORIGINAL_MASTER_FIRST_LINE";
         private static final String ORIGINAL_MASTER_LAST_LINE = "ORIGINAL_MASTER_LAST_LINE";
+        private static final String TRACK_URL = "TRACK_URL";
 
         long durationMs;
         String url;
@@ -126,25 +119,14 @@ public class HlsAsset {
             }
         }
 
-        public long getDurationMs() {
-            return durationMs;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public List<Chunk> getChunks() {
-            return Collections.unmodifiableList(chunks);
-        }
-
         @Override
         protected void parseExtra(String extra) {
             JSONObject jsonExtra;
             try {
                 jsonExtra = new JSONObject(extra);
-                firstMasterLine = jsonExtra.optInt(ORIGINAL_MASTER_FIRST_LINE, 0);
-                lastMasterLine = jsonExtra.optInt(ORIGINAL_MASTER_LAST_LINE, 0);
+                this.firstMasterLine = jsonExtra.optInt(ORIGINAL_MASTER_FIRST_LINE, 0);
+                this.lastMasterLine = jsonExtra.optInt(ORIGINAL_MASTER_LAST_LINE, 0);
+                this.url = jsonExtra.optString(TRACK_URL);
             } catch (JSONException e) {
                 Log.e(TAG, "Can't parse track extra", e);
             }
@@ -157,6 +139,7 @@ public class HlsAsset {
                 return new JSONObject()
                         .put(ORIGINAL_MASTER_FIRST_LINE, firstMasterLine)
                         .put(ORIGINAL_MASTER_LAST_LINE, lastMasterLine)
+                        .put(TRACK_URL, url)
                         .toString();
             } catch (JSONException e) {
                 Log.e(TAG, "Can't dump track extra", e);

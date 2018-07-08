@@ -63,6 +63,11 @@ public class HlsDownloader extends AbrDownloader {
         for (BaseTrack baseTrack : trackList) {
             final HlsAsset.Track track = (HlsAsset.Track) baseTrack;
             final File trackTargetDir = getTrackTargetDir(track);
+
+            if (track.chunks == null) {
+                readOrDownloadTrackPlaylist(track);
+            }
+
             for (HlsAsset.Chunk chunk : track.chunks) {
                 maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.lineNum, "media", chunk.url);
                 maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.encryptionKeyLineNum, "key", chunk.encryptionKeyUri);
@@ -274,14 +279,23 @@ public class HlsDownloader extends AbrDownloader {
 
         // Download
         for (BaseTrack bt : getSelectedTracksFlat()) {
-            final HlsAsset.Track track = (HlsAsset.Track) bt;
-            final File trackTargetDir = getTrackTargetDir(track);
-            Utils.mkdirsOrThrow(trackTargetDir);
-            final File targetFile = new File(trackTargetDir, ORIGIN_M3U8);
-            final byte[] bytes = Utils.downloadToFile(new URL(track.url), targetFile, MAX_MANIFEST_SIZE);
-            track.parse(bytes);
+            readOrDownloadTrackPlaylist((HlsAsset.Track) bt);
         }
 
         super.applyInitialTrackSelection();
+    }
+
+    private void readOrDownloadTrackPlaylist(HlsAsset.Track track) throws IOException {
+        final File trackTargetDir = getTrackTargetDir(track);
+        final File targetFile = new File(trackTargetDir, ORIGIN_M3U8);
+        final byte[] bytes;
+        if (trackTargetDir.isDirectory() && targetFile.canRead()) {
+            // Read stored track playlist
+            bytes = Utils.readFile(targetFile, MAX_MANIFEST_SIZE);
+        } else {
+            Utils.mkdirsOrThrow(trackTargetDir);
+            bytes = Utils.downloadToFile(track.url, targetFile, MAX_MANIFEST_SIZE);
+        }
+        track.parse(bytes);
     }
 }
