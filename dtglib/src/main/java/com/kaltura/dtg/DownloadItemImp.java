@@ -146,9 +146,9 @@ public class DownloadItemImp implements DownloadItem {
         // If selection is in progress, return the current selector.
         
         if (trackSelector == null) {
-            BaseAbrDownloader updater;
+            AbrDownloader updater;
             try {
-                updater = BaseAbrDownloader.createUpdater(this);
+                updater = AbrDownloader.createUpdater(this);
             } catch (IOException e) {
                 Log.e(TAG, "Error initializing updater", e);
                 return null;

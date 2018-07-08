@@ -5,8 +5,8 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.android.exoplayer.ParserException;
+import com.kaltura.dtg.AbrDownloader;
 import com.kaltura.dtg.AssetFormat;
-import com.kaltura.dtg.BaseAbrDownloader;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadItemImp;
@@ -34,7 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class HlsDownloader extends BaseAbrDownloader {
+public class HlsDownloader extends AbrDownloader {
     private static final String TAG = "HlsDownloader";
     private static final String ORIGIN_M3U8 = "origin.m3u8";
     private static final String LOCAL_MASTER = "master.m3u8";
@@ -48,7 +48,7 @@ public class HlsDownloader extends BaseAbrDownloader {
     }
 
     public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir, DownloadStateListener downloadStateListener) throws IOException {
-        final BaseAbrDownloader downloader = new HlsDownloader(item).initForCreate();
+        final AbrDownloader downloader = new HlsDownloader(item).initForCreate();
 
         DownloadItem.TrackSelector trackSelector = downloader.getTrackSelector();
 

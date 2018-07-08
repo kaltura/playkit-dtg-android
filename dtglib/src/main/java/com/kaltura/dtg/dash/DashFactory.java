@@ -2,7 +2,7 @@ package com.kaltura.dtg.dash;
 
 import android.database.Cursor;
 
-import com.kaltura.dtg.BaseAbrDownloader;
+import com.kaltura.dtg.AbrDownloader;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItemImp;
 
@@ -13,7 +13,7 @@ public class DashFactory {
         return new DashTrack(cursor);
     }
 
-    public static BaseAbrDownloader newUpdater(DownloadItemImp item) throws IOException {
+    public static AbrDownloader newUpdater(DownloadItemImp item) throws IOException {
         return new DashDownloader(item).initForUpdate();
     }
 }

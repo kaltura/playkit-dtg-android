@@ -11,9 +11,9 @@ import com.kaltura.android.exoplayer.dash.mpd.MediaPresentationDescriptionParser
 import com.kaltura.android.exoplayer.dash.mpd.Period;
 import com.kaltura.android.exoplayer.dash.mpd.RangedUri;
 import com.kaltura.android.exoplayer.dash.mpd.Representation;
+import com.kaltura.dtg.AbrDownloader;
 import com.kaltura.dtg.AppBuildConfig;
 import com.kaltura.dtg.AssetFormat;
-import com.kaltura.dtg.BaseAbrDownloader;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItemImp;
 import com.kaltura.dtg.DownloadService;
@@ -37,7 +37,7 @@ import java.util.ListIterator;
 /**
  * Created by noamt on 19/06/2016.
  */
-public class DashDownloader extends BaseAbrDownloader {
+public class DashDownloader extends AbrDownloader {
 
     private static final String ORIGIN_MANIFEST_MPD = "origin.mpd";
     private static final String LOCAL_MANIFEST_MPD = "local.mpd";
@@ -56,7 +56,7 @@ public class DashDownloader extends BaseAbrDownloader {
     }
 
     public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir, DownloadStateListener downloadStateListener) throws IOException {
-        final BaseAbrDownloader downloader = new DashDownloader(item).initForCreate();
+        final AbrDownloader downloader = new DashDownloader(item).initForCreate();
 
         DownloadItem.TrackSelector trackSelector = downloader.getTrackSelector();
 

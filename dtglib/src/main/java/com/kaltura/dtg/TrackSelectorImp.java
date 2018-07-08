@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TrackSelectorImp implements DownloadItem.TrackSelector {
-    private BaseAbrDownloader downloader;
+    private AbrDownloader downloader;
 
-    public TrackSelectorImp(BaseAbrDownloader downloader) {
+    public TrackSelectorImp(AbrDownloader downloader) {
         this.downloader = downloader;
     }
 

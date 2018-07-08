@@ -18,10 +18,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-public abstract class BaseAbrDownloader {
+public abstract class AbrDownloader {
 
     protected static final int MAX_MANIFEST_SIZE = 10 * 1024 * 1024;
-    private static final String TAG = "BaseAbrDownloader";
+    private static final String TAG = "AbrDownloader";
     private final DownloadItemImp item;
     protected String manifestUrl;
     protected byte[] originManifestBytes;
@@ -35,14 +35,14 @@ public abstract class BaseAbrDownloader {
     private TrackUpdatingData trackUpdatingData;    // only used in update mode
     private Mode mode = Mode.create;
 
-    protected BaseAbrDownloader(DownloadItemImp item) {
+    protected AbrDownloader(DownloadItemImp item) {
         this.item = item;
         this.targetDir = new File(item.getDataDir());
         setDownloadTasks(new LinkedHashSet<DownloadTask>());
         this.manifestUrl = item.getContentURL();
     }
 
-    static BaseAbrDownloader createUpdater(DownloadItemImp item) throws IOException {
+    static AbrDownloader createUpdater(DownloadItemImp item) throws IOException {
 
         if (item.getPlaybackPath().endsWith(".mpd")) {
             return DashFactory.newUpdater(item);
@@ -62,7 +62,7 @@ public abstract class BaseAbrDownloader {
         trackSelectionApplied = true;
     }
 
-    public BaseAbrDownloader initForUpdate() throws IOException {
+    public AbrDownloader initForUpdate() throws IOException {
         this.mode = Mode.update;
         this.loadStoredOriginManifest();
         this.parseOriginManifest();
@@ -91,7 +91,7 @@ public abstract class BaseAbrDownloader {
         Log.d(TAG, "loadStoredOriginManifest: " + this.originManifestBytes.length + " bytes");
     }
 
-    protected BaseAbrDownloader initForCreate() throws IOException {
+    protected AbrDownloader initForCreate() throws IOException {
         downloadManifest();
         parseOriginManifest();
         createTracks();

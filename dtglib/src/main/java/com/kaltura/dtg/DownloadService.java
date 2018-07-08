@@ -378,7 +378,7 @@ public class DownloadService extends Service {
         URL url = new URL(contentURL);
         String fileName = contentUri.getLastPathSegment();
 
-        BaseAbrDownloader downloader = null;
+        AbrDownloader downloader = null;
 
         if (fileName.endsWith(".m3u8")) {
             downloader = new HlsDownloader(item);
@@ -393,7 +393,7 @@ public class DownloadService extends Service {
         }
     }
 
-    private void downloadMetadataAbr(BaseAbrDownloader downloader, DownloadItemImp item) throws IOException {
+    private void downloadMetadataAbr(AbrDownloader downloader, DownloadItemImp item) throws IOException {
 
         downloader.initForCreate();
 
