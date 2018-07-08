@@ -4,6 +4,8 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -126,22 +128,24 @@ class ItemLoader {
 
     static List<Item>  loadItems() {
         List<Item> items = new ArrayList<>();
-        
+
         // TODO: fill the list with Items -- each item has a single PKMediaSource with relevant DRM data.
         // Using OVP provider for simplicity
-        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx","1_cwdmd8il"));
+//        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx","1_cwdmd8il"));
 
-        // An item with given URL and License URL.
-        items.add(new Item(
-                "test1", "Test 1", PKMediaFormat.dash, PKDrmParams.Scheme.WidevineCENC, 
-                "<CONTENT-URL>", 
-                "<LICENCE-URL>"
-        ));
-        
         // For simple cases (no DRM), no need for MediaSource.
         items.add(new Item("sintel-short-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_9bwuo813/format/mpegdash/protocol/http/a.mpd"));
         items.add(new Item("sintel-full-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_w9zx2eti/format/mpegdash/protocol/http/a.mpd"));
-        items.add(new Item("kaltura", "http://cdnapi.kaltura.com/p/243342/sp/24334200/playManifest/entryId/1_sf5ovm7u/flavorIds/1_d2uwy7vv,1_jl7y56al/format/applehttp/protocol/http/a.m3u8"));
+        items.add(new Item("kaltura-hls", "http://cdnapi.kaltura.com/p/243342/sp/24334200/playManifest/entryId/1_sf5ovm7u/flavorIds/1_d2uwy7vv,1_jl7y56al/format/applehttp/protocol/http/a.m3u8"));
+        items.add(new Item("qa-multi-hls", "http://cdntesting.qa.mkaltura.com/p/1091/sp/109100/playManifest/entryId/0_df8g87v8/protocol/http/format/applehttp/flavorIds/0_tidbxf22,0_no2vm0z5,0_3s3crq4v,0_unnvmi49/a.m3u8"));
+        items.add(new Item("aes-hls", "https://noamtamim.github.io/random/hls/test-enc-aes/multi.m3u8"));
+
+        // An item with given URL and License URL.
+//        items.add(new Item(
+//                "test1", "Test 1", PKMediaFormat.dash, PKDrmParams.Scheme.WidevineCENC,
+//                "<CONTENT-URL>",
+//                "<LICENCE-URL>"
+//        ));
         
         return items;
     }
@@ -257,7 +261,65 @@ public class MainActivity extends ListActivity {
         public void onDownloadMetadata(DownloadItem item, Exception error) {
             itemStateChanged(item);
 
-            // TODO: select tracks, if not selected before.
+
+            final List<DownloadItem.Track> tracks = new ArrayList<>();
+            final DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
+            if (trackSelector == null) {
+                return;
+            }
+
+            List<Boolean> boolSelectedTracks = new ArrayList<>();
+            List<String> trackNames = new ArrayList<>();
+            for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
+                final List<DownloadItem.Track> availableTracks = trackSelector.getAvailableTracks(type);
+                final List<DownloadItem.Track> selectedTracks = trackSelector.getSelectedTracks(type);
+                for (DownloadItem.Track track : availableTracks) {
+                    tracks.add(track);
+                    boolSelectedTracks.add(selectedTracks.contains(track));
+                    trackNames.add(track.getType() + ": " + track.getBitrate() + ", " + track.getWidth() + "x" + track.getHeight() + ", " + track.getLanguage());
+                }
+            }
+
+            final String[] allTrackNames = trackNames.toArray(new String[trackNames.size()]);
+            final boolean[] selected = new boolean[boolSelectedTracks.size()];
+            for (int i = 0; i < boolSelectedTracks.size(); i++) {
+                selected[i] = boolSelectedTracks.get(i);
+            }
+
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // TODO: select tracks, if not selected before.
+                    new AlertDialog.Builder(context)
+                            .setTitle("Select tracks")
+                            .setMultiChoiceItems(allTrackNames, selected, new DialogInterface.OnMultiChoiceClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                                    selected[which] = isChecked;
+                                }
+                            })
+                            .setPositiveButton("Select", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    for (DownloadItem.TrackType trackType : DownloadItem.TrackType.values()) {
+                                        List<DownloadItem.Track> select = new ArrayList<>();
+                                        for (int i = 0; i < tracks.size(); i++) {
+                                            final DownloadItem.Track track = tracks.get(i);
+                                            if (track.getType() == trackType && selected[i]) {
+                                                select.add(track);
+                                            }
+                                        }
+                                        trackSelector.setSelectedTracks(trackType, select);
+                                    }
+                                    trackSelector.apply();
+                                }
+                            })
+                            .setNegativeButton("Cancel", null)
+                            .show();
+                }
+            });
+
         }
 
         @Override
@@ -478,6 +540,8 @@ public class MainActivity extends ListActivity {
                                 break;
                             case remove:
                                 contentManager.removeItem(item.getId());
+                                item.downloadedSize = 0;
+                                item.estimatedSize = 0;
                                 item.downloadState = null;
                                 notifyDataSetChanged();
                                 break;
