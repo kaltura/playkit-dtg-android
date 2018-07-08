@@ -44,7 +44,7 @@ public class HlsDownloader extends BaseAbrDownloader {
     private HlsAsset hlsAsset;
     private boolean applied;
 
-    HlsDownloader(DownloadItemImp item) {
+    public HlsDownloader(DownloadItemImp item) {
         super(item);
     }
 
@@ -103,7 +103,7 @@ public class HlsDownloader extends BaseAbrDownloader {
             }
 
             // Update size
-            int bitrate = track.getType() == DownloadItem.TrackType.VIDEO ? track.format.bitrate :
+            long bitrate = track.getType() == DownloadItem.TrackType.VIDEO ? track.getBitrate() :
                     track.getType() == DownloadItem.TrackType.AUDIO ? AUDIO_BITRATE_FOR_ESTIMATION : 0;
 
             if (bitrate > 0 && track.durationMs > 0) {
@@ -164,6 +164,11 @@ public class HlsDownloader extends BaseAbrDownloader {
     @Override
     public String storedOriginManifestName() {
         return ORIGIN_M3U8;
+    }
+
+    @Override
+    public String storedLocalManifestName() {
+        return LOCAL_MASTER;
     }
 
     private void createLocalMediaPlaylist(List<HlsAsset.Track> tracks) throws IOException {

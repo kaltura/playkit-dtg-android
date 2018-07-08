@@ -45,7 +45,7 @@ public class DashDownloader extends BaseAbrDownloader {
 
     Period currentPeriod;
 
-    DashDownloader(DownloadItemImp item) {
+    public DashDownloader(DownloadItemImp item) {
         super(item);
     }
 
@@ -134,7 +134,7 @@ public class DashDownloader extends BaseAbrDownloader {
     }
 
     private void createDownloadTasks(Representation representation, @NonNull DashTrack dashTrack) throws MalformedURLException {
-        if (representation == null){
+        if (representation == null) {
             return;
         }
         String reprId = representation.format.id;
@@ -178,6 +178,11 @@ public class DashDownloader extends BaseAbrDownloader {
     @Override
     public String storedOriginManifestName() {
         return ORIGIN_MANIFEST_MPD;
+    }
+
+    @Override
+    public String storedLocalManifestName() {
+        return LOCAL_MANIFEST_MPD;
     }
 
     private void addTask(RangedUri url, String file, String trackId) throws MalformedURLException {

@@ -151,16 +151,17 @@ public abstract class BaseAbrDownloader {
             tracksToUnselect.put(trackType, unselect);
         }
 
-        item.getService().updateTracksInDB(item.getItemId(), tracksToUnselect, BaseTrack.TrackState.NOT_SELECTED);
-        item.getService().updateTracksInDB(item.getItemId(), getSelectedTracksMap(), BaseTrack.TrackState.SELECTED);
+        final DownloadService service = item.getService();
+        service.updateTracksInDB(item.getItemId(), tracksToUnselect, BaseTrack.TrackState.NOT_SELECTED);
+        service.updateTracksInDB(item.getItemId(), getSelectedTracksMap(), BaseTrack.TrackState.SELECTED);
 
         // Add DownloadTasks
         createDownloadTasks();
-        item.getService().addDownloadTasksToDB(item, new ArrayList<>(getDownloadTasks()));
+        service.addDownloadTasksToDB(item, new ArrayList<>(getDownloadTasks()));
 
         // Update item size
         item.setEstimatedSizeBytes(getEstimatedDownloadSize());
-        item.getService().updateItemEstimatedSizeInDB(item);
+        service.updateItemEstimatedSizeInDB(item);
 
         // Update localized manifest
         createLocalManifest();
@@ -209,6 +210,8 @@ public abstract class BaseAbrDownloader {
     }
 
     public abstract String storedOriginManifestName();
+
+    public abstract String storedLocalManifestName();
 
     private void selectDefaultTracks() {
         // FIXME: 30/06/2018 Create selectedTracks locally

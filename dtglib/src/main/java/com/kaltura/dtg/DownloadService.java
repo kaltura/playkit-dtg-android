@@ -24,6 +24,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +53,7 @@ public class DownloadService extends Service {
     private ContentManager.Settings settings;
     
     private Set<String> removedItems = new HashSet<>();
-    private String NO_MEDIA_EMPTY_FILE = ".nomedia"; // File that will pervent Android to scan Folder for media
+    private String NO_MEDIA_EMPTY_FILE = ".nomedia";
 
     public DownloadService(Context context) {
         this.context = context;
@@ -362,6 +363,12 @@ public class DownloadService extends Service {
 
     private void downloadMetadata(DownloadItemImp item) throws IOException {
 
+        // Handle service being stopped
+        if (isServiceStopped()) {
+            Log.w(TAG, "Service not started or being stopped, can't start download");
+            return;
+        }
+
         File itemDataDir = getItemDataDir(item.getItemId());
         String contentURL = item.getContentURL();
         if (contentURL.startsWith("widevine")) {
@@ -370,24 +377,53 @@ public class DownloadService extends Service {
         Uri contentUri = Uri.parse(contentURL);
         URL url = new URL(contentURL);
         String fileName = contentUri.getLastPathSegment();
+
+        BaseAbrDownloader downloader = null;
+
         if (fileName.endsWith(".m3u8")) {
-            downloadMetadataHLS(item, itemDataDir);
+            downloader = new HlsDownloader(item);
         } else if (fileName.endsWith(".mpd")) {
-            downloadMetadataDash(item, itemDataDir);
-        } else {
+            downloader = new DashDownloader(item);
+        }
+
+        if (downloader == null) {
             downloadMetadataSimple(url, item, itemDataDir);
+        } else {
+            downloadMetadataAbr(downloader, item);
         }
     }
 
-    private void downloadMetadataDash(DownloadItemImp item, File itemDataDir) throws IOException {
+    private void downloadMetadataAbr(BaseAbrDownloader downloader, DownloadItemImp item) throws IOException {
 
-        // Handle service being stopped
-        if (isServiceStopped()) {
-            Log.w(TAG, "Service not started or being stopped, ignoring DashDownloadCreator");
-            return;
-        }
+        downloader.initForCreate();
 
-        DashDownloader.start(this, item, itemDataDir, this.downloadStateListener);
+        // FIXME: 08/07/2018 It looks like this code has to move to AbrDownloader
+
+        DownloadItem.TrackSelector trackSelector = downloader.getTrackSelector();
+
+        item.setTrackSelector(trackSelector);
+
+        downloadStateListener.onTracksAvailable(item, trackSelector);
+
+        downloader.apply();
+
+        item.setTrackSelector(null);
+
+
+        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.getAvailableTracks());
+        List<BaseTrack> selectedTracks = downloader.getSelectedTracksFlat();
+
+        addTracksToDB(item, availableTracks, selectedTracks);
+
+        long estimatedDownloadSize = downloader.getEstimatedDownloadSize();
+        item.setEstimatedSizeBytes(estimatedDownloadSize);
+
+        LinkedHashSet<DownloadTask> downloadTasks = downloader.getDownloadTasks();
+        //Log.d(TAG, "tasks:" + downloadTasks);
+
+        item.setPlaybackPath(downloader.storedLocalManifestName());
+
+        addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
     }
 
     private void downloadMetadataHLS(DownloadItemImp item, File itemDataDir) throws IOException {
