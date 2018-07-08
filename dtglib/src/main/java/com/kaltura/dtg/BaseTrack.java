@@ -5,8 +5,8 @@ import android.database.Cursor;
 import android.support.annotation.NonNull;
 
 import com.kaltura.android.exoplayer.chunk.Format;
-import com.kaltura.dtg.dash.DashFactory;
-import com.kaltura.dtg.hls.HlsFactory;
+import com.kaltura.dtg.dash.DashTrack;
+import com.kaltura.dtg.hls.HlsAsset;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,9 +53,9 @@ public abstract class BaseTrack implements DownloadItem.Track {
 
         switch (assetFormat) {
             case hls:
-                return HlsFactory.newTrack(cursor);
+                return new HlsAsset.Track(cursor);
             case dash:
-                return DashFactory.newTrack(cursor);
+                return new DashTrack(cursor);
             default:
                 throw new IllegalArgumentException("Invalid AssetFormat " + assetFormat);
         }

@@ -26,7 +26,7 @@ public class DashTrack extends BaseTrack {
         this.representationIndex = representationIndex;
     }
 
-    DashTrack(Cursor cursor) {
+    public DashTrack(Cursor cursor) {
         super(cursor);
     }
 

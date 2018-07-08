@@ -4,8 +4,8 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.kaltura.dtg.DownloadItem.TrackType;
-import com.kaltura.dtg.dash.DashFactory;
-import com.kaltura.dtg.hls.HlsFactory;
+import com.kaltura.dtg.dash.DashDownloader;
+import com.kaltura.dtg.hls.HlsDownloader;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,13 +44,19 @@ public abstract class AbrDownloader {
 
     static AbrDownloader createUpdater(DownloadItemImp item) throws IOException {
 
-        if (item.getPlaybackPath().endsWith(".mpd")) {
-            return DashFactory.newUpdater(item);
-        } else if (item.getPlaybackPath().endsWith(".m3u8")) {
-            return HlsFactory.newUpdater(item);
+        AbrDownloader downloader = null;
+        final String playbackPath = item.getPlaybackPath();
+        if (playbackPath.endsWith(AssetFormat.dash.extension())) {
+            downloader = new DashDownloader(item);
+        } else if (playbackPath.endsWith(AssetFormat.hls.extension())) {
+            downloader = new HlsDownloader(item);
         }
 
-        throw new IllegalArgumentException("Unknown asset type");
+        if (downloader != null) {
+            return downloader.initForUpdate();
+        }
+
+        throw new IllegalArgumentException("Unknown asset type: " + playbackPath);
     }
 
     protected void applyInitialTrackSelection() throws IOException {
@@ -175,7 +181,6 @@ public abstract class AbrDownloader {
         } else {
             applyInitialTrackSelection();
         }
-
     }
 
     protected abstract void parseOriginManifest() throws IOException;
