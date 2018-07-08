@@ -1,7 +1,6 @@
 package com.kaltura.dtg.dash;
 
 import android.database.Cursor;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.android.exoplayer.chunk.Format;
@@ -65,28 +64,14 @@ public class DashTrack extends BaseTrack {
 
         if (adaptationIndex != dashTrack.adaptationIndex) return false;
         if (representationIndex != dashTrack.representationIndex) return false;
-        if (bitrate != dashTrack.bitrate) return false;
-        if (width != dashTrack.width) return false;
-        if (height != dashTrack.height) return false;
-        if (type != dashTrack.type) return false;
-        return TextUtils.equals(language, dashTrack.language);
+        return super.equals(o);
     }
 
     @Override
     public int hashCode() {
         int result = adaptationIndex;
         result = 31 * result + representationIndex;
-        if (type != null) {
-            result = 31 * result + type.hashCode();
-        }
-        
-        if (language != null) {
-            result = 31 * result + language.hashCode();
-        }
-        
-        result = 31 * result + (int) (bitrate ^ (bitrate >>> 32));
-        result = 31 * result + width;
-        result = 31 * result + height;
+        result = 31 * result + super.hashCode();
         return result;
     }
 

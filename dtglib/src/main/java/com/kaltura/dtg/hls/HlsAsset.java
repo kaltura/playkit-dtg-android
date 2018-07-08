@@ -3,7 +3,6 @@ package com.kaltura.dtg.hls;
 import android.database.Cursor;
 import android.util.Log;
 
-import com.kaltura.android.exoplayer.chunk.Format;
 import com.kaltura.android.exoplayer.hls.HlsMasterPlaylist;
 import com.kaltura.android.exoplayer.hls.HlsMediaPlaylist;
 import com.kaltura.android.exoplayer.hls.HlsPlaylist;
@@ -97,7 +96,6 @@ public class HlsAsset implements Serializable {
 
         long durationMs;
         String url;
-        Format format;
         List<Chunk> chunks;
         transient byte[] bytes;
         int firstMasterLine;
@@ -106,7 +104,6 @@ public class HlsAsset implements Serializable {
         Track(Variant variant, DownloadItem.TrackType trackType) {
             super(trackType, variant.format);
             this.url = variant.url;
-            this.format = variant.format;
             this.firstMasterLine = variant.firstLineNum;
             this.lastMasterLine = variant.lastLineNum;
         }
@@ -138,10 +135,6 @@ public class HlsAsset implements Serializable {
 
         public String getUrl() {
             return url;
-        }
-
-        public Format getFormat() {
-            return format;
         }
 
         public List<Chunk> getChunks() {
@@ -177,6 +170,30 @@ public class HlsAsset implements Serializable {
         @Override
         protected String getRelativeId() {
             return String.valueOf(lastMasterLine > 0 ? lastMasterLine : firstMasterLine);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            if (!super.equals(o)) return false;
+
+            Track track = (Track) o;
+
+            if (durationMs != track.durationMs) return false;
+            if (firstMasterLine != track.firstMasterLine) return false;
+            if (lastMasterLine != track.lastMasterLine) return false;
+            return url != null ? url.equals(track.url) : track.url == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = (int) (durationMs ^ (durationMs >>> 32));
+            result = 31 * result + (url != null ? url.hashCode() : 0);
+            result = 31 * result + firstMasterLine;
+            result = 31 * result + lastMasterLine;
+            result = 31 * result + super.hashCode();
+            return result;
         }
     }
 
