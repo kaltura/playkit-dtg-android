@@ -255,7 +255,7 @@ public abstract class BaseAbrDownloader {
         return Utils.flattenTrackList(selectedTracks);
     }
 
-    private List<BaseTrack> getSelectedTracks(TrackType type) {
+    protected List<BaseTrack> getSelectedTracks(TrackType type) {
         return selectedTracks.get(type);
     }
 

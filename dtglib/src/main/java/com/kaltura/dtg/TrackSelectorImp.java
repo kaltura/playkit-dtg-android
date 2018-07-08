@@ -37,6 +37,11 @@ public class TrackSelectorImp implements DownloadItem.TrackSelector {
     }
 
     @Override
+    public List<DownloadItem.Track> getSelectedTracks(@NonNull DownloadItem.TrackType type) {
+        return new ArrayList<DownloadItem.Track>(downloader.getSelectedTracks(type));
+    }
+
+    @Override
     public void apply() throws IOException {
         downloader.apply();
     }

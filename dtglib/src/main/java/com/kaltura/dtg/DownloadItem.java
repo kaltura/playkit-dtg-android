@@ -38,6 +38,7 @@ public interface DownloadItem {
     interface TrackSelector {
         List<Track> getAvailableTracks(@NonNull TrackType type);
         List<Track> getDownloadedTracks(@NonNull TrackType type);
+        List<Track> getSelectedTracks(@NonNull TrackType type);
         void setSelectedTracks(@NonNull TrackType type, @NonNull List<Track> tracks);
         void apply() throws IOException;
     }
