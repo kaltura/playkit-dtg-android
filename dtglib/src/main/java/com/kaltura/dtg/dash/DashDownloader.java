@@ -15,12 +15,9 @@ import com.kaltura.dtg.AbrDownloader;
 import com.kaltura.dtg.AppBuildConfig;
 import com.kaltura.dtg.AssetFormat;
 import com.kaltura.dtg.BaseTrack;
-import com.kaltura.dtg.DownloadItemImp;
-import com.kaltura.dtg.DownloadService;
 import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.DownloadStateListener;
+import com.kaltura.dtg.DownloadItemImp;
 import com.kaltura.dtg.DownloadTask;
-import com.kaltura.dtg.Utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -53,36 +50,6 @@ public class DashDownloader extends AbrDownloader {
     @Override
     protected AssetFormat getAssetFormat() {
         return AssetFormat.dash;
-    }
-
-    public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir, DownloadStateListener downloadStateListener) throws IOException {
-        final AbrDownloader downloader = new DashDownloader(item).initForCreate();
-
-        DownloadItem.TrackSelector trackSelector = downloader.getTrackSelector();
-
-        item.setTrackSelector(trackSelector);
-
-        downloadStateListener.onTracksAvailable(item, trackSelector);
-
-        downloader.apply();
-
-        item.setTrackSelector(null);
-
-
-        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.getAvailableTracksMap());
-        List<BaseTrack> selectedTracks = downloader.getSelectedTracksFlat();
-
-        downloadService.addTracksToDB(item, availableTracks, selectedTracks);
-
-        long estimatedDownloadSize = downloader.getEstimatedDownloadSize();
-        item.setEstimatedSizeBytes(estimatedDownloadSize);
-
-        LinkedHashSet<DownloadTask> downloadTasks = downloader.getDownloadTasks();
-        //Log.d(TAG, "tasks:" + downloadTasks);
-
-        item.setPlaybackPath(LOCAL_MANIFEST_MPD);
-
-        downloadService.addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
     }
 
     private static void createLocalManifest(List<BaseTrack> tracks, byte[] originManifestBytes, File targetDir) throws IOException {

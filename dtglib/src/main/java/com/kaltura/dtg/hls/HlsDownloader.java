@@ -10,8 +10,6 @@ import com.kaltura.dtg.AssetFormat;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadItemImp;
-import com.kaltura.dtg.DownloadService;
-import com.kaltura.dtg.DownloadStateListener;
 import com.kaltura.dtg.DownloadTask;
 import com.kaltura.dtg.Utils;
 
@@ -45,37 +43,6 @@ public class HlsDownloader extends AbrDownloader {
 
     public HlsDownloader(DownloadItemImp item) {
         super(item);
-    }
-
-    public static void start(DownloadService downloadService, DownloadItemImp item, File itemDataDir, DownloadStateListener downloadStateListener) throws IOException {
-        final AbrDownloader downloader = new HlsDownloader(item).initForCreate();
-
-        DownloadItem.TrackSelector trackSelector = downloader.getTrackSelector();
-
-        item.setTrackSelector(trackSelector);
-
-        downloadStateListener.onTracksAvailable(item, trackSelector);
-
-        downloader.apply();
-
-        item.setTrackSelector(null);
-
-
-        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.getAvailableTracksMap());
-        List<BaseTrack> selectedTracks = downloader.getSelectedTracksFlat();
-
-        downloadService.addTracksToDB(item, availableTracks, selectedTracks);
-
-        long estimatedDownloadSize = downloader.getEstimatedDownloadSize();
-        item.setEstimatedSizeBytes(estimatedDownloadSize);
-
-        LinkedHashSet<DownloadTask> downloadTasks = downloader.getDownloadTasks();
-        //Log.d(TAG, "tasks:" + downloadTasks);
-
-        item.setPlaybackPath(LOCAL_MASTER);
-
-        downloadService.addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
-
     }
 
     @Override
