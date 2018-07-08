@@ -17,15 +17,13 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class HlsAsset implements Serializable {
+public class HlsAsset {
 
     private static final String TAG = "HlsAsset";
-    private static final long serialVersionUID = 764126803479953467L;
 
     String masterUrl;
     long durationMs;
@@ -89,8 +87,7 @@ public class HlsAsset implements Serializable {
         }
     }
 
-    public static class Track extends BaseTrack implements Serializable {
-        private static final long serialVersionUID = -1436376252417539032L;
+    public static class Track extends BaseTrack {
         private static final String ORIGINAL_MASTER_FIRST_LINE = "ORIGINAL_MASTER_FIRST_LINE";
         private static final String ORIGINAL_MASTER_LAST_LINE = "ORIGINAL_MASTER_LAST_LINE";
 
@@ -197,9 +194,7 @@ public class HlsAsset implements Serializable {
         }
     }
 
-    static class Chunk implements Serializable {
-
-        private static final long serialVersionUID = -2469901304472643052L;
+    static class Chunk {
         final int lineNum;
         final int encryptionKeyLineNum;
 
