@@ -20,12 +20,12 @@ import java.util.Map;
 
 public abstract class BaseAbrDownloader {
 
-    private static final String TAG = "BaseAbrDownloader";
-
     protected static final int MAX_MANIFEST_SIZE = 10 * 1024 * 1024;
+    private static final String TAG = "BaseAbrDownloader";
     private final DownloadItemImp item;
     protected String manifestUrl;
-
+    protected byte[] originManifestBytes;
+    protected boolean trackSelectionApplied;
     private long itemDurationMS;
     private long estimatedDownloadSize;
     private File targetDir;
@@ -33,9 +33,25 @@ public abstract class BaseAbrDownloader {
     private Map<TrackType, List<BaseTrack>> availableTracks;
     private LinkedHashSet<DownloadTask> downloadTasks;
     private TrackUpdatingData trackUpdatingData;    // only used in update mode
+    private Mode mode = Mode.create;
 
-    protected byte[] originManifestBytes;
-    protected boolean trackSelectionApplied;
+    protected BaseAbrDownloader(DownloadItemImp item) {
+        this.item = item;
+        this.targetDir = new File(item.getDataDir());
+        setDownloadTasks(new LinkedHashSet<DownloadTask>());
+        this.manifestUrl = item.getContentURL();
+    }
+
+    static BaseAbrDownloader createUpdater(DownloadItemImp item) throws IOException {
+
+        if (item.getPlaybackPath().endsWith(".mpd")) {
+            return DashFactory.newUpdater(item);
+        } else if (item.getPlaybackPath().endsWith(".m3u8")) {
+            return HlsFactory.newUpdater(item);
+        }
+
+        throw new IllegalArgumentException("Unknown asset type");
+    }
 
     protected void applyInitialTrackSelection() throws IOException {
         if (trackSelectionApplied) {
@@ -44,22 +60,6 @@ public abstract class BaseAbrDownloader {
         createLocalManifest();
         createDownloadTasks();
         trackSelectionApplied = true;
-    }
-
-    class TrackUpdatingData {
-        Map<DownloadItem.TrackType, List<BaseTrack>> originalSelectedTracks;
-        boolean trackSelectionChanged;
-
-        TrackUpdatingData(Map<TrackType, List<BaseTrack>> originalSelectedTracks) {
-            this.originalSelectedTracks = originalSelectedTracks;
-        }
-    }
-
-    private Mode mode = Mode.create;
-
-    protected enum Mode {
-        create,
-        update
     }
 
     public BaseAbrDownloader initForUpdate() throws IOException {
@@ -194,25 +194,6 @@ public abstract class BaseAbrDownloader {
         return new TrackSelectorImp(this);
     }
 
-
-    static BaseAbrDownloader createUpdater(DownloadItemImp item) throws IOException {
-
-        if (item.getPlaybackPath().endsWith(".mpd")) {
-            return DashFactory.newUpdater(item);
-        } else if (item.getPlaybackPath().endsWith(".m3u8")) {
-            return HlsFactory.newUpdater(item);
-        }
-
-        throw new IllegalArgumentException("Unknown asset type");
-    }
-
-    protected BaseAbrDownloader(DownloadItemImp item) {
-        this.item = item;
-        this.targetDir = new File(item.getDataDir());
-        setDownloadTasks(new LinkedHashSet<DownloadTask>());
-        this.manifestUrl = item.getContentURL();
-    }
-
     private void selectDefaultTracks() {
         // FIXME: 30/06/2018 Create selectedTracks locally
         setSelectedTracksMap(new HashMap<TrackType, List<BaseTrack>>());
@@ -266,6 +247,10 @@ public abstract class BaseAbrDownloader {
         return selectedTracks;
     }
 
+    private void setSelectedTracksMap(Map<TrackType, List<BaseTrack>> selectedTracks) {
+        this.selectedTracks = selectedTracks;
+    }
+
     protected void setSelectedTracksForType(@NonNull TrackType type, @NonNull List<BaseTrack> tracks) {
         if (trackUpdatingData != null) {
             trackUpdatingData.trackSelectionChanged = true;
@@ -297,20 +282,16 @@ public abstract class BaseAbrDownloader {
         return targetDir;
     }
 
-    private void setSelectedTracksMap(Map<TrackType, List<BaseTrack>> selectedTracks) {
-        this.selectedTracks = selectedTracks;
-    }
-
     public Map<TrackType, List<BaseTrack>> getAvailableTracksMap() {
         return availableTracks;
     }
 
-    protected List<BaseTrack> getAvailableTracksFlat() {
-        return Utils.flattenTrackList(availableTracks);
-    }
-
     protected void setAvailableTracksMap(Map<TrackType, List<BaseTrack>> availableTracks) {
         this.availableTracks = availableTracks;
+    }
+
+    protected List<BaseTrack> getAvailableTracksFlat() {
+        return Utils.flattenTrackList(availableTracks);
     }
 
     public LinkedHashSet<DownloadTask> getDownloadTasks() {
@@ -321,8 +302,21 @@ public abstract class BaseAbrDownloader {
         this.downloadTasks = downloadTasks;
     }
 
-
     protected void setAvailableTracksByType(TrackType type, ArrayList<BaseTrack> tracks) {
         availableTracks.put(type, tracks);
+    }
+
+    protected enum Mode {
+        create,
+        update
+    }
+
+    class TrackUpdatingData {
+        Map<DownloadItem.TrackType, List<BaseTrack>> originalSelectedTracks;
+        boolean trackSelectionChanged;
+
+        TrackUpdatingData(Map<TrackType, List<BaseTrack>> originalSelectedTracks) {
+            this.originalSelectedTracks = originalSelectedTracks;
+        }
     }
 }
