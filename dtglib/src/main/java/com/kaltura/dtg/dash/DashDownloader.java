@@ -39,11 +39,11 @@ import java.util.ListIterator;
  */
 public class DashDownloader extends BaseAbrDownloader {
 
-    static final String ORIGIN_MANIFEST_MPD = "origin.mpd";
-    static final String LOCAL_MANIFEST_MPD = "local.mpd";
+    private static final String ORIGIN_MANIFEST_MPD = "origin.mpd";
+    private static final String LOCAL_MANIFEST_MPD = "local.mpd";
     private static final String TAG = "DashDownloader";
 
-    Period currentPeriod;
+    private Period currentPeriod;
 
     public DashDownloader(DownloadItemImp item) {
         super(item);
@@ -69,7 +69,7 @@ public class DashDownloader extends BaseAbrDownloader {
         item.setTrackSelector(null);
 
 
-        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.getAvailableTracks());
+        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.getAvailableTracksMap());
         List<BaseTrack> selectedTracks = downloader.getSelectedTracksFlat();
 
         downloadService.addTracksToDB(item, availableTracks, selectedTracks);
@@ -199,7 +199,7 @@ public class DashDownloader extends BaseAbrDownloader {
 
         setAvailableTracksMap(new HashMap<DownloadItem.TrackType, List<BaseTrack>>());
         for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
-            setAvailableTracks(type, new ArrayList<BaseTrack>(1));
+            setAvailableTracksByType(type, new ArrayList<BaseTrack>(1));
         }
 
         ListIterator<AdaptationSet> itAdaptations = adaptationSets.listIterator();
@@ -231,7 +231,7 @@ public class DashDownloader extends BaseAbrDownloader {
                 DashTrack track = new DashTrack(type, format, adaptationIndex, representationIndex);
                 track.setHeight(format.height);
                 track.setWidth(format.width);
-                getAvailableTracks().get(type).add(track);
+                getAvailableTracksMap().get(type).add(track);
             }
         }
     }

@@ -15,7 +15,7 @@ public class TrackSelectorImp implements DownloadItem.TrackSelector {
 
     @Override
     public List<DownloadItem.Track> getAvailableTracks(@NonNull final DownloadItem.TrackType type) {
-        List<BaseTrack> tracks = downloader.getAvailableTracks(type);
+        List<BaseTrack> tracks = downloader.getAvailableTracksByType(type);
         return new ArrayList<DownloadItem.Track>(tracks);
     }
 
@@ -27,7 +27,7 @@ public class TrackSelectorImp implements DownloadItem.TrackSelector {
             trackList.add((BaseTrack) track);
         }
 
-        downloader.setSelectedTracks(type, trackList);
+        downloader.setSelectedTracksForType(type, trackList);
     }
 
     @Override
@@ -38,7 +38,7 @@ public class TrackSelectorImp implements DownloadItem.TrackSelector {
 
     @Override
     public List<DownloadItem.Track> getSelectedTracks(@NonNull DownloadItem.TrackType type) {
-        return new ArrayList<DownloadItem.Track>(downloader.getSelectedTracks(type));
+        return new ArrayList<DownloadItem.Track>(downloader.getSelectedTracksByType(type));
     }
 
     @Override

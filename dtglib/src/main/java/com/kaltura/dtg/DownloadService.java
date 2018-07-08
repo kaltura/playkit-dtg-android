@@ -410,7 +410,7 @@ public class DownloadService extends Service {
         item.setTrackSelector(null);
 
 
-        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.getAvailableTracks());
+        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.getAvailableTracksMap());
         List<BaseTrack> selectedTracks = downloader.getSelectedTracksFlat();
 
         addTracksToDB(item, availableTracks, selectedTracks);

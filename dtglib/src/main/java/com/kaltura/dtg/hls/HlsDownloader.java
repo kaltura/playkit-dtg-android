@@ -42,7 +42,6 @@ public class HlsDownloader extends BaseAbrDownloader {
     private static final int AUDIO_BITRATE_FOR_ESTIMATION = 64 * 1024;
 
     private HlsAsset hlsAsset;
-    private boolean applied;
 
     public HlsDownloader(DownloadItemImp item) {
         super(item);
@@ -62,7 +61,7 @@ public class HlsDownloader extends BaseAbrDownloader {
         item.setTrackSelector(null);
 
 
-        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.getAvailableTracks());
+        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.getAvailableTracksMap());
         List<BaseTrack> selectedTracks = downloader.getSelectedTracksFlat();
 
         downloadService.addTracksToDB(item, availableTracks, selectedTracks);
@@ -301,7 +300,7 @@ public class HlsDownloader extends BaseAbrDownloader {
 
     @Override
     protected void applyInitialTrackSelection() throws IOException {
-        if (applied) {
+        if (trackSelectionApplied) {
             Log.w(TAG, "Ignoring unsupported extra call to apply()");
             return;
         }

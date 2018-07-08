@@ -35,7 +35,7 @@ public abstract class BaseAbrDownloader {
     private TrackUpdatingData trackUpdatingData;    // only used in update mode
 
     protected byte[] originManifestBytes;
-    private boolean trackSelectionApplied;
+    protected boolean trackSelectionApplied;
 
     protected void applyInitialTrackSelection() throws IOException {
         if (trackSelectionApplied) {
@@ -73,10 +73,10 @@ public abstract class BaseAbrDownloader {
 
         for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
             List<BaseTrack> availableTracks = this.item.getService().readTracksFromDB(item.getItemId(), type, null, this.getAssetFormat());
-            this.getAvailableTracks().put(type, availableTracks);
+            this.getAvailableTracksMap().put(type, availableTracks);
 
             List<BaseTrack> selectedTracks = this.item.getService().readTracksFromDB(item.getItemId(), type, BaseTrack.TrackState.SELECTED, this.getAssetFormat());
-            this.setSelectedTracks(type, selectedTracks);
+            this.setSelectedTracksForType(type, selectedTracks);
             originalSelectedTracks.put(type, selectedTracks);
         }
 
@@ -118,7 +118,7 @@ public abstract class BaseAbrDownloader {
 
         List<BaseTrack> downloadedTracks = new ArrayList<>();
 
-        for (BaseTrack track : getSelectedTracks(type)) {
+        for (BaseTrack track : getSelectedTracksByType(type)) {
             if (item.getService().countPendingFiles(item.getItemId(), track) == 0) {
                 downloadedTracks.add(track);
             }
@@ -143,7 +143,7 @@ public abstract class BaseAbrDownloader {
         for (DownloadItem.TrackType trackType : DownloadItem.TrackType.values()) {
             List<BaseTrack> unselect = new ArrayList<>();
             for (BaseTrack track : trackUpdatingData.originalSelectedTracks.get(trackType)) {
-                if (!getSelectedTracks(trackType).contains(track)) {
+                if (!getSelectedTracksByType(trackType).contains(track)) {
                     unselect.add(track);
                 }
             }
@@ -186,6 +186,10 @@ public abstract class BaseAbrDownloader {
 
     protected abstract AssetFormat getAssetFormat();
 
+    public abstract String storedOriginManifestName();
+
+    public abstract String storedLocalManifestName();
+
     public DownloadItem.TrackSelector getTrackSelector() {
         return new TrackSelectorImp(this);
     }
@@ -209,29 +213,25 @@ public abstract class BaseAbrDownloader {
         this.manifestUrl = item.getContentURL();
     }
 
-    public abstract String storedOriginManifestName();
-
-    public abstract String storedLocalManifestName();
-
     private void selectDefaultTracks() {
         // FIXME: 30/06/2018 Create selectedTracks locally
         setSelectedTracksMap(new HashMap<TrackType, List<BaseTrack>>());
         for (TrackType type : TrackType.values()) {
-            setSelectedTracks(type, new ArrayList<BaseTrack>(1));
+            setSelectedTracksForType(type, new ArrayList<BaseTrack>(1));
         }
 
 
         // "Best" == highest bitrate.
 
         // Video: simply select best track.
-        List<BaseTrack> availableVideoTracks = getAvailableTracks(TrackType.VIDEO);
+        List<BaseTrack> availableVideoTracks = getAvailableTracksByType(TrackType.VIDEO);
         if (availableVideoTracks.size() > 0) {
             BaseTrack selectedVideoTrack = Collections.max(availableVideoTracks, DownloadItem.Track.bitrateComparator);
-            setSelectedTracks(TrackType.VIDEO, Collections.singletonList(selectedVideoTrack));
+            setSelectedTracksForType(TrackType.VIDEO, Collections.singletonList(selectedVideoTrack));
         }
 
         // Audio: X=(language of first track); Select best track with language==X.
-        List<BaseTrack> availableAudioTracks = getAvailableTracks(TrackType.AUDIO);
+        List<BaseTrack> availableAudioTracks = getAvailableTracksByType(TrackType.AUDIO);
         if (availableAudioTracks.size() > 0) {
             String firstAudioLang = availableAudioTracks.get(0).getLanguage();
             List<BaseTrack> tracks;
@@ -242,14 +242,14 @@ public abstract class BaseAbrDownloader {
             }
 
             BaseTrack selectedAudioTrack = Collections.max(tracks, DownloadItem.Track.bitrateComparator);
-            setSelectedTracks(TrackType.AUDIO, Collections.singletonList(selectedAudioTrack));
+            setSelectedTracksForType(TrackType.AUDIO, Collections.singletonList(selectedAudioTrack));
         }
 
         // Text: simply select first track.
-        List<BaseTrack> availableTextTracks = getAvailableTracks(TrackType.TEXT);
+        List<BaseTrack> availableTextTracks = getAvailableTracksByType(TrackType.TEXT);
         if (availableTextTracks.size() > 0) {
             BaseTrack selectedTextTrack = availableTextTracks.get(0);
-            setSelectedTracks(TrackType.TEXT, Collections.singletonList(selectedTextTrack));
+            setSelectedTracksForType(TrackType.TEXT, Collections.singletonList(selectedTextTrack));
         }
     }
 
@@ -258,7 +258,7 @@ public abstract class BaseAbrDownloader {
         return Utils.flattenTrackList(selectedTracks);
     }
 
-    protected List<BaseTrack> getSelectedTracks(TrackType type) {
+    protected List<BaseTrack> getSelectedTracksByType(TrackType type) {
         return selectedTracks.get(type);
     }
 
@@ -266,14 +266,14 @@ public abstract class BaseAbrDownloader {
         return selectedTracks;
     }
 
-    protected void setSelectedTracks(@NonNull TrackType type, @NonNull List<BaseTrack> tracks) {
+    protected void setSelectedTracksForType(@NonNull TrackType type, @NonNull List<BaseTrack> tracks) {
         if (trackUpdatingData != null) {
             trackUpdatingData.trackSelectionChanged = true;
         }
         selectedTracks.put(type, new ArrayList<>(tracks));
     }
 
-    protected List<BaseTrack> getAvailableTracks(TrackType type) {
+    protected List<BaseTrack> getAvailableTracksByType(TrackType type) {
         return Collections.unmodifiableList(availableTracks.get(type));
     }
 
@@ -301,7 +301,7 @@ public abstract class BaseAbrDownloader {
         this.selectedTracks = selectedTracks;
     }
 
-    public Map<TrackType, List<BaseTrack>> getAvailableTracks() {
+    public Map<TrackType, List<BaseTrack>> getAvailableTracksMap() {
         return availableTracks;
     }
 
@@ -322,7 +322,7 @@ public abstract class BaseAbrDownloader {
     }
 
 
-    protected void setAvailableTracks(TrackType type, ArrayList<BaseTrack> tracks) {
+    protected void setAvailableTracksByType(TrackType type, ArrayList<BaseTrack> tracks) {
         availableTracks.put(type, tracks);
     }
 }
