@@ -609,9 +609,15 @@ class Database {
                 values.put(COL_TRACK_STATE, newState.name());
 
                 for (BaseTrack track : tracks) {
-                    db.update(TBL_TRACK, values, COL_ITEM_ID + "=? AND " + COL_TRACK_REL_ID + "=?", strings(itemId, track.getRelativeId()));
+                    final String whereClause = COL_ITEM_ID + "=? AND " + COL_TRACK_REL_ID + "=?";
+                    final String[] whereArgs = strings(itemId, track.getRelativeId());
+                    db.update(TBL_TRACK, values, whereClause, whereArgs);
+
+                    if (newState ==  BaseTrack.TrackState.NOT_SELECTED) {
+                        db.delete(TBL_DOWNLOAD_FILES, whereClause, whereArgs);
+                    }
                 }
-                
+
                 return true;
             }
         });
