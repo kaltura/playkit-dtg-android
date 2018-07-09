@@ -39,7 +39,11 @@ public interface DownloadItem {
         List<Track> getDownloadedTracks(@NonNull TrackType type);
         List<Track> getSelectedTracks(@NonNull TrackType type);
         void setSelectedTracks(@NonNull TrackType type, @NonNull List<Track> tracks);
-        void apply();
+        void apply(OnTrackSelectionListener listener);
+    }
+
+    interface OnTrackSelectionListener {
+        void onTrackSelectionComplete(Exception e);
     }
 
     interface Track {
