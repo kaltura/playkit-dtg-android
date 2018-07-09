@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +38,7 @@ import com.kaltura.playkit.mediaproviders.ovp.KalturaOvpMediaProvider;
 import com.kaltura.playkit.player.MediaSupport;
 
 import java.io.File;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -136,7 +138,7 @@ class ItemLoader {
 
         // TODO: fill the list with Items -- each item has a single PKMediaSource with relevant DRM data.
         // Using OVP provider for simplicity
-        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx"));
+//        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx"));
 
         // For simple cases (no DRM), no need for MediaSource.
         items.add(new Item("sintel-short-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_9bwuo813/format/mpegdash/protocol/http/a.mpd"));
@@ -275,13 +277,29 @@ public class MainActivity extends ListActivity {
 
             List<Boolean> boolSelectedTracks = new ArrayList<>();
             List<String> trackNames = new ArrayList<>();
+            final NumberFormat numberFormat = NumberFormat.getIntegerInstance();
             for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
                 final List<DownloadItem.Track> availableTracks = trackSelector.getAvailableTracks(type);
                 final List<DownloadItem.Track> selectedTracks = trackSelector.getSelectedTracks(type);
                 for (DownloadItem.Track track : availableTracks) {
                     tracks.add(track);
                     boolSelectedTracks.add(selectedTracks.contains(track));
-                    trackNames.add(track.getType() + ": " + track.getBitrate() + ", " + track.getWidth() + "x" + track.getHeight() + ", " + track.getLanguage());
+                    StringBuilder sb = new StringBuilder(track.getType().name());
+                    final long bitrate = track.getBitrate();
+                    if (bitrate > 0) {
+                        sb.append(" | ").append(numberFormat.format(bitrate));
+                    }
+//                    if (track.getType() == DownloadItem.TrackType.VIDEO) {
+//                        sb.append(" | ").append(track.getWidth()).append("x").append(track.getHeight());
+//                    }
+                    final String language = track.getLanguage();
+                    if (!TextUtils.isEmpty(language)) {
+                        sb.append(" | ").append(language);
+                    }
+                    trackNames.add(sb.toString());
+
+//                    trackNames.add(track.getType() + " | " + numberFormat.format(track.getBitrate())
+//                             + ", " + track.getWidth() + "x" + track.getHeight() + ", " + track.getLanguage());
                 }
             }
 
