@@ -4,8 +4,6 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
-import android.media.MediaCodecInfo;
-import android.media.MediaCodecList;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -36,6 +34,7 @@ import com.kaltura.playkit.Player;
 import com.kaltura.playkit.api.ovp.SimpleOvpSessionProvider;
 import com.kaltura.playkit.mediaproviders.base.OnMediaLoadCompletion;
 import com.kaltura.playkit.mediaproviders.ovp.KalturaOvpMediaProvider;
+import com.kaltura.playkit.player.MediaSupport;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -45,28 +44,31 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 
 class ItemLoader {
-    
-    private static PKMediaSource findFirstDash(List<PKMediaSource> sources) {
-        for (PKMediaSource source : sources) {
-            if (source.getMediaFormat() == PKMediaFormat.dash) {
-                return source;
-            }
-        }
-        throw new IllegalArgumentException("No dash source");
-    }
 
-    private static PKMediaSource findFirstWVM(List<PKMediaSource> sources) {
-        for (PKMediaSource source : sources) {
-            if (source.getMediaFormat() == PKMediaFormat.wvm) {
-                return source;
+    private static final String TAG = "ItemLoader";
+
+    private static PKMediaSource findPreferredSource(List<PKMediaSource> sources) {
+        PKMediaFormat[] formats = {PKMediaFormat.dash, PKMediaFormat.hls, PKMediaFormat.mp4, PKMediaFormat.mp3, PKMediaFormat.wvm};
+        for (PKMediaFormat format : formats) {
+            for (PKMediaSource source : sources) {
+                if (source.hasDrmParams()) {
+                    for (PKDrmParams params : source.getDrmData()) {
+                        if (params.isSchemeSupported()) {
+                            return source;  // this source has at least one supported DRM scheme
+                        }
+                    }
+                } else {
+                    return source;  // No DRM
+                }
             }
         }
-        throw new IllegalArgumentException("No wvm source");
+        return null;
     }
 
     private static List<Item> loadOVPItems(int partnerId, String... entries) {
@@ -83,26 +85,18 @@ class ItemLoader {
                 public void onComplete(ResultElement<PKMediaEntry> response) {
                     PKMediaEntry mediaEntry = response.getResponse();
                     if (mediaEntry != null) {
-                        PKMediaSource source = null;
+                        PKMediaSource source = findPreferredSource(mediaEntry.getSources());
 
-                        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                            source = findFirstWVM(mediaEntry.getSources());
-                        } else {
-                            source = findFirstDash(mediaEntry.getSources());
-                            // Uncomment to reduce license duration
-                            // for (PKDrmParams params : source.getDrmData()) {
-                            //     if (params.getScheme() == PKDrmParams.Scheme.WidevineCENC) {
-                            //         String url = params.getLicenseUri();
-                            //         url = url.replace("https://", "http://");
-                            //         url = url + "&license_duration=400&rental_duration=600&playback_duration=200";
-                            //         params.setLicenseUri(url);
-                            //     }
-                            // }
-                            //
+                        if (source == null) {
+                            Log.w(TAG, "onComplete: No playable source for " + mediaEntry);
+                            return; // don't add because we don't have a source
                         }
+
+                        // forceReducedLicenseDuration(source, 600);
 
                         Item item = new Item(source, mediaEntry.getName());
                         items.set(index, item);
+
                     } else {
                         Log.d("LOAD", entryId);
                     }
@@ -126,12 +120,23 @@ class ItemLoader {
         return items;
     }
 
+    private static void forceReducedLicenseDuration(PKMediaSource source, int seconds) {
+        for (PKDrmParams params : source.getDrmData()) {
+            if (params.getScheme() == PKDrmParams.Scheme.WidevineCENC) {
+                String url = params.getLicenseUri();
+                url = url.replace("https://", "http://");
+                url = url + "&rental_duration=" + seconds;
+                params.setLicenseUri(url);
+            }
+        }
+    }
+
     static List<Item>  loadItems() {
         List<Item> items = new ArrayList<>();
 
         // TODO: fill the list with Items -- each item has a single PKMediaSource with relevant DRM data.
         // Using OVP provider for simplicity
-//        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx","1_cwdmd8il"));
+        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx"));
 
         // For simple cases (no DRM), no need for MediaSource.
         items.add(new Item("sintel-short-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_9bwuo813/format/mpegdash/protocol/http/a.mpd"));
@@ -258,7 +263,7 @@ public class MainActivity extends ListActivity {
         }
 
         @Override
-        public void onDownloadMetadata(DownloadItem item, Exception error) {
+        public void onDownloadMetadata(final DownloadItem item, Exception error) {
             itemStateChanged(item);
 
 
@@ -312,7 +317,13 @@ public class MainActivity extends ListActivity {
                                         }
                                         trackSelector.setSelectedTracks(trackType, select);
                                     }
-                                    trackSelector.apply();
+                                    trackSelector.apply(new DownloadItem.OnTrackSelectionListener() {
+                                        @Override
+                                        public void onTrackSelectionComplete(Exception e) {
+                                            itemStateChanged(item);
+                                            notifyDataSetChanged();
+                                        }
+                                    });
                                 }
                             })
                             .setNegativeButton("Cancel", null)
@@ -325,6 +336,10 @@ public class MainActivity extends ListActivity {
         @Override
         public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
             // TODO: select tracks
+
+            // For example, leave the video selection as is; select all audio and text tracks.
+            trackSelector.setSelectedTracks(DownloadItem.TrackType.AUDIO, trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO));
+            trackSelector.setSelectedTracks(DownloadItem.TrackType.TEXT, trackSelector.getAvailableTracks(DownloadItem.TrackType.TEXT));
         }
     };
     private Player player;
@@ -402,7 +417,9 @@ public class MainActivity extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+        }
 
         itemArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         loadTestItems(itemArrayAdapter);
@@ -645,7 +662,7 @@ public class MainActivity extends ListActivity {
     private void setupPlayer() {
         if (player == null) {
             player = PlayKitManager.loadPlayer(this, null);
-            ViewGroup playerRoot = (ViewGroup) findViewById(R.id.player_root);
+            ViewGroup playerRoot = findViewById(R.id.player_root);
             playerRoot.addView(player.getView());
         } else {
             player.stop();
@@ -654,13 +671,18 @@ public class MainActivity extends ListActivity {
 
     private void loadTestItems(final ArrayAdapter<Item> itemAdapter) {
 
-        List<Item> items = ItemLoader.loadItems();
-        itemAdapter.addAll(items);
-        for (final Item item : items) {
-            if (item != null) {
-                itemMap.put(item.getId(), item);
+        MediaSupport.initializeDrm(this, new MediaSupport.DrmInitCallback() {
+            @Override
+            public void onDrmInitComplete(Set<PKDrmParams.Scheme> supportedDrmSchemes, boolean provisionPerformed, Exception provisionError) {
+                List<Item> items = ItemLoader.loadItems();
+                itemAdapter.addAll(items);
+                for (final Item item : items) {
+                    if (item != null) {
+                        itemMap.put(item.getId(), item);
+                    }
+                }
             }
-        }
+        });
     }
 
     public boolean isNetworkAvailable() {
