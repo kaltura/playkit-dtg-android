@@ -1,23 +1,37 @@
-<!-- If you are raising a bug playing a stream, you must fill out the following or your issue may 
-not be responded to. For features or improvements, you may delete this. -->
-##### Prerequisites
-- [ ] Have you checked for duplicate [issues](https://github.com/kaltura/playkit-android/issues): ______
-- [ ] Which Player [version](https://github.com/kaltura/playkit-android/releases) are you using: ______
-- [ ] Can you reproduce the issue with our latest release version: ______
-- [ ] Can you reproduce the issue with the latest code from master: ______
-- [ ] What devices and OS versions are you using: ______
-- [ ] If applicable, add test code or test page to reproduce: 
-```
-Paste test code here
-```
+<!---
 
-##### Expected behavior
-What you expected to happen
+**Questions**: If you have questions about how to use this library, write "QUESTION:" in front of the issue summary.
 
-##### Actual behavior
-What actually happened
+**Feature Request**: Please fill the "Goal" and "Expected Results" sections.
 
-##### Console output
-```
-Paste the contents of the Android Studio console here.
-```
+**Bugs**: Please fill all of the sections below. If you can think of other details.
+
+-->
+
+#### Goal
+
+> What do you want to achieve?
+
+#### Expected Results
+
+> ?
+
+#### Actual Results
+
+>  Full stack trace with exception, logcat output...
+
+#### Steps & Code to Reproduce
+
+> Describe your current debugging efforts.
+
+#### Sample app
+
+> Please try to reproduce the issue in our sample app.
+
+#### Version of library and tooling
+
+DTG version: ?
+
+Android Studio version: ?
+
+Android version and device: ?
