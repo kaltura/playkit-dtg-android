@@ -325,12 +325,49 @@ public class DefaultDownloadService extends Service {
         stopping = false;
     }
 
+    // Try to create a directory.
+    // Throws CannotCreateDirectoryException on failure, else returns quietly.
     private void makeDirs(File dataDir, String name) {
-        //noinspection ResultOfMethodCallIgnored
-        dataDir.mkdirs();
-        if (!dataDir.isDirectory()) {
-            Log.e(TAG, "Failed to create " + name + " -- " + dataDir);
-            throw new IllegalStateException("Can't continue without " + name + " -- " + dataDir);
+
+        String logName = name + " -- " + dataDir;
+        int maxTries = 2;
+        for (int i = maxTries; i >= 0; i--) {
+
+            // Normal flow, second+ run of the app
+            if (dataDir.isDirectory()) {
+                return;
+            }
+
+            // Normal flow, first run
+            if (dataDir.mkdirs()) {
+                Log.d(TAG, "Created (#" + (maxTries-i) + ") " + logName);
+                return;
+            }
+
+            if (dataDir.exists()) {
+                // Check again if this is a directory, because we're not supposed to get here.
+                if (!dataDir.isDirectory()) {
+                    // Unexpected file, can't recover.
+                    Log.e(TAG, "Can't create directory because there's a non-directory file there: " + logName);
+                    throw new CannotCreateDirectoryException("File exists on path " + dataDir);
+                }
+            }
+
+            // Path does not exist and directory not created. Let's wait and retry.
+            Log.e(TAG, "Can't create directory for an unknown reason: " + logName);
+
+            if (i == 0) {   // Last attempt has failed.
+                // If we're here, the directory could not be created for an unknown reason.
+                throw new CannotCreateDirectoryException("Unknown reason; " + dataDir);
+            } else {
+                // Wait and retry
+                try {
+                    // 50 msec is more than enough to force a context switch.
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "InterruptedException while waiting to retry mkdirs", e);
+                }
+            }
         }
     }
 
@@ -745,6 +782,12 @@ public class DefaultDownloadService extends Service {
     class LocalBinder extends Binder {
         DefaultDownloadService getService() {
             return DefaultDownloadService.this;
+        }
+    }
+
+    public class CannotCreateDirectoryException extends RuntimeException {
+        CannotCreateDirectoryException(String reason) {
+            super(reason);
         }
     }
 }
