@@ -1,7 +1,6 @@
 package com.kaltura.dtg.hls;
 
 import android.database.Cursor;
-import android.util.Log;
 
 import com.kaltura.android.exoplayer.hls.HlsMasterPlaylist;
 import com.kaltura.android.exoplayer.hls.HlsMediaPlaylist;
@@ -80,9 +79,9 @@ public class HlsAsset {
     }
 
     public static class Track extends BaseTrack {
-        private static final String ORIGINAL_MASTER_FIRST_LINE = "ORIGINAL_MASTER_FIRST_LINE";
-        private static final String ORIGINAL_MASTER_LAST_LINE = "ORIGINAL_MASTER_LAST_LINE";
-        private static final String TRACK_URL = "TRACK_URL";
+        private static final String EXTRA_MASTER_FIRST_LINE = "masterFirstLine";
+        private static final String EXTRA_MASTER_LAST_LINE = "masterLastLine";
+        private static final String EXTRA_TRACK_URL = "url";
 
         long durationMs;
         String url;
@@ -120,31 +119,17 @@ public class HlsAsset {
         }
 
         @Override
-        protected void parseExtra(String extra) {
-            JSONObject jsonExtra;
-            try {
-                jsonExtra = new JSONObject(extra);
-                this.firstMasterLine = jsonExtra.optInt(ORIGINAL_MASTER_FIRST_LINE, 0);
-                this.lastMasterLine = jsonExtra.optInt(ORIGINAL_MASTER_LAST_LINE, 0);
-                this.url = jsonExtra.optString(TRACK_URL);
-            } catch (JSONException e) {
-                Log.e(TAG, "Can't parse track extra", e);
-            }
-
+        protected void parseExtra(JSONObject jsonExtra) {
+            this.firstMasterLine = jsonExtra.optInt(EXTRA_MASTER_FIRST_LINE, 0);
+            this.lastMasterLine = jsonExtra.optInt(EXTRA_MASTER_LAST_LINE, 0);
+            this.url = jsonExtra.optString(EXTRA_TRACK_URL);
         }
 
         @Override
-        protected String dumpExtra() {
-            try {
-                return new JSONObject()
-                        .put(ORIGINAL_MASTER_FIRST_LINE, firstMasterLine)
-                        .put(ORIGINAL_MASTER_LAST_LINE, lastMasterLine)
-                        .put(TRACK_URL, url)
-                        .toString();
-            } catch (JSONException e) {
-                Log.e(TAG, "Can't dump track extra", e);
-                return null;
-            }
+        protected void dumpExtra(JSONObject jsonExtra) throws JSONException {
+            jsonExtra.put(EXTRA_MASTER_FIRST_LINE, firstMasterLine)
+                    .put(EXTRA_MASTER_LAST_LINE, lastMasterLine)
+                    .put(EXTRA_TRACK_URL, url);
         }
 
         @Override

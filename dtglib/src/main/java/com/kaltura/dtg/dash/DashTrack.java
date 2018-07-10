@@ -1,7 +1,6 @@
 package com.kaltura.dtg.dash;
 
 import android.database.Cursor;
-import android.util.Log;
 
 import com.kaltura.android.exoplayer.chunk.Format;
 import com.kaltura.dtg.BaseTrack;
@@ -14,9 +13,11 @@ import org.json.JSONObject;
  * Created by noamt on 13/09/2016.
  */
 public class DashTrack extends BaseTrack {
-    private static final String ORIGINAL_ADAPTATION_SET_INDEX = "originalAdaptationSetIndex";
-    private static final String ORIGINAL_REPRESENTATION_INDEX = "originalRepresentationIndex";
     private static final String TAG = "DashTrack";
+
+    private static final String EXTRA_ADAPTATION_INDEX = "originalAdaptationSetIndex";
+    private static final String EXTRA_REPRESENTATION_INDEX = "originalRepresentationIndex";
+
     private int adaptationIndex;
     private int representationIndex;
 
@@ -31,15 +32,15 @@ public class DashTrack extends BaseTrack {
     }
 
     @Override
-    protected void parseExtra(String extra) {
-        JSONObject jsonExtra;
-        try {
-            jsonExtra = new JSONObject(extra);
-            adaptationIndex = jsonExtra.optInt(ORIGINAL_ADAPTATION_SET_INDEX, 0);
-            representationIndex = jsonExtra.optInt(ORIGINAL_REPRESENTATION_INDEX, 0);
-        } catch (JSONException e) {
-            Log.e(TAG, "Can't parse track extra", e);
-        }
+    protected void parseExtra(JSONObject jsonExtra) {
+        adaptationIndex = jsonExtra.optInt(EXTRA_ADAPTATION_INDEX, 0);
+        representationIndex = jsonExtra.optInt(EXTRA_REPRESENTATION_INDEX, 0);
+    }
+
+    @Override
+    protected void dumpExtra(JSONObject jsonExtra) throws JSONException {
+        jsonExtra.put(EXTRA_ADAPTATION_INDEX, adaptationIndex)
+                .put(EXTRA_REPRESENTATION_INDEX, representationIndex);
     }
 
     @Override
@@ -64,6 +65,8 @@ public class DashTrack extends BaseTrack {
 
         if (adaptationIndex != dashTrack.adaptationIndex) return false;
         if (representationIndex != dashTrack.representationIndex) return false;
+
+        // Ignoring width and height on purpose
         return super.equals(o);
     }
 
@@ -72,6 +75,7 @@ public class DashTrack extends BaseTrack {
         int result = adaptationIndex;
         result = 31 * result + representationIndex;
         result = 31 * result + super.hashCode();
+        // Ignoring width and height on purpose
         return result;
     }
 
@@ -85,19 +89,6 @@ public class DashTrack extends BaseTrack {
                 ", bitrate=" + bitrate +
                 ", resolution=" + width + "x" + height +
                 '}';
-    }
-
-    @Override
-    protected String dumpExtra() {
-        try {
-            return new JSONObject()
-                    .put(DashTrack.ORIGINAL_ADAPTATION_SET_INDEX, getAdaptationIndex())
-                    .put(DashTrack.ORIGINAL_REPRESENTATION_INDEX, getRepresentationIndex())
-                    .toString();
-        } catch (JSONException e) {
-            Log.e(DashTrack.TAG, "Failed converting to JSON");
-            return null;
-        }
     }
 
     void setHeight(int height) {

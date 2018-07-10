@@ -8,12 +8,18 @@ import com.kaltura.android.exoplayer.chunk.Format;
 import com.kaltura.dtg.dash.DashTrack;
 import com.kaltura.dtg.hls.HlsAsset;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BaseTrack implements DownloadItem.Track {
     static final String[] REQUIRED_DB_FIELDS =
             {Database.COL_TRACK_ID, Database.COL_TRACK_TYPE, Database.COL_TRACK_LANGUAGE, Database.COL_TRACK_BITRATE, Database.COL_TRACK_EXTRA};
+
+    private static final String EXTRA_WIDTH = "width";
+    private static final String EXTRA_HEIGHT = "height";
 
     protected DownloadItem.TrackType type;
     protected String language;
@@ -120,8 +126,37 @@ public abstract class BaseTrack implements DownloadItem.Track {
         return values;
     }
 
-    protected abstract void parseExtra(String extra);
-    protected abstract String dumpExtra();
+    private String dumpExtra() {
+        JSONObject jsonExtra = new JSONObject();
+        try {
+            jsonExtra
+                    .put(EXTRA_HEIGHT, height)
+                    .put(EXTRA_WIDTH, width);
+            dumpExtra(jsonExtra);  // Subclasses
+
+            return jsonExtra.toString();
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void parseExtra(String extra) {
+        JSONObject jsonExtra;
+        try {
+            jsonExtra = new JSONObject(extra);
+            this.height = jsonExtra.optInt(EXTRA_HEIGHT, 0);
+            this.width = jsonExtra.optInt(EXTRA_WIDTH, 0);
+            parseExtra(jsonExtra);  // Subclasses
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected abstract void parseExtra(JSONObject jsonExtra);
+    protected abstract void dumpExtra(JSONObject jsonExtra) throws JSONException;
     protected abstract String getRelativeId();
 
     @Override
