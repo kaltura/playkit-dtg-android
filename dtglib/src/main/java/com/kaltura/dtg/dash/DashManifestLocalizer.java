@@ -72,7 +72,7 @@ class DashManifestLocalizer {
         // TODO: make the search more efficient
         for (BaseTrack keepTrack : keepTracks) {
             DashTrack dashTrack = (DashTrack) keepTrack;
-            if (dashTrack.getAdaptationIndex() == index) {
+            if (dashTrack.adaptationIndex == index) {
                 return true;
             }
         }
@@ -83,7 +83,7 @@ class DashManifestLocalizer {
         // TODO: make the search more efficient
         for (BaseTrack keepTrack : keepTracks) {
             DashTrack dashTrack = (DashTrack) keepTrack;
-            if (dashTrack.getAdaptationIndex() == adaptationIndex && dashTrack.getRepresentationIndex() == representationIndex) {
+            if (dashTrack.adaptationIndex == adaptationIndex && dashTrack.representationIndex == representationIndex) {
                 return true;
             }
         }

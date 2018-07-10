@@ -198,24 +198,21 @@ public abstract class AbrDownloader {
     }
 
     private void selectDefaultTracks() {
-        // FIXME: 30/06/2018 Create selectedTracks locally
-        setSelectedTracksMap(new HashMap<TrackType, List<BaseTrack>>());
-        for (TrackType type : TrackType.values()) {
-            setSelectedTracksForType(type, new ArrayList<BaseTrack>(1));
-        }
 
+        final Map<TrackType, List<BaseTrack>> availableTracks = getAvailableTracksMap();
+        final Map<TrackType, List<BaseTrack>> selectedTracks = new HashMap<>();
 
-        // "Best" == highest bitrate.
+        // Below, "best" means highest bitrate.
 
-        // Video: simply select best track.
-        List<BaseTrack> availableVideoTracks = getAvailableTracksByType(TrackType.VIDEO);
+        // Video: select best track.
+        List<BaseTrack> availableVideoTracks = availableTracks.get(TrackType.VIDEO);
         if (availableVideoTracks.size() > 0) {
             BaseTrack selectedVideoTrack = Collections.max(availableVideoTracks, DownloadItem.Track.bitrateComparator);
-            setSelectedTracksForType(TrackType.VIDEO, Collections.singletonList(selectedVideoTrack));
+            selectedTracks.put(TrackType.VIDEO, Collections.singletonList(selectedVideoTrack));
         }
 
-        // Audio: X=(language of first track); Select best track with language==X.
-        List<BaseTrack> availableAudioTracks = getAvailableTracksByType(TrackType.AUDIO);
+        // Audio: X=(language of first track); select best track with language==X.
+        List<BaseTrack> availableAudioTracks = availableTracks.get(TrackType.AUDIO);
         if (availableAudioTracks.size() > 0) {
             String firstAudioLang = availableAudioTracks.get(0).getLanguage();
             List<BaseTrack> tracks;
@@ -226,15 +223,17 @@ public abstract class AbrDownloader {
             }
 
             BaseTrack selectedAudioTrack = Collections.max(tracks, DownloadItem.Track.bitrateComparator);
-            setSelectedTracksForType(TrackType.AUDIO, Collections.singletonList(selectedAudioTrack));
+            selectedTracks.put(TrackType.AUDIO, Collections.singletonList(selectedAudioTrack));
         }
 
-        // Text: simply select first track.
-        List<BaseTrack> availableTextTracks = getAvailableTracksByType(TrackType.TEXT);
+        // Text: select first track.
+        List<BaseTrack> availableTextTracks = availableTracks.get(TrackType.TEXT);
         if (availableTextTracks.size() > 0) {
             BaseTrack selectedTextTrack = availableTextTracks.get(0);
-            setSelectedTracksForType(TrackType.TEXT, Collections.singletonList(selectedTextTrack));
+            selectedTracks.put(TrackType.TEXT, Collections.singletonList(selectedTextTrack));
         }
+
+        setSelectedTracksMap(selectedTracks);
     }
 
     @NonNull

@@ -18,8 +18,8 @@ public class DashTrack extends BaseTrack {
     private static final String EXTRA_ADAPTATION_INDEX = "originalAdaptationSetIndex";
     private static final String EXTRA_REPRESENTATION_INDEX = "originalRepresentationIndex";
 
-    private int adaptationIndex;
-    private int representationIndex;
+    int adaptationIndex;
+    int representationIndex;
 
     DashTrack(DownloadItem.TrackType type, Format format, int adaptationIndex, int representationIndex) {
         super(type, format);
@@ -45,15 +45,7 @@ public class DashTrack extends BaseTrack {
 
     @Override
     protected String getRelativeId() {
-        return "a" + getAdaptationIndex() + "r" + getRepresentationIndex();
-    }
-
-    int getAdaptationIndex() {
-        return adaptationIndex;
-    }
-
-    int getRepresentationIndex() {
-        return representationIndex;
+        return "a" + adaptationIndex + "r" + representationIndex;
     }
 
     @Override
@@ -66,7 +58,6 @@ public class DashTrack extends BaseTrack {
         if (adaptationIndex != dashTrack.adaptationIndex) return false;
         if (representationIndex != dashTrack.representationIndex) return false;
 
-        // Ignoring width and height on purpose
         return super.equals(o);
     }
 
@@ -75,7 +66,6 @@ public class DashTrack extends BaseTrack {
         int result = adaptationIndex;
         result = 31 * result + representationIndex;
         result = 31 * result + super.hashCode();
-        // Ignoring width and height on purpose
         return result;
     }
 

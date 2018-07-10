@@ -8,7 +8,7 @@ import com.kaltura.android.exoplayer.hls.HlsPlaylist;
 import com.kaltura.android.exoplayer.hls.HlsPlaylistParser;
 import com.kaltura.android.exoplayer.hls.Variant;
 import com.kaltura.dtg.BaseTrack;
-import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadItem.TrackType;
 import com.kaltura.dtg.Utils;
 
 import org.json.JSONException;
@@ -17,22 +17,21 @@ import org.json.JSONObject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class HlsAsset {
 
     private static final String TAG = "HlsAsset";
+    static transient HlsPlaylistParser parser = new HlsPlaylistParser();
 
     String masterUrl;
+    byte[] masterBytes;
     long durationMs;
     List<Track> videoTracks = new ArrayList<>();
     List<Track> audioTracks = new ArrayList<>();
     List<Track> textTracks = new ArrayList<>();
-    static transient HlsPlaylistParser parser = new HlsPlaylistParser();
-    byte[] masterBytes;
 
-    public HlsAsset() {
+    HlsAsset() {
     }
 
     private static HlsPlaylist exoParse(final String url, final byte[] bytes) {
@@ -46,31 +45,17 @@ public class HlsAsset {
     public HlsAsset parse(final String masterUrl, final byte[] masterBytes) {
         this.masterUrl = masterUrl;
         this.masterBytes = masterBytes;
-        parse();
+
+        final HlsMasterPlaylist masterPlaylist = (HlsMasterPlaylist) exoParse(this.masterUrl, this.masterBytes);
+
+        parseVariants(masterPlaylist.variants, videoTracks, TrackType.VIDEO);
+        parseVariants(masterPlaylist.audios, audioTracks, TrackType.AUDIO);
+        parseVariants(masterPlaylist.subtitles, textTracks, TrackType.TEXT);
+
         return this;
     }
 
-    private void parse() {
-        final HlsMasterPlaylist masterPlaylist = (HlsMasterPlaylist) exoParse(masterUrl, masterBytes);
-
-        parseVariants(masterPlaylist.variants, videoTracks, DownloadItem.TrackType.VIDEO);
-        parseVariants(masterPlaylist.audios, audioTracks, DownloadItem.TrackType.AUDIO);
-        parseVariants(masterPlaylist.subtitles, textTracks, DownloadItem.TrackType.TEXT);
-    }
-
-    public List<Track> getVideoTracks() {
-        return Collections.unmodifiableList(videoTracks);
-    }
-
-    public List<Track> getAudioTracks() {
-        return Collections.unmodifiableList(audioTracks);
-    }
-
-    public List<Track> getTextTracks() {
-        return Collections.unmodifiableList(textTracks);
-    }
-
-    private void parseVariants(List<Variant> variants, List<Track> trackList, DownloadItem.TrackType trackType) {
+    private void parseVariants(List<Variant> variants, List<Track> trackList, TrackType trackType) {
         for (Variant variant : variants) {
 
             final Track track = new Track(variant, trackType);
@@ -90,7 +75,7 @@ public class HlsAsset {
         int firstMasterLine;
         int lastMasterLine;
 
-        Track(Variant variant, DownloadItem.TrackType trackType) {
+        Track(Variant variant, TrackType trackType) {
             super(trackType, variant.format);
             this.url = variant.url;
             this.firstMasterLine = variant.firstLineNum;
@@ -165,9 +150,8 @@ public class HlsAsset {
     static class Chunk {
         final int lineNum;
         final int encryptionKeyLineNum;
-
-        String url;
-        String encryptionKeyUri;
+        final String url;
+        final String encryptionKeyUri;
 
         Chunk(HlsMediaPlaylist.Segment segment, String trackUrl) {
             this.lineNum = segment.lineNum;

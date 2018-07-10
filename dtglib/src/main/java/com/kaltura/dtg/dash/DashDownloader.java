@@ -89,8 +89,8 @@ public class DashDownloader extends AbrDownloader {
         List<BaseTrack> trackList = getSelectedTracksFlat();
         for (BaseTrack bt : trackList) {
             DashTrack track = (DashTrack)bt;
-            AdaptationSet adaptationSet = currentPeriod.adaptationSets.get(track.getAdaptationIndex());
-            Representation representation = adaptationSet.representations.get(track.getRepresentationIndex());
+            AdaptationSet adaptationSet = currentPeriod.adaptationSets.get(track.adaptationIndex);
+            Representation representation = adaptationSet.representations.get(track.representationIndex);
 
             createDownloadTasks(representation, track);
         }
