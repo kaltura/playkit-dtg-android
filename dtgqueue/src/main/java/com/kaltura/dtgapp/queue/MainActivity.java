@@ -289,9 +289,9 @@ public class MainActivity extends ListActivity {
                     if (bitrate > 0) {
                         sb.append(" | ").append(numberFormat.format(bitrate));
                     }
-//                    if (track.getType() == DownloadItem.TrackType.VIDEO) {
-//                        sb.append(" | ").append(track.getWidth()).append("x").append(track.getHeight());
-//                    }
+                    if (track.getType() == DownloadItem.TrackType.VIDEO) {
+                        sb.append(" | ").append(track.getWidth()).append("x").append(track.getHeight());
+                    }
                     final String language = track.getLanguage();
                     if (!TextUtils.isEmpty(language)) {
                         sb.append(" | ").append(language);
@@ -322,19 +322,10 @@ public class MainActivity extends ListActivity {
                                     selected[which] = isChecked;
                                 }
                             })
-                            .setPositiveButton("Select", new DialogInterface.OnClickListener() {
+                            .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    for (DownloadItem.TrackType trackType : DownloadItem.TrackType.values()) {
-                                        List<DownloadItem.Track> select = new ArrayList<>();
-                                        for (int i = 0; i < tracks.size(); i++) {
-                                            final DownloadItem.Track track = tracks.get(i);
-                                            if (track.getType() == trackType && selected[i]) {
-                                                select.add(track);
-                                            }
-                                        }
-                                        trackSelector.setSelectedTracks(trackType, select);
-                                    }
+                                    saveSelection(tracks, selected, trackSelector);
                                     trackSelector.apply(new DownloadItem.OnTrackSelectionListener() {
                                         @Override
                                         public void onTrackSelectionComplete(Exception e) {
@@ -344,7 +335,21 @@ public class MainActivity extends ListActivity {
                                     });
                                 }
                             })
-                            .setNegativeButton("Cancel", null)
+                            .setNegativeButton("Default", null)
+                            .setNeutralButton("Start", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    saveSelection(tracks, selected, trackSelector);
+                                    trackSelector.apply(new DownloadItem.OnTrackSelectionListener() {
+                                        @Override
+                                        public void onTrackSelectionComplete(Exception e) {
+                                            itemStateChanged(item);
+                                            notifyDataSetChanged();
+                                            item.startDownload();
+                                        }
+                                    });
+                                }
+                            })
                             .show();
                 }
             });
@@ -360,6 +365,20 @@ public class MainActivity extends ListActivity {
             trackSelector.setSelectedTracks(DownloadItem.TrackType.TEXT, trackSelector.getAvailableTracks(DownloadItem.TrackType.TEXT));
         }
     };
+
+    private static void saveSelection(List<DownloadItem.Track> tracks, boolean[] selected, DownloadItem.TrackSelector trackSelector) {
+        for (DownloadItem.TrackType trackType : DownloadItem.TrackType.values()) {
+            List<DownloadItem.Track> select = new ArrayList<>();
+            for (int i = 0; i < tracks.size(); i++) {
+                final DownloadItem.Track track = tracks.get(i);
+                if (track.getType() == trackType && selected[i]) {
+                    select.add(track);
+                }
+            }
+            trackSelector.setSelectedTracks(trackType, select);
+        }
+    }
+
     private Player player;
 
     private void itemStateChanged(DownloadItem downloadItem) {
