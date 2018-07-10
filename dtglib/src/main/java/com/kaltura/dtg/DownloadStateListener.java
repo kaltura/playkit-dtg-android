@@ -13,11 +13,12 @@ public interface DownloadStateListener {
     void onDownloadPause(DownloadItem item);
 
     void onDownloadFailure(DownloadItem item, Exception error);
-    
+
     void onDownloadMetadata(DownloadItem item, Exception error);
 
     /**
      * Allow application to modify the default track selection.
+     *
      * @param item
      */
     void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector);

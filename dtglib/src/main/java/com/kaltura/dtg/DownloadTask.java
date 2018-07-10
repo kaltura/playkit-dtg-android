@@ -59,13 +59,13 @@ public class DownloadTask {
     private boolean createParentDir(File targetFile) {
         return Utils.mkdirs(targetFile.getParentFile());
     }
-    
+
     void download() throws HttpRetryException {
-        
+
         URL url = this.url;
         File targetFile = this.targetFile;
 //        Log.d(TAG, "Task " + taskId + ": download " + url + " to " + targetFile);
-        
+
         // Create parent dir if needed
         if (!createParentDir(targetFile)) {
             Log.e(TAG, "Can't create parent dir");
@@ -76,12 +76,12 @@ public class DownloadTask {
         reportProgress(State.STARTED, 0, null);
 
         long localFileSize = targetFile.length();
-        
+
         // If file is already downloaded, make sure it's not larger than the remote.
         if (localFileSize > 0) {
             try {
                 long remoteFileSize = Utils.httpHeadGetLength(url);
-                
+
                 // finish before even starting, if file is already complete.
                 if (localFileSize == remoteFileSize) {
                     // We're done.
@@ -111,7 +111,7 @@ public class DownloadTask {
         InputStream inputStream = null;
         HttpURLConnection conn = null;
         FileOutputStream fileOutputStream = null;
-        
+
         State stopReason = null;
         Exception stopError = null;
 
@@ -211,7 +211,7 @@ public class DownloadTask {
     public Listener getListener() {
         return listener;
     }
-    
+
     public void setListener(Listener listener) {
         this.listener = listener;
     }

@@ -70,7 +70,7 @@ public class ContentManagerImp extends ContentManager {
             }
         }
     };
-    
+
     private int maxConcurrentDownloads;
     private Context context;
     private String sessionId;
@@ -92,7 +92,7 @@ public class ContentManagerImp extends ContentManager {
         Utils.mkdirsOrThrow(filesDir);
         Utils.mkdirsOrThrow(itemsDir);
     }
-    
+
     public static ContentManager getInstance(Context context) {
         if (sInstance == null) {
             synchronized (ContentManager.class) {
@@ -103,7 +103,7 @@ public class ContentManagerImp extends ContentManager {
         }
         return sInstance;
     }
-    
+
 
     // Public API
 
@@ -116,7 +116,7 @@ public class ContentManagerImp extends ContentManager {
     public void removeDownloadStateListener(DownloadStateListener listener) {
         stateListeners.remove(listener);
     }
-    
+
     @Override
     public void stop() {
         if (provider == null) {
@@ -131,7 +131,7 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public void start(final OnStartedListener onStartedListener) {
         Log.d(TAG, "start Content Manager");
-        this.sessionId =  UUID.randomUUID().toString();
+        this.sessionId = UUID.randomUUID().toString();
         this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
         this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
         if (provider != null) {
@@ -145,22 +145,22 @@ public class ContentManagerImp extends ContentManager {
         provider = new ServiceProxy(context, settings);
         provider.setDownloadStateListener(downloadStateRelay);
         provider.start(new OnStartedListener() {
-                            @Override
-                            public void onStarted() {
-                                started = true;
-                                if (autoResumeItemsInProgress) {
-                                    // Resume all downloads that were in progress on stop.
-                                    List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
-                                    for (DownloadItem download : downloads) {
-                                        download.startDownload();
-                                    }
-                                }
-                                
-                                if (onStartedListener != null) {
-                                    onStartedListener.onStarted();
-                                }
-                            }
-                        });
+            @Override
+            public void onStarted() {
+                started = true;
+                if (autoResumeItemsInProgress) {
+                    // Resume all downloads that were in progress on stop.
+                    List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
+                    for (DownloadItem download : downloads) {
+                        download.startDownload();
+                    }
+                }
+
+                if (onStartedListener != null) {
+                    onStartedListener.onStarted();
+                }
+            }
+        });
     }
 
     @Override
@@ -295,7 +295,7 @@ public class ContentManagerImp extends ContentManager {
             throw new IllegalStateException("Manager was not started.");
         }
     }
-    
+
     @Override
     public Settings getSettings() {
         if (started) {
@@ -313,7 +313,7 @@ public class ContentManagerImp extends ContentManager {
     public boolean isStarted() {
         return started;
     }
-    
+
     public String getSessionId() {
         return sessionId;
     }

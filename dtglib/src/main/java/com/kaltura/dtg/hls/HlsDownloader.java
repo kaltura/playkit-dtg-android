@@ -45,6 +45,31 @@ public class HlsDownloader extends AbrDownloader {
         super(item);
     }
 
+    private static void maybeAddTask(LinkedHashSet<DownloadTask> tasks, String relativeId, File trackTargetDir, int lineNum, String type, String url) throws MalformedURLException {
+        if (url == null) {
+            return;
+        }
+        final File file = new File(trackTargetDir, getLocalMediaFilename(lineNum, type));
+        final DownloadTask task = new DownloadTask(new URL(url), file);
+        task.setTrackRelativeId(relativeId);
+        tasks.add(task);
+    }
+
+    private static String getLocalMediaFilename(int lineNum, String type) {
+        return String.format(Locale.US, "%06d.%s", lineNum, type);
+    }
+
+    private static Set<Integer> makeRange(int first, int last) {
+        if (last < first) {
+            return Collections.singleton(first);
+        }
+        Set<Integer> range = new HashSet<>();
+        for (int i = first; i <= last; i++) {
+            range.add(i);
+        }
+        return range;
+    }
+
     @Override
     public void parseOriginManifest() {
         this.hlsAsset = new HlsAsset().parse(manifestUrl, originManifestBytes);
@@ -86,34 +111,9 @@ public class HlsDownloader extends AbrDownloader {
         setEstimatedDownloadSize(totalEstimatedSize);
     }
 
-    private static void maybeAddTask(LinkedHashSet<DownloadTask> tasks, String relativeId, File trackTargetDir, int lineNum, String type, String url) throws MalformedURLException {
-        if (url == null) {
-            return;
-        }
-        final File file = new File(trackTargetDir, getLocalMediaFilename(lineNum, type));
-        final DownloadTask task = new DownloadTask(new URL(url), file);
-        task.setTrackRelativeId(relativeId);
-        tasks.add(task);
-    }
-
-    private static String getLocalMediaFilename(int lineNum, String type) {
-        return String.format(Locale.US, "%06d.%s", lineNum, type);
-    }
-
     @NonNull
     private File getTrackTargetDir(HlsAsset.Track track) {
         return new File(getTargetDir(), "track-" + track.getRelativeId());
-    }
-
-    private static Set<Integer> makeRange(int first, int last) {
-        if (last < first) {
-            return Collections.singleton(first);
-        }
-        Set<Integer> range = new HashSet<>();
-        for (int i = first; i <= last; i++) {
-            range.add(i);
-        }
-        return range;
     }
 
     @Override
@@ -196,7 +196,7 @@ public class HlsDownloader extends AbrDownloader {
             String line;
             while ((line = reader.readLine()) != null) {
                 final int lineNumber = reader.getLineNumber();
-                if (! linesToDelete.contains(lineNumber)) {
+                if (!linesToDelete.contains(lineNumber)) {
                     // Fix URI
                     line = maybeReplaceTrackUri(line, lineNumber);
                     writer.write(line);

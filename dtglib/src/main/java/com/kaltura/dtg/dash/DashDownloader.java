@@ -46,12 +46,6 @@ public class DashDownloader extends AbrDownloader {
         super(item);
     }
 
-
-    @Override
-    protected AssetFormat getAssetFormat() {
-        return AssetFormat.dash;
-    }
-
     private static void createLocalManifest(List<BaseTrack> tracks, byte[] originManifestBytes, File targetDir) throws IOException {
         DashManifestLocalizer localizer = new DashManifestLocalizer(originManifestBytes, tracks);
         localizer.localize();
@@ -64,6 +58,11 @@ public class DashDownloader extends AbrDownloader {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "local manifest: " + Base64.encodeToString(localManifestBytes, Base64.NO_WRAP));
         }
+    }
+
+    @Override
+    protected AssetFormat getAssetFormat() {
+        return AssetFormat.dash;
     }
 
     @Override
@@ -88,7 +87,7 @@ public class DashDownloader extends AbrDownloader {
 
         List<BaseTrack> trackList = getSelectedTracksFlat();
         for (BaseTrack bt : trackList) {
-            DashTrack track = (DashTrack)bt;
+            DashTrack track = (DashTrack) bt;
             AdaptationSet adaptationSet = currentPeriod.adaptationSets.get(track.adaptationIndex);
             Representation representation = adaptationSet.representations.get(track.representationIndex);
 

@@ -45,8 +45,7 @@ class DashManifestLocalizer {
             localizeImp();
         } catch (XmlPullParserException e) {
             throw new IOException(e);
-        }
-        catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             throw new IOException(e);
         }
     }
@@ -67,7 +66,7 @@ class DashManifestLocalizer {
             }
         }
     }
-    
+
     boolean shouldKeepAdaptationSet(int index) {
         // TODO: make the search more efficient
         for (BaseTrack keepTrack : keepTracks) {
@@ -78,7 +77,7 @@ class DashManifestLocalizer {
         }
         return false;
     }
-    
+
     boolean shouldKeepRepresentation(int adaptationIndex, int representationIndex) {
         // TODO: make the search more efficient
         for (BaseTrack keepTrack : keepTracks) {
@@ -90,7 +89,7 @@ class DashManifestLocalizer {
         return false;
 
     }
-    
+
     void localizeImp() throws XmlPullParserException, IOException {
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -103,16 +102,15 @@ class DashManifestLocalizer {
         serializer.setOutput(output, "utf8");
 
 
-
         parser.require(XmlPullParser.START_DOCUMENT, null, null);
         Boolean standalone = (Boolean) parser.getProperty("http://xmlpull.org/v1/doc/properties.html#xmldecl-standalone");
         serializer.startDocument(parser.getInputEncoding(), standalone);
-        
+
         int representationIndex = -1;
         int adaptationSetIndex = -1;
-        
+
         String currentRepresentationId = null;
-        
+
         int eventType;
         while ((eventType = parser.next()) != XmlPullParser.END_DOCUMENT) {
             switch (eventType) {
@@ -124,18 +122,18 @@ class DashManifestLocalizer {
                         adaptationSetIndex++;
                         representationIndex = -1;
                         currentRepresentationId = null;
-                        
+
                         if (!shouldKeepAdaptationSet(adaptationSetIndex)) {
                             skipSubtree();
                             continue;
                         }
                     }
-                    
+
                     if (parser.getName().equals(REPRESENTATION_TAG)) {
 
                         representationIndex++;
                         currentRepresentationId = parser.getAttributeValue(null, "id");
-                        
+
                         if (!shouldKeepRepresentation(adaptationSetIndex, representationIndex)) {
                             skipSubtree();
                             continue;
@@ -144,7 +142,7 @@ class DashManifestLocalizer {
 
                     // Start copying the tag
                     serializer.startTag(parser.getNamespace(), parser.getName());
-                    switch (parser.getName()){
+                    switch (parser.getName()) {
                         case SEGMENT_TEMPLATE_TAG:
                             handleSegmentTemplate();
                             break;
@@ -156,7 +154,7 @@ class DashManifestLocalizer {
                             break;
                     }
                     break;
-                
+
                 case XmlPullParser.END_TAG:
                     serializer.endTag(parser.getNamespace(), parser.getName());
                     break;
@@ -182,7 +180,7 @@ class DashManifestLocalizer {
 
     private void copyTagAttributes() throws IOException {
         // copy all attributes
-        for (int i = 0, n = parser.getAttributeCount(); i<n; i++) {
+        for (int i = 0, n = parser.getAttributeCount(); i < n; i++) {
             String attributeName = parser.getAttributeName(i);
             String attributeNamespace = parser.getAttributeNamespace(i);
             String attributeValue = parser.getAttributeValue(i);
@@ -192,16 +190,18 @@ class DashManifestLocalizer {
 
     private void handleSegmentTemplate() throws IOException {
         // copy attributes, but modify the template
-        for (int i = 0, n = parser.getAttributeCount(); i<n; i++) {
+        for (int i = 0, n = parser.getAttributeCount(); i < n; i++) {
             String attributeName = parser.getAttributeName(i);
             String attributeNamespace = parser.getAttributeNamespace(i);
             String attributeValue = parser.getAttributeValue(i);
 
             switch (attributeName) {
                 case MEDIA_ATTRIBUTE:
-                    attributeValue = "seg-$RepresentationID$-$Number$.m4s"; break;
+                    attributeValue = "seg-$RepresentationID$-$Number$.m4s";
+                    break;
                 case INITIALIZATION_ATTRIBUTE:
-                    attributeValue = "init-$RepresentationID$.mp4"; break;
+                    attributeValue = "init-$RepresentationID$.mp4";
+                    break;
             }
 
             serializer.attribute(attributeNamespace, attributeName, attributeValue);
@@ -209,7 +209,7 @@ class DashManifestLocalizer {
     }
 
     private void copyNamespaces() throws XmlPullParserException, IOException {
-        int nsStart = parser.getNamespaceCount(parser.getDepth()-1);
+        int nsStart = parser.getNamespaceCount(parser.getDepth() - 1);
         int nsEnd = parser.getNamespaceCount(parser.getDepth());
         for (int i = nsStart; i < nsEnd; i++) {
             String prefix = parser.getNamespacePrefix(i);

@@ -18,12 +18,14 @@ public abstract class ContentManager {
 
     /**
      * Add download listener.
+     *
      * @param listener
      */
     public abstract void addDownloadStateListener(DownloadStateListener listener);
 
     /**
      * Remove download listener.
+     *
      * @param listener
      */
     public abstract void removeDownloadStateListener(DownloadStateListener listener);
@@ -31,12 +33,13 @@ public abstract class ContentManager {
     /**
      * Auto start items marked as {@link DownloadState#IN_PROGRESS}. Default is true.
      * This setter only has effect if called before {@link #start(OnStartedListener)}.
+     *
      * @param autoStartItemsInProgress
      */
     public abstract void setAutoResumeItemsInProgress(boolean autoStartItemsInProgress);
 
     /**
-     * Start the download manager. Starts all downloads that were in IN_PROGRESS state when the 
+     * Start the download manager. Starts all downloads that were in IN_PROGRESS state when the
      * manager was stopped. Add listeners before calling this method.
      */
     public abstract void start(OnStartedListener onStartedListener);
@@ -64,7 +67,8 @@ public abstract class ContentManager {
     public abstract DownloadItem findItem(String itemId) throws IllegalStateException;
 
     /**
-     * Returns the number of downloaded bytes. 
+     * Returns the number of downloaded bytes.
+     *
      * @param itemId item. If null, returns the sum from all items.
      * @return
      */
@@ -73,6 +77,7 @@ public abstract class ContentManager {
     /**
      * Returns the number of estimated bytes. This includes the downloaded size and the pending
      * size.
+     *
      * @param itemId item. If null, returns the sum from all items.
      * @return
      */
@@ -81,6 +86,7 @@ public abstract class ContentManager {
     /**
      * Create a new item. Does not start the download and does not retrieve metadata from the network.
      * Use {@link DownloadItem#loadMetadata()} to load metadata and inspect it.
+     *
      * @param itemId
      * @param contentURL
      * @return
@@ -89,6 +95,7 @@ public abstract class ContentManager {
 
     /**
      * Remove item entirely. Deletes all files and db records.
+     *
      * @param itemId
      */
     public abstract void removeItem(String itemId) throws IllegalStateException;
@@ -97,6 +104,7 @@ public abstract class ContentManager {
 
     /**
      * Get list of downloads in a given set of states.
+     *
      * @param states
      * @return
      */
@@ -104,6 +112,7 @@ public abstract class ContentManager {
 
     /**
      * Get playback URL of a given item.
+     *
      * @param itemId
      * @return
      */
@@ -111,6 +120,7 @@ public abstract class ContentManager {
 
     /**
      * Get the File that represents the locally downloaded item.
+     *
      * @param itemId
      * @return
      */
@@ -118,12 +128,12 @@ public abstract class ContentManager {
 
     public abstract boolean isStarted();
 
+    public abstract Settings getSettings();
+
     public interface OnStartedListener {
         void onStarted();
     }
-    
-    public abstract Settings getSettings();
-    
+
     public static class Settings {
         public int maxDownloadRetries = 5;
         public int httpTimeoutMillis = 15000;

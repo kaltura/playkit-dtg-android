@@ -33,12 +33,16 @@ public interface DownloadItem {
     enum TrackType {
         VIDEO, AUDIO, TEXT
     }
-    
+
     interface TrackSelector {
         List<Track> getAvailableTracks(@NonNull TrackType type);
+
         List<Track> getDownloadedTracks(@NonNull TrackType type);
+
         List<Track> getSelectedTracks(@NonNull TrackType type);
+
         void setSelectedTracks(@NonNull TrackType type, @NonNull List<Track> tracks);
+
         void apply(OnTrackSelectionListener listener);
     }
 
@@ -62,15 +66,15 @@ public interface DownloadItem {
         };
 
 
-
         TrackType getType();
-    
+
         String getLanguage();
 
         long getBitrate();
-        
+
         // Only applicable to VIDEO tracks.
         int getWidth();
+
         int getHeight();
     }
 }

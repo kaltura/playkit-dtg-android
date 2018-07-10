@@ -14,9 +14,8 @@ import java.util.List;
 class ServiceProxy {
 
     private static final String TAG = "ServiceProxy";
-    private Context context;
     private final ContentManager.Settings settings;
-
+    private Context context;
     private DownloadService service;
     private DownloadStateListener listener;
 
@@ -45,12 +44,12 @@ class ServiceProxy {
     }
 
     public void start(ContentManager.OnStartedListener startedListener) {
-        
+
         if (service != null) {
             Log.d(TAG, "Already started");
             return;
         }
-        
+
         this.onStartedListener = startedListener;
 
         Intent intent = new Intent(context, DownloadService.class);
@@ -66,7 +65,7 @@ class ServiceProxy {
             Log.d(TAG, "Not started");
             return;
         }
-        
+
         context.unbindService(serviceConnection);
         // DownloadService.onUnbind() will call stop().
     }

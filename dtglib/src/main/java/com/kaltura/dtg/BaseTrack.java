@@ -28,55 +28,6 @@ public abstract class BaseTrack implements DownloadItem.Track {
     protected int height;
     protected String codecs;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof BaseTrack)) return false;
-
-        BaseTrack baseTrack = (BaseTrack) o;
-
-        if (bitrate != baseTrack.bitrate) return false;
-        if (width != baseTrack.width) return false;
-        if (height != baseTrack.height) return false;
-        if (type != baseTrack.type) return false;
-        if (language != null ? !language.equals(baseTrack.language) : baseTrack.language != null)
-            return false;
-        return codecs != null ? codecs.equals(baseTrack.codecs) : baseTrack.codecs == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = type != null ? type.hashCode() : 0;
-        result = 31 * result + (language != null ? language.hashCode() : 0);
-        result = 31 * result + (int) (bitrate ^ (bitrate >>> 32));
-        result = 31 * result + width;
-        result = 31 * result + height;
-        result = 31 * result + (codecs != null ? codecs.hashCode() : 0);
-        return result;
-    }
-
-    public static BaseTrack create(Cursor cursor, AssetFormat assetFormat) {
-
-        switch (assetFormat) {
-            case hls:
-                return new HlsAsset.Track(cursor);
-            case dash:
-                return new DashTrack(cursor);
-            default:
-                throw new IllegalArgumentException("Invalid AssetFormat " + assetFormat);
-        }
-    }
-
-    public static List<BaseTrack> filterByLanguage(@NonNull String language, List<BaseTrack> list) {
-        List<BaseTrack> filtered = new ArrayList<>();
-        for (BaseTrack track : list) {
-            if (language.equals(track.getLanguage())) {
-                filtered.add(track);
-            }
-        }
-        return filtered;
-    }
-
     protected BaseTrack(DownloadItem.TrackType type, Format format) {
         this.type = type;
         this.bitrate = format.bitrate;
@@ -110,6 +61,55 @@ public abstract class BaseTrack implements DownloadItem.Track {
                     break;
             }
         }
+    }
+
+    public static BaseTrack create(Cursor cursor, AssetFormat assetFormat) {
+
+        switch (assetFormat) {
+            case hls:
+                return new HlsAsset.Track(cursor);
+            case dash:
+                return new DashTrack(cursor);
+            default:
+                throw new IllegalArgumentException("Invalid AssetFormat " + assetFormat);
+        }
+    }
+
+    public static List<BaseTrack> filterByLanguage(@NonNull String language, List<BaseTrack> list) {
+        List<BaseTrack> filtered = new ArrayList<>();
+        for (BaseTrack track : list) {
+            if (language.equals(track.getLanguage())) {
+                filtered.add(track);
+            }
+        }
+        return filtered;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BaseTrack)) return false;
+
+        BaseTrack baseTrack = (BaseTrack) o;
+
+        if (bitrate != baseTrack.bitrate) return false;
+        if (width != baseTrack.width) return false;
+        if (height != baseTrack.height) return false;
+        if (type != baseTrack.type) return false;
+        if (language != null ? !language.equals(baseTrack.language) : baseTrack.language != null)
+            return false;
+        return codecs != null ? codecs.equals(baseTrack.codecs) : baseTrack.codecs == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = type != null ? type.hashCode() : 0;
+        result = 31 * result + (language != null ? language.hashCode() : 0);
+        result = 31 * result + (int) (bitrate ^ (bitrate >>> 32));
+        result = 31 * result + width;
+        result = 31 * result + height;
+        result = 31 * result + (codecs != null ? codecs.hashCode() : 0);
+        return result;
     }
 
     protected ContentValues toContentValues() {
@@ -156,7 +156,9 @@ public abstract class BaseTrack implements DownloadItem.Track {
     }
 
     protected abstract void parseExtra(JSONObject jsonExtra);
+
     protected abstract void dumpExtra(JSONObject jsonExtra) throws JSONException;
+
     protected abstract String getRelativeId();
 
     @Override

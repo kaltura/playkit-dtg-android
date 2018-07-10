@@ -48,21 +48,11 @@ public class DownloadService extends Service {
     private ExecutorService executorService;
     private ItemFutureMap futureMap = new ItemFutureMap();
     private Handler listenerHandler = null;
-    
+
     private Handler taskProgressHandler = null;
     private ContentManager.Settings settings;
-    
-    private Set<String> removedItems = new HashSet<>();
-    private String NO_MEDIA_EMPTY_FILE = ".nomedia";
 
-    public DownloadService(Context context) {
-        this.context = context;
-    }
-    
-    public DownloadService() {
-        this.context = this;
-    }
-    
+    private Set<String> removedItems = new HashSet<>();
     private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
 
         @Override
@@ -77,72 +67,7 @@ public class DownloadService extends Service {
             }
         }
     };
-
-    private void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes, final Exception stopError) {
-
-        if (stopping) {
-            return;
-        }
-        
-        String itemId = task.itemId;
-        
-        if (removedItems.contains(itemId)) {
-            // Ignore this report.
-            return;
-        }
-        
-        final DownloadItemImp item = findItemImpl(itemId);
-        if (item == null) {
-            Log.e(TAG, "Can't find item by id: " + itemId + "; taskId: " + task.taskId);
-            return;
-        }
-
-        int pendingCount = -1;
-        if (newState == DownloadTask.State.COMPLETED) {
-            database.markTaskAsComplete(task);
-            pendingCount = countPendingFiles(itemId, null);
-            Log.i(TAG, "Pending tasks for item: " + pendingCount);
-        }
-
-        if (newState == DownloadTask.State.ERROR) {
-            Log.d(TAG, "Task has failed; cancelling item " + itemId);
-            item.setState(DownloadState.FAILED);
-            database.updateItemState(itemId, DownloadState.FAILED);
-            futureMap.cancelItem(itemId);
-            listenerHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    downloadStateListener.onDownloadFailure(item, stopError);
-                }
-            });
-            return;
-        }
-        
-        final long totalBytes = item.incDownloadBytes(newBytes);
-        updateItemInfoInDB(item, Database.COL_ITEM_DOWNLOADED_SIZE);
-
-        if (pendingCount == 0) {
-            // We finished the last (or only) chunk of the item.
-            database.setDownloadFinishTime(itemId);
-
-            item.setState(DownloadState.COMPLETED);
-            database.updateItemState(item.getItemId(), DownloadState.COMPLETED);
-            listenerHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    downloadStateListener.onDownloadComplete(item);
-                }
-            });
-        } else {
-            listenerHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    downloadStateListener.onProgressChange(item, totalBytes);
-                }
-            });
-        }
-    }
-    
+    private String NO_MEDIA_EMPTY_FILE = ".nomedia";
     private DownloadStateListener noopListener = new DownloadStateListener() {
         @Override
         public void onDownloadComplete(DownloadItem item) {
@@ -180,11 +105,84 @@ public class DownloadService extends Service {
         }
     };
 
+    public DownloadService(Context context) {
+        this.context = context;
+    }
+
+    public DownloadService() {
+        this.context = this;
+    }
+
+    private void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes, final Exception stopError) {
+
+        if (stopping) {
+            return;
+        }
+
+        String itemId = task.itemId;
+
+        if (removedItems.contains(itemId)) {
+            // Ignore this report.
+            return;
+        }
+
+        final DownloadItemImp item = findItemImpl(itemId);
+        if (item == null) {
+            Log.e(TAG, "Can't find item by id: " + itemId + "; taskId: " + task.taskId);
+            return;
+        }
+
+        int pendingCount = -1;
+        if (newState == DownloadTask.State.COMPLETED) {
+            database.markTaskAsComplete(task);
+            pendingCount = countPendingFiles(itemId, null);
+            Log.i(TAG, "Pending tasks for item: " + pendingCount);
+        }
+
+        if (newState == DownloadTask.State.ERROR) {
+            Log.d(TAG, "Task has failed; cancelling item " + itemId);
+            item.setState(DownloadState.FAILED);
+            database.updateItemState(itemId, DownloadState.FAILED);
+            futureMap.cancelItem(itemId);
+            listenerHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    downloadStateListener.onDownloadFailure(item, stopError);
+                }
+            });
+            return;
+        }
+
+        final long totalBytes = item.incDownloadBytes(newBytes);
+        updateItemInfoInDB(item, Database.COL_ITEM_DOWNLOADED_SIZE);
+
+        if (pendingCount == 0) {
+            // We finished the last (or only) chunk of the item.
+            database.setDownloadFinishTime(itemId);
+
+            item.setState(DownloadState.COMPLETED);
+            database.updateItemState(item.getItemId(), DownloadState.COMPLETED);
+            listenerHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    downloadStateListener.onDownloadComplete(item);
+                }
+            });
+        } else {
+            listenerHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    downloadStateListener.onProgressChange(item, totalBytes);
+                }
+            });
+        }
+    }
+
     @Override
     public void onCreate() {
         Log.d(TAG, "*** onCreate");
     }
-    
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -214,7 +212,7 @@ public class DownloadService extends Service {
         listenerThread.start();
         taskProgressHandler = new Handler(listenerThread.getLooper());
     }
-    
+
     private void stopHandlerThreads() {
         listenerHandler.getLooper().quit();
         listenerHandler = null;
@@ -258,7 +256,7 @@ public class DownloadService extends Service {
             throw new IllegalStateException("Service not started");
         }
     }
-    
+
     public void start() {
 
         Log.d(TAG, "start()");
@@ -270,7 +268,7 @@ public class DownloadService extends Service {
         if (extFilesDir != null) {
             downloadsDir = new File(extFilesDir, "dtg/clear");
             makeDirs(downloadsDir, "provider downloads");
-            if(settings.createNoMediaFileInDownloadsDir) {
+            if (settings.createNoMediaFileInDownloadsDir) {
                 File noMediafileExternal = new File(extFilesDir, NO_MEDIA_EMPTY_FILE);
                 try {
                     noMediafileExternal.createNewFile();
@@ -294,7 +292,7 @@ public class DownloadService extends Service {
     }
 
     public void stop() {
-        
+
         Log.d(TAG, "stop()");
 
         if (!started) {
@@ -306,7 +304,7 @@ public class DownloadService extends Service {
         for (DownloadItemImp item : getDownloads(new DownloadState[]{DownloadState.IN_PROGRESS})) {
             pauseItemDownload(item.getItemId());
         }
-        
+
         taskProgressHandler.getLooper().quit();
 
         executorService.shutdownNow();
@@ -335,7 +333,7 @@ public class DownloadService extends Service {
 
     public void loadItemMetadata(final DownloadItemImp item) {
         assertStarted();
-        
+
         AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
@@ -445,9 +443,9 @@ public class DownloadService extends Service {
     }
 
     public void addDownloadTasksToDB(DownloadItemImp item, List<DownloadTask> tasks) {
-        
+
         // Filter-out things that are already 
-        
+
         database.addDownloadTasksToDB(item, tasks);
     }
 
@@ -471,32 +469,32 @@ public class DownloadService extends Service {
         }
 
         item.setState(DownloadState.IN_PROGRESS);
-        
+
         listenerHandler.post(new Runnable() {
             @Override
             public void run() {
                 downloadStateListener.onDownloadStart(item);
             }
         });
-        
+
         // Read download tasks from db
         ArrayList<DownloadTask> chunksToDownload = database.readPendingDownloadTasksFromDB(itemId);
 
         if (chunksToDownload.isEmpty()) {
             database.updateItemState(itemId, DownloadState.COMPLETED);
-            
+
             listenerHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     downloadStateListener.onDownloadComplete(item);
                 }
             });
-            
+
         } else {
             downloadChunks(chunksToDownload, itemId);
             database.updateItemState(itemId, DownloadState.IN_PROGRESS);
         }
-        
+
         return item.getState();
     }
 
@@ -511,7 +509,7 @@ public class DownloadService extends Service {
 
                 item.setState(DownloadState.PAUSED);
                 database.updateItemState(item.getItemId(), DownloadState.PAUSED);
-                
+
                 listenerHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -538,15 +536,15 @@ public class DownloadService extends Service {
             return;
         }
 
-        
+
         pauseDownload(item);
-        
+
         // pauseDownload takes time to interrupt all downloads, and the downloads report their
         // progress. Keep a list of the items that were removed in this session and ignore their
         // progress.
         removedItems.add(item.getItemId());
-        
-        
+
+
         deleteItemFiles(item.getItemId());
         database.removeItemFromDB(item);
     }
@@ -561,12 +559,12 @@ public class DownloadService extends Service {
     private DownloadItemImp findItemImpl(String itemId) {
 
         // TODO: cache items in memory?
-        
+
         DownloadItemImp item = database.findItemInDB(itemId);
         if (item != null) {
             item.setProvider(this);
         }
-                
+
         return item;
     }
 
@@ -575,7 +573,7 @@ public class DownloadService extends Service {
      *
      * @return An item identified by itemId, or null if not found.
      */
-    
+
     public DownloadItemImp findItem(String itemId) {
         assertStarted();
 
@@ -588,10 +586,10 @@ public class DownloadService extends Service {
 
     public DownloadItemImp createItem(String itemId, String contentURL) {
         assertStarted();
-        
+
         // if this item was just removed, unmark it as removed.
         removedItems.remove(itemId);
-        
+
 
         DownloadItemImp item = findItemImpl(itemId);
         // If item already exists, return null.
@@ -608,7 +606,7 @@ public class DownloadService extends Service {
         item.setState(DownloadState.NEW);
         item.setAddedTime(System.currentTimeMillis());
         File itemDataDir = getItemDataDir(itemId);
-        
+
         makeDirs(itemDataDir, "item data directory");
 
         item.setDataDir(itemDataDir.getAbsolutePath());
@@ -644,7 +642,7 @@ public class DownloadService extends Service {
         }
         return Uri.fromFile(localFile).toString();
     }
-    
+
     public File getLocalFile(String itemId) {
         assertStarted();
 
@@ -660,10 +658,10 @@ public class DownloadService extends Service {
 
         return new File(item.getDataDir(), playbackPath);
     }
-    
+
     public void dumpState() {
     }
-    
+
     public void setDownloadStateListener(DownloadStateListener listener) {
         if (listener == null) {
             listener = noopListener;
@@ -680,7 +678,7 @@ public class DownloadService extends Service {
     public List<BaseTrack> readTracksFromDB(String itemId, TrackType trackType, BaseTrack.TrackState state, AssetFormat assetFormat) {
         return database.readTracks(itemId, trackType, state, assetFormat);
     }
-    
+
     public void updateTracksInDB(String itemId, Map<TrackType, List<BaseTrack>> tracksMap, BaseTrack.TrackState state) {
         database.updateTracksState(itemId, Utils.flattenTrackList(tracksMap), state);
     }
@@ -720,7 +718,7 @@ public class DownloadService extends Service {
         if (started) {
             throw new IllegalStateException("Can't change settings after start");
         }
-        
+
         // Copy fields.
         this.settings = new ContentManager.Settings();
         this.settings.httpTimeoutMillis = downloadSettings.httpTimeoutMillis;

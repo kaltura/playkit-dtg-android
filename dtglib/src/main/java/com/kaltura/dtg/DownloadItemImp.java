@@ -20,10 +20,10 @@ public class DownloadItemImp implements DownloadItem {
     private long finishedTime;
     private long estimatedSizeBytes;
     private long downloadedSizeBytes;
-    
+
     private String dataDir;
     private String playbackPath;
-    
+
     private TrackSelector trackSelector;
 
     DownloadItemImp(String itemId, String contentURL) {
@@ -65,7 +65,7 @@ public class DownloadItemImp implements DownloadItem {
     public void setPlaybackPath(String playbackPath) {
         this.playbackPath = playbackPath;
     }
-    
+
     void setProvider(DownloadService provider) {
         this.service = provider;
     }
@@ -88,12 +88,12 @@ public class DownloadItemImp implements DownloadItem {
     public void startDownload() {
         service.startDownload(this.getItemId());
     }
-    
+
     @Override
     public long getEstimatedSizeBytes() {
         return estimatedSizeBytes;
     }
-    
+
     public void setEstimatedSizeBytes(long bytes) {
         estimatedSizeBytes = bytes;
     }
@@ -102,7 +102,7 @@ public class DownloadItemImp implements DownloadItem {
     public long getDownloadedSizeBytes() {
         return downloadedSizeBytes;
     }
-    
+
     void setDownloadedSizeBytes(long bytes) {
         downloadedSizeBytes = bytes;
     }
@@ -137,14 +137,14 @@ public class DownloadItemImp implements DownloadItem {
 
     @Override
     public TrackSelector getTrackSelector() {
-        
+
         if (playbackPath == null || !(playbackPath.endsWith(AssetFormat.dash.extension()) || playbackPath.endsWith(AssetFormat.hls.extension()))) {
             Log.w(TAG, "Track selection is only supported for dash/hls");
             return null;
         }
-        
+
         // If selection is in progress, return the current selector.
-        
+
         if (trackSelector == null) {
             AbrDownloader updater;
             try {
