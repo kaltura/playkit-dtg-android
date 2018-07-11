@@ -5,9 +5,6 @@ import android.support.annotation.NonNull;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Created by noamt on 5/10/15.
- */
 public interface DownloadItem {
 
     String getItemId();

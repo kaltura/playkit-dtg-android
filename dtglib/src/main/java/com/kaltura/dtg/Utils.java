@@ -22,9 +22,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Created by noamt on 5/13/15.
- */
 public class Utils {
     private static final String TAG = "DTGUtils";
 

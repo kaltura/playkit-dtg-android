@@ -9,9 +9,6 @@ import com.kaltura.dtg.DownloadItem;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
- * Created by noamt on 13/09/2016.
- */
 public class DashTrack extends BaseTrack {
     private static final String TAG = "DashTrack";
 

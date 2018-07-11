@@ -31,9 +31,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 
-/**
- * Created by noamt on 19/06/2016.
- */
 public class DashDownloader extends AbrDownloader {
 
     private static final String ORIGIN_MANIFEST_MPD = "origin.mpd";

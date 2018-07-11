@@ -12,9 +12,6 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.Future;
 
-/**
- * Created by noamt on 14/06/2016.
- */
 class ItemFutureMap {
     private static final String TAG = "ItemFutureMap";
     private Map<String, Set<Future>> map;

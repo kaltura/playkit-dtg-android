@@ -5,9 +5,6 @@ import android.content.Context;
 import java.io.File;
 import java.util.List;
 
-/**
- * Created by Noam Tamim @ Kaltura on 28/09/2016.
- */
 public abstract class ContentManager {
     private static final String VERSION_STRING = BuildConfig.VERSION_NAME;
     static final String CLIENT_TAG = "playkit-dtg/android-" + VERSION_STRING;

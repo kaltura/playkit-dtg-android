@@ -5,9 +5,6 @@ import android.util.Log;
 
 import java.util.Date;
 
-/**
- * Created by noamt on 30/05/2016.
- */
 public class DownloadItemImp implements DownloadItem {
 
     private static final String TAG = "DownloadItemImp";

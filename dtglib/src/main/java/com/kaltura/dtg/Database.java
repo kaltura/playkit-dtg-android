@@ -20,10 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-
-/**
- * Created by noamt on 5/20/15.
- */
 class Database {
     private static final int DB_VERSION = 2;
     private static final String TBL_DOWNLOAD_FILES = "Files";

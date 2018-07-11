@@ -14,9 +14,6 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 
-/**
- * Created by noamt on 5/13/15.
- */
 public class DownloadTask {
     private static final String TAG = "DownloadTask";
     private static final int PROGRESS_REPORT_COUNT = 100;

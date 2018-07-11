@@ -12,9 +12,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Created by noamt on 21/06/2016.
- */
 class DashManifestLocalizer {
 
     private static final String REPRESENTATION_TAG = "Representation";
