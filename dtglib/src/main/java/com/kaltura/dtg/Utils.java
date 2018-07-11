@@ -66,7 +66,7 @@ public class Utils {
         return map;
     }
 
-    public static long dirSize(File dir) {
+    private static long dirSize(File dir) {
 
         if (dir.exists()) {
             long result = 0;
@@ -112,7 +112,7 @@ public class Utils {
         return sb.toString();
     }
 
-    public static byte[] md5(String input) {
+    private static byte[] md5(String input) {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("MD5");

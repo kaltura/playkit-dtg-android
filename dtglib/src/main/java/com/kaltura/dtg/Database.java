@@ -25,33 +25,33 @@ import java.util.Locale;
  * Created by noamt on 5/20/15.
  */
 class Database {
-    static final int DB_VERSION = 2;
-    static final String TBL_DOWNLOAD_FILES = "Files";
-    static final String COL_FILE_URL = "FileURL";
-    static final String COL_TARGET_FILE = "TargetFile";
-    static final String TBL_ITEMS = "Items";
-    static final String COL_ITEM_ID = "ItemID";
-    static final String COL_CONTENT_URL = "ContentURL";
+    private static final int DB_VERSION = 2;
+    private static final String TBL_DOWNLOAD_FILES = "Files";
+    private static final String COL_FILE_URL = "FileURL";
+    private static final String COL_TARGET_FILE = "TargetFile";
+    private static final String TBL_ITEMS = "Items";
+    private static final String COL_ITEM_ID = "ItemID";
+    private static final String COL_CONTENT_URL = "ContentURL";
     static final String COL_ITEM_STATE = "ItemState";
-    static final String COL_ITEM_ADD_TIME = "TimeAdded";
-    static final String COL_ITEM_FINISH_TIME = "TimeFinished";
-    static final String COL_ITEM_DATA_DIR = "ItemDataDir";
+    private static final String COL_ITEM_ADD_TIME = "TimeAdded";
+    private static final String COL_ITEM_FINISH_TIME = "TimeFinished";
+    private static final String COL_ITEM_DATA_DIR = "ItemDataDir";
     static final String COL_ITEM_ESTIMATED_SIZE = "ItemEstimatedSize";
     static final String COL_ITEM_DOWNLOADED_SIZE = "ItemDownloadedSize";
     static final String COL_ITEM_PLAYBACK_PATH = "ItemPlaybackPath";
-    static final String[] ALL_ITEM_COLS = new String[]{COL_ITEM_ID, COL_CONTENT_URL,
+    private static final String[] ALL_ITEM_COLS = new String[]{COL_ITEM_ID, COL_CONTENT_URL,
             COL_ITEM_STATE, COL_ITEM_ADD_TIME, COL_ITEM_ESTIMATED_SIZE, COL_ITEM_DOWNLOADED_SIZE,
             COL_ITEM_PLAYBACK_PATH, COL_ITEM_DATA_DIR};
-    static final String TAG = "Database";
-    static final String TBL_TRACK = "Track";
+    private static final String TAG = "Database";
+    private static final String TBL_TRACK = "Track";
     static final String COL_TRACK_ID = "TrackId";
     static final String COL_TRACK_EXTRA = "TrackExtra";
-    static final String COL_TRACK_STATE = "TrackState";
+    private static final String COL_TRACK_STATE = "TrackState";
     static final String COL_TRACK_TYPE = "TrackType";
     static final String COL_TRACK_LANGUAGE = "TrackLanguage";
     static final String COL_TRACK_BITRATE = "TrackBitrate";
     static final String COL_TRACK_REL_ID = "TrackRelativeId";
-    static final String COL_FILE_COMPLETE = "FileComplete";
+    private static final String COL_FILE_COMPLETE = "FileComplete";
 
     private final SQLiteOpenHelper helper;
     private final SQLiteDatabase database;
@@ -202,11 +202,10 @@ class Database {
 
         final ArrayList<DownloadTask> downloadTasks = new ArrayList<>();
 
-        SQLiteDatabase db = database;
         Cursor cursor = null;
 
         try {
-            cursor = db.query(TBL_DOWNLOAD_FILES, new String[]{COL_FILE_URL, COL_TARGET_FILE},
+            cursor = database.query(TBL_DOWNLOAD_FILES, new String[]{COL_FILE_URL, COL_TARGET_FILE},
                     COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0", new String[]{itemId}, null, null, "ROWID");
 
             while (cursor.moveToNext()) {
@@ -246,12 +245,11 @@ class Database {
 
     synchronized DownloadItemImp findItemInDB(String itemId) {
 
-        SQLiteDatabase db = database;
         Cursor cursor = null;
         DownloadItemImp item = null;
 
         try {
-            cursor = db.query(TBL_ITEMS,
+            cursor = database.query(TBL_ITEMS,
                     ALL_ITEM_COLS,
                     COL_ITEM_ID + "==?", new String[]{itemId}, null, null, null);
 
@@ -361,7 +359,7 @@ class Database {
     }
 
     // If itemId is null, sum all items.
-    synchronized long getItemColumnLong(@Nullable String itemId, @NonNull String col) {
+    private synchronized long getItemColumnLong(@Nullable String itemId, @NonNull String col) {
         SQLiteDatabase db = database;
         Cursor cursor = null;
         try {
@@ -475,11 +473,10 @@ class Database {
 
         ArrayList<DownloadItemImp> items = new ArrayList<>();
 
-        SQLiteDatabase db = database;
         Cursor cursor = null;
 
         try {
-            cursor = db.query(TBL_ITEMS,
+            cursor = database.query(TBL_ITEMS,
                     ALL_ITEM_COLS,
                     COL_ITEM_STATE + " IN " + placeholders, stateNames, null, null, null);
 

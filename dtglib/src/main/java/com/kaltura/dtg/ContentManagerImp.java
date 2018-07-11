@@ -16,7 +16,7 @@ public class ContentManagerImp extends ContentManager {
     private static final String TAG = "ContentManagerImp";
 
     private static ContentManager sInstance;
-    private final HashSet<DownloadStateListener> stateListeners = new HashSet<>(1);
+    private final HashSet<DownloadStateListener> stateListeners = new HashSet<>();
     private final DownloadStateListener downloadStateRelay = new DownloadStateListener() {
 
         // Pass the state to all listeners.
@@ -166,9 +166,7 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public void pauseDownloads() throws IllegalStateException {
         checkIfManagerStarted();
-        if (provider == null) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProvider();
 
         List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
         for (DownloadItem item : downloads) {
@@ -179,9 +177,7 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public void resumeDownloads() throws IllegalStateException {
         checkIfManagerStarted();
-        if (provider == null) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProvider();
 
         List<DownloadItem> downloads = getDownloads(DownloadState.PAUSED);
         for (DownloadItem item : downloads) {
@@ -192,37 +188,35 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public DownloadItem findItem(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
-        if (!isProviderOperationValid(itemId)) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProviderAndItem(itemId);
         return provider.findItem(itemId);
     }
 
     @Override
     public long getDownloadedItemSize(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
+        assertProvider();
+
+        return provider.getDownloadedItemSize(itemId);
+    }
+
+    private void assertProvider() {
         if (provider == null) {
             throw new IllegalStateException("Provider Operation Not Valid");
         }
-
-        return provider.getDownloadedItemSize(itemId);
     }
 
     @Override
     public long getEstimatedItemSize(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
-        if (!isProviderOperationValid(itemId)) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProviderAndItem(itemId);
         return provider.getEstimatedItemSize(itemId);
     }
 
     @Override
     public DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException {
         checkIfManagerStarted();
-        if (!isProviderOperationValid(itemId)) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProviderAndItem(itemId);
         DownloadRequestParams downloadRequestParams = adapter.adapt(new DownloadRequestParams(Uri.parse(contentURL), null));
         return provider.createItem(itemId, downloadRequestParams.url.toString());
     }
@@ -230,9 +224,7 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public void removeItem(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
-        if (!isProviderOperationValid(itemId)) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProviderAndItem(itemId);
 
         DownloadItem item = findItem(itemId);
         if (item == null) {
@@ -244,8 +236,7 @@ public class ContentManagerImp extends ContentManager {
 
     private File getItemDir(String itemId) {
         // TODO: safe itemId?
-        File itemDir = new File(itemsDir, itemId);
-        return itemDir;
+        return new File(itemsDir, itemId);
     }
 
     @Override
@@ -258,35 +249,28 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public List<DownloadItem> getDownloads(DownloadState... states) throws IllegalStateException {
         checkIfManagerStarted();
-        if (provider == null) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProvider();
         return new ArrayList<>(provider.getDownloads(states));
     }
 
     @Override
     public String getPlaybackURL(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
-        if (!isProviderOperationValid(itemId)) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProviderAndItem(itemId);
 
         return provider.getPlaybackURL(itemId);
     }
 
-    private boolean isProviderOperationValid(String itemId) {
+    private void assertProviderAndItem(String itemId) {
         if (provider == null || TextUtils.isEmpty(itemId)) {
             throw new IllegalStateException("Provider Operation Not Valid");
         }
-        return true;
     }
 
     @Override
     public File getLocalFile(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
-        if (provider == null || TextUtils.isEmpty(itemId)) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProviderAndItem(itemId);
         return provider.getLocalFile(itemId);
     }
 

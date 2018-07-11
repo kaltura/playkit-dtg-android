@@ -112,7 +112,7 @@ public abstract class BaseTrack implements DownloadItem.Track {
         return result;
     }
 
-    protected ContentValues toContentValues() {
+    ContentValues toContentValues() {
         ContentValues values = new ContentValues();
         values.put(Database.COL_TRACK_LANGUAGE, getLanguage());
         values.put(Database.COL_TRACK_BITRATE, getBitrate());

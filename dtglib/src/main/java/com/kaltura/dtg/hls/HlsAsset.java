@@ -24,8 +24,8 @@ public class HlsAsset {
     private static final String TAG = "HlsAsset";
     static transient HlsPlaylistParser parser = new HlsPlaylistParser();
 
-    String masterUrl;
-    byte[] masterBytes;
+    private String masterUrl;
+    private byte[] masterBytes;
     long durationMs;
     List<Track> videoTracks = new ArrayList<>();
     List<Track> audioTracks = new ArrayList<>();
@@ -86,10 +86,9 @@ public class HlsAsset {
             super(cursor);
         }
 
-        public Track parse(byte[] bytes) {
+        public void parse(byte[] bytes) {
             this.bytes = bytes;
             parse();
-            return this;
         }
 
         private void parse() {

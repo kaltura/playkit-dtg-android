@@ -150,7 +150,7 @@ public abstract class AbrDownloader {
         originManifestBytes = Utils.downloadToFile(url, targetFile, MAX_MANIFEST_SIZE);
     }
 
-    protected List<BaseTrack> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {
+    List<BaseTrack> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {
 
         if (mode == Mode.create) {
             Log.w(TAG, "Initial selector has no downloaded tracks!");
@@ -226,9 +226,9 @@ public abstract class AbrDownloader {
 
     protected abstract AssetFormat getAssetFormat();
 
-    public abstract String storedOriginManifestName();
+    protected abstract String storedOriginManifestName();
 
-    public abstract String storedLocalManifestName();
+    protected abstract String storedLocalManifestName();
 
     private void selectDefaultTracks() {
 
@@ -274,7 +274,7 @@ public abstract class AbrDownloader {
         return Utils.flattenTrackList(selectedTracks);
     }
 
-    protected List<BaseTrack> getSelectedTracksByType(TrackType type) {
+    List<BaseTrack> getSelectedTracksByType(TrackType type) {
         return selectedTracks.get(type);
     }
 
@@ -286,14 +286,14 @@ public abstract class AbrDownloader {
         this.selectedTracks = selectedTracks;
     }
 
-    protected void setSelectedTracksForType(@NonNull TrackType type, @NonNull List<BaseTrack> tracks) {
+    void setSelectedTracksForType(@NonNull TrackType type, @NonNull List<BaseTrack> tracks) {
         if (trackUpdatingData != null) {
             trackUpdatingData.trackSelectionChanged = true;
         }
         selectedTracks.put(type, new ArrayList<>(tracks));
     }
 
-    protected List<BaseTrack> getAvailableTracksByType(TrackType type) {
+    List<BaseTrack> getAvailableTracksByType(TrackType type) {
         return Collections.unmodifiableList(availableTracks.get(type));
     }
 
@@ -305,7 +305,7 @@ public abstract class AbrDownloader {
         this.itemDurationMS = itemDurationMS;
     }
 
-    public long getEstimatedDownloadSize() {
+    protected long getEstimatedDownloadSize() {
         return estimatedDownloadSize;
     }
 

@@ -8,10 +8,10 @@ import static com.kaltura.dtg.Utils.toBase64;
 
 public class KalturaDownloadRequestAdapter implements DownloadRequestParams.Adapter {
 
-    public static final String PLAYBACK_TYPE_PARAM = "playbackType";
-    public static final String CLIENT_TAG_PARAM = "clientTag";
-    public static final String REFERRER_PARAM = "referrer";
-    public static final String PLAY_SESSION_ID_PARAM = "playSessionId";
+    private static final String PLAYBACK_TYPE_PARAM = "playbackType";
+    private static final String CLIENT_TAG_PARAM = "clientTag";
+    private static final String REFERRER_PARAM = "referrer";
+    private static final String PLAY_SESSION_ID_PARAM = "playSessionId";
     private final String applicationName;
     private String playSessionId;
 

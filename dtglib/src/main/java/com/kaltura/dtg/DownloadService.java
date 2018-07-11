@@ -181,11 +181,6 @@ public class DownloadService extends Service {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "*** onBind");
         return localBinder;
@@ -217,7 +212,7 @@ public class DownloadService extends Service {
         taskProgressHandler = null;
     }
 
-    void pauseItemDownload(String itemId) {
+    private void pauseItemDownload(String itemId) {
         if (itemId != null) {
             futureMap.cancelItem(itemId);
         } else {
@@ -226,7 +221,7 @@ public class DownloadService extends Service {
         // Maybe add PAUSE_ALL with executorService.purge(); and remove futures
     }
 
-    void downloadChunks(ArrayList<DownloadTask> chunks, String itemId) {
+    private void downloadChunks(ArrayList<DownloadTask> chunks, String itemId) {
         if (chunks == null) {
             return;
         }
@@ -238,7 +233,7 @@ public class DownloadService extends Service {
         }
     }
 
-    public void updateItemInfoInDB(DownloadItemImp item, String... columns) {
+    private void updateItemInfoInDB(DownloadItemImp item, String... columns) {
         if (database != null) {
             database.updateItemInfo(item, columns);
         }
@@ -350,7 +345,7 @@ public class DownloadService extends Service {
         });
     }
 
-    public File getItemDataDir(String itemId) {
+    private File getItemDataDir(String itemId) {
         assertStarted();
 
         return new File(downloadsDir, "items/" + itemId + "/data");    // TODO: make sure name is safe.
@@ -619,9 +614,6 @@ public class DownloadService extends Service {
         }
 
         return new File(item.getDataDir(), playbackPath);
-    }
-
-    public void dumpState() {
     }
 
     public void setDownloadStateListener(DownloadStateListener listener) {

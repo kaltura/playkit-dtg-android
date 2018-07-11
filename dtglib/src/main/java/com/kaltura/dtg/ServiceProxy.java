@@ -114,10 +114,6 @@ class ServiceProxy {
         return service.getLocalFile(itemId);
     }
 
-    public void dumpState() {
-        service.dumpState();
-    }
-
     public void setDownloadStateListener(DownloadStateListener listener) {
         this.listener = listener;
         if (service != null) {

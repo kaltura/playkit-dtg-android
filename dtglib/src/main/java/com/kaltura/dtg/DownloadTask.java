@@ -40,14 +40,13 @@ public class DownloadTask {
         this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
     }
 
-    public DownloadTask(String url, String targetFile) throws MalformedURLException {
+    DownloadTask(String url, String targetFile) throws MalformedURLException {
         this(new URL(url), new File(targetFile));
     }
 
 
-    public DownloadTask setTrackRelativeId(String trackRelativeId) {
+    public void setTrackRelativeId(String trackRelativeId) {
         this.trackRelativeId = trackRelativeId;
-        return this;
     }
 
 
@@ -238,7 +237,7 @@ public class DownloadTask {
     }
 
     enum State {
-        IDLE, STARTED, IN_PROGRESS, COMPLETED, STOPPED, ERROR;
+        IDLE, STARTED, IN_PROGRESS, COMPLETED, STOPPED, ERROR
     }
 
     interface Listener {

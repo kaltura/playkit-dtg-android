@@ -67,7 +67,7 @@ class DashManifestLocalizer {
         }
     }
 
-    boolean shouldKeepAdaptationSet(int index) {
+    private boolean shouldKeepAdaptationSet(int index) {
         // TODO: make the search more efficient
         for (BaseTrack keepTrack : keepTracks) {
             DashTrack dashTrack = (DashTrack) keepTrack;
@@ -78,7 +78,7 @@ class DashManifestLocalizer {
         return false;
     }
 
-    boolean shouldKeepRepresentation(int adaptationIndex, int representationIndex) {
+    private boolean shouldKeepRepresentation(int adaptationIndex, int representationIndex) {
         // TODO: make the search more efficient
         for (BaseTrack keepTrack : keepTracks) {
             DashTrack dashTrack = (DashTrack) keepTrack;
@@ -90,7 +90,7 @@ class DashManifestLocalizer {
 
     }
 
-    void localizeImp() throws XmlPullParserException, IOException {
+    private void localizeImp() throws XmlPullParserException, IOException {
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         factory.setNamespaceAware(true);
         parser = factory.newPullParser();
