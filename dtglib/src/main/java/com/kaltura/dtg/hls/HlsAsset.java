@@ -22,7 +22,7 @@ import java.util.List;
 public class HlsAsset {
 
     private static final String TAG = "HlsAsset";
-    static transient HlsPlaylistParser parser = new HlsPlaylistParser();
+    static HlsPlaylistParser parser = new HlsPlaylistParser();
 
     private String masterUrl;
     private byte[] masterBytes;
@@ -71,11 +71,11 @@ public class HlsAsset {
         long durationMs;
         String url;
         List<Chunk> chunks;
-        transient byte[] bytes;
+        private byte[] bytes;
         int firstMasterLine;
         int lastMasterLine;
 
-        Track(Variant variant, TrackType trackType) {
+        private Track(Variant variant, TrackType trackType) {
             super(trackType, variant.format);
             this.url = variant.url;
             this.firstMasterLine = variant.firstLineNum;

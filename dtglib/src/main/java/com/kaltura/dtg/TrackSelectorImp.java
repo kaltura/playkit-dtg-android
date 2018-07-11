@@ -10,7 +10,7 @@ import java.util.List;
 public class TrackSelectorImp implements DownloadItem.TrackSelector {
     private AbrDownloader downloader;
 
-    public TrackSelectorImp(AbrDownloader downloader) {
+    TrackSelectorImp(AbrDownloader downloader) {
         this.downloader = downloader;
     }
 

@@ -6,7 +6,6 @@ import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
@@ -19,7 +18,6 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -54,16 +52,6 @@ public class Utils {
 
         Log.i("DBUtils", "Create index:\n" + str);
         return str;
-    }
-
-    public static HashMap<String, Object> map(Object... keyValuePairs) {
-        HashMap<String, Object> map = new HashMap<>();
-
-        for (int i = 0; i < keyValuePairs.length; i += 2) {
-            map.put((String) keyValuePairs[i], keyValuePairs[i + 1]);
-        }
-
-        return map;
     }
 
     private static long dirSize(File dir) {
@@ -180,14 +168,6 @@ public class Utils {
         return downloadToFile(new URL(url), targetFile, maxReturnSize);
     }
 
-    public static InputStream openUrl(String urlString) throws IOException {
-        final URL url = new URL(urlString);
-        final HttpURLConnection conn = ((HttpURLConnection) url.openConnection());
-        conn.setRequestMethod("GET");
-        conn.connect();
-        return new BufferedInputStream(conn.getInputStream());
-    }
-
     public static long httpHeadGetLength(URL url) throws IOException {
         HttpURLConnection connection = null;
         try {
@@ -213,7 +193,7 @@ public class Utils {
     }
 
     @NonNull
-    public static ByteArrayOutputStream fullyReadInputStream(InputStream inputStream, int byteLimit) throws IOException {
+    private static ByteArrayOutputStream fullyReadInputStream(InputStream inputStream, int byteLimit) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         byte data[] = new byte[1024];
         int count;
@@ -251,7 +231,7 @@ public class Utils {
         return path.substring(path.lastIndexOf('.'));
     }
 
-    public static String toBase64(byte[] data) {
+    static String toBase64(byte[] data) {
         if (data == null || data.length == 0) {
             return null;
         }

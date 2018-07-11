@@ -26,7 +26,7 @@ public abstract class BaseTrack implements DownloadItem.Track {
     protected long bitrate;
     protected int width;
     protected int height;
-    protected String codecs;
+    private String codecs;
 
     protected BaseTrack(DownloadItem.TrackType type, Format format) {
         this.type = type;

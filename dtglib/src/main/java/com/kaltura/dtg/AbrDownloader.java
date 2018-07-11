@@ -346,11 +346,11 @@ public abstract class AbrDownloader {
         update
     }
 
-    class TrackUpdatingData {
-        Map<DownloadItem.TrackType, List<BaseTrack>> originalSelectedTracks;
-        boolean trackSelectionChanged;
+    private static class TrackUpdatingData {
+        private Map<DownloadItem.TrackType, List<BaseTrack>> originalSelectedTracks;
+        private boolean trackSelectionChanged;
 
-        TrackUpdatingData(Map<TrackType, List<BaseTrack>> originalSelectedTracks) {
+        private TrackUpdatingData(Map<TrackType, List<BaseTrack>> originalSelectedTracks) {
             this.originalSelectedTracks = originalSelectedTracks;
         }
     }
