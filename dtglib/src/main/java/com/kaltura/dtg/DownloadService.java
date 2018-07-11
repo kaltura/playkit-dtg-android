@@ -14,8 +14,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.dtg.DownloadItem.TrackType;
-import com.kaltura.dtg.dash.DashDownloader;
-import com.kaltura.dtg.hls.HlsDownloader;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +22,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -338,7 +335,7 @@ public class DownloadService extends Service {
             @Override
             public void run() {
                 try {
-                    downloadMetadata(item);
+                    newDownload(item);
                     item.setState(DownloadState.INFO_LOADED);
                     updateItemInfoInDB(item,
                             Database.COL_ITEM_STATE, Database.COL_ITEM_ESTIMATED_SIZE,
@@ -359,7 +356,11 @@ public class DownloadService extends Service {
         return new File(downloadsDir, "items/" + itemId + "/data");    // TODO: make sure name is safe.
     }
 
-    private void downloadMetadata(DownloadItemImp item) throws IOException {
+    private boolean isServiceStopped() {
+        return stopping || !started;
+    }
+
+    private void newDownload(DownloadItemImp item) throws IOException {
 
         // Handle service being stopped
         if (isServiceStopped()) {
@@ -367,73 +368,34 @@ public class DownloadService extends Service {
             return;
         }
 
-        File itemDataDir = getItemDataDir(item.getItemId());
+        if (item.getAssetFormat().isAbr()) {
+            newAbrDownload(item);
+        } else {
+            newSimpleDownload(item);
+        }
+    }
+
+    private void newAbrDownload(DownloadItemImp item) throws IOException {
+        final AbrDownloader downloader = AbrDownloader.newDownloader(item);
+        if (downloader == null) {
+            return;
+        }
+
+        downloader.create(this, downloadStateListener);
+    }
+
+    private void newSimpleDownload(DownloadItemImp item) throws IOException {
+
         String contentURL = item.getContentURL();
         if (contentURL.startsWith("widevine")) {
             contentURL = contentURL.replaceFirst("widevine", "http");
         }
-        Uri contentUri = Uri.parse(contentURL);
         URL url = new URL(contentURL);
-        String fileName = contentUri.getLastPathSegment();
-
-        AbrDownloader downloader = null;
-
-        if (fileName.endsWith(AssetFormat.hls.extension())) {
-            downloader = new HlsDownloader(item);
-        } else if (fileName.endsWith(AssetFormat.dash.extension())) {
-            downloader = new DashDownloader(item);
-        }
-
-        if (downloader == null) {
-            downloadMetadataSimple(url, item, itemDataDir);
-        } else {
-            downloadMetadataAbr(downloader, item);
-        }
-    }
-
-    private void downloadMetadataAbr(AbrDownloader downloader, DownloadItemImp item) throws IOException {
-
-        downloader.initForCreate();
-
-        // FIXME: 08/07/2018 It looks like this code has to move to AbrDownloader
-
-        DownloadItem.TrackSelector trackSelector = downloader.getTrackSelector();
-
-        item.setTrackSelector(trackSelector);
-
-        downloadStateListener.onTracksAvailable(item, trackSelector);
-
-        downloader.apply();
-
-        item.setTrackSelector(null);
-
-
-        List<BaseTrack> availableTracks = Utils.flattenTrackList(downloader.getAvailableTracksMap());
-        List<BaseTrack> selectedTracks = downloader.getSelectedTracksFlat();
-
-        addTracksToDB(item, availableTracks, selectedTracks);
-
-        long estimatedDownloadSize = downloader.getEstimatedDownloadSize();
-        item.setEstimatedSizeBytes(estimatedDownloadSize);
-
-        LinkedHashSet<DownloadTask> downloadTasks = downloader.getDownloadTasks();
-        //Log.d(TAG, "tasks:" + downloadTasks);
-
-        item.setPlaybackPath(downloader.storedLocalManifestName());
-
-        addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
-    }
-
-    private boolean isServiceStopped() {
-        return stopping || !started;
-    }
-
-    private void downloadMetadataSimple(URL url, DownloadItemImp item, File itemDataDir) throws IOException {
 
         long length = Utils.httpHeadGetLength(url);
 
         String fileNameFullPath = Utils.getHashedFileName(url.getPath());
-        File targetFile = new File(itemDataDir, fileNameFullPath);
+        File targetFile = new File(item.getDataDir(), fileNameFullPath);
         DownloadTask downloadTask = new DownloadTask(url, targetFile);
 
         item.setEstimatedSizeBytes(length);

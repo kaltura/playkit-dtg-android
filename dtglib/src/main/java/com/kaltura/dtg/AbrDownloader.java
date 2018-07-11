@@ -1,8 +1,11 @@
 package com.kaltura.dtg;
 
+import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.kaltura.dtg.DownloadItem.TrackSelector;
 import com.kaltura.dtg.DownloadItem.TrackType;
 import com.kaltura.dtg.dash.DashDownloader;
 import com.kaltura.dtg.hls.HlsDownloader;
@@ -41,21 +44,67 @@ public abstract class AbrDownloader {
         this.manifestUrl = item.getContentURL();
     }
 
-    static AbrDownloader createUpdater(DownloadItemImp item) throws IOException {
-
-        AbrDownloader downloader = null;
-        final String playbackPath = item.getPlaybackPath();
-        if (playbackPath.endsWith(AssetFormat.dash.extension())) {
-            downloader = new DashDownloader(item);
-        } else if (playbackPath.endsWith(AssetFormat.hls.extension())) {
-            downloader = new HlsDownloader(item);
+    static AbrDownloader newDownloader(DownloadItemImp item) {
+        String fileName = Uri.parse(item.getContentURL()).getLastPathSegment();
+        switch (AssetFormat.byFilename(fileName)) {
+            case dash:
+                return new DashDownloader(item);
+            case hls:
+                return new HlsDownloader(item);
         }
 
-        if (downloader != null) {
-            return downloader.initForUpdate();
+        return null;
+    }
+
+    @Nullable
+    static TrackSelector newTrackUpdater(DownloadItemImp item) {
+        AbrDownloader downloader = newDownloader(item);
+        if (downloader == null) {
+            return null;
         }
 
-        throw new IllegalArgumentException("Unknown asset type: " + playbackPath);
+        try {
+            downloader.initForUpdate();
+        } catch (IOException e) {
+            Log.e(TAG, "Error initializing updater", e);
+            return null;
+        }
+
+        return new TrackSelectorImp(downloader);
+    }
+
+    void create(DownloadService downloadService, DownloadStateListener downloadStateListener) throws IOException {
+
+        downloadManifest();
+        parseOriginManifest();
+        createTracks();
+
+        selectDefaultTracks();
+
+        TrackSelector trackSelector = new TrackSelectorImp(this);
+
+        item.setTrackSelector(trackSelector);
+
+        downloadStateListener.onTracksAvailable(item, trackSelector);
+
+        this.apply();
+
+        item.setTrackSelector(null);
+
+
+        List<BaseTrack> availableTracks = Utils.flattenTrackList(this.getAvailableTracksMap());
+        List<BaseTrack> selectedTracks = this.getSelectedTracksFlat();
+
+        downloadService.addTracksToDB(item, availableTracks, selectedTracks);
+
+        item.setEstimatedSizeBytes(estimatedDownloadSize);
+
+        LinkedHashSet<DownloadTask> downloadTasks = this.getDownloadTasks();
+        //Log.d(TAG, "tasks:" + downloadTasks);
+
+        item.setPlaybackPath(this.storedLocalManifestName());
+
+        downloadService.addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
     }
 
     protected void applyInitialTrackSelection() throws IOException {
@@ -67,7 +116,7 @@ public abstract class AbrDownloader {
         trackSelectionApplied = true;
     }
 
-    public AbrDownloader initForUpdate() throws IOException {
+    private void initForUpdate() throws IOException {
         this.mode = Mode.update;
         this.loadStoredOriginManifest();
         this.parseOriginManifest();
@@ -86,23 +135,11 @@ public abstract class AbrDownloader {
         }
 
         trackUpdatingData = new TrackUpdatingData(originalSelectedTracks);
-
-        return this;
     }
 
     private void loadStoredOriginManifest() throws IOException {
         originManifestBytes = Utils.readFile(new File(targetDir, storedOriginManifestName()), MAX_MANIFEST_SIZE);
         Log.d(TAG, "loadStoredOriginManifest: " + this.originManifestBytes.length + " bytes");
-    }
-
-    protected AbrDownloader initForCreate() throws IOException {
-        downloadManifest();
-        parseOriginManifest();
-        createTracks();
-
-        selectDefaultTracks();
-
-        return this;
     }
 
     protected abstract void createTracks();
@@ -193,10 +230,6 @@ public abstract class AbrDownloader {
 
     public abstract String storedLocalManifestName();
 
-    public DownloadItem.TrackSelector getTrackSelector() {
-        return new TrackSelectorImp(this);
-    }
-
     private void selectDefaultTracks() {
 
         final Map<TrackType, List<BaseTrack>> availableTracks = getAvailableTracksMap();
@@ -237,7 +270,7 @@ public abstract class AbrDownloader {
     }
 
     @NonNull
-    public List<BaseTrack> getSelectedTracksFlat() {
+    protected List<BaseTrack> getSelectedTracksFlat() {
         return Utils.flattenTrackList(selectedTracks);
     }
 
@@ -284,7 +317,7 @@ public abstract class AbrDownloader {
         return targetDir;
     }
 
-    public Map<TrackType, List<BaseTrack>> getAvailableTracksMap() {
+    protected Map<TrackType, List<BaseTrack>> getAvailableTracksMap() {
         return availableTracks;
     }
 
@@ -296,7 +329,7 @@ public abstract class AbrDownloader {
         return Utils.flattenTrackList(availableTracks);
     }
 
-    public LinkedHashSet<DownloadTask> getDownloadTasks() {
+    protected LinkedHashSet<DownloadTask> getDownloadTasks() {
         return downloadTasks;
     }
 

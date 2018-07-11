@@ -1,8 +1,8 @@
 package com.kaltura.dtg;
 
+import android.net.Uri;
 import android.util.Log;
 
-import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -144,21 +144,8 @@ public class DownloadItemImp implements DownloadItem {
         }
 
         // If selection is in progress, return the current selector.
-
         if (trackSelector == null) {
-            AbrDownloader updater;
-            try {
-                updater = AbrDownloader.createUpdater(this);
-            } catch (IOException e) {
-                Log.e(TAG, "Error initializing updater", e);
-                return null;
-            }
-            if (updater == null) {
-                return null;
-            }
-            TrackSelector trackSelector = updater.getTrackSelector();
-
-            setTrackSelector(trackSelector);
+            trackSelector = AbrDownloader.newTrackUpdater(this);
         }
 
         return trackSelector;
@@ -168,7 +155,25 @@ public class DownloadItemImp implements DownloadItem {
         this.trackSelector = trackSelector;
     }
 
-    public DownloadService getService() {
+    AssetFormat getAssetFormat() {
+        if (playbackPath != null) {
+            final AssetFormat format = AssetFormat.byFilename(playbackPath);
+            if (format != null) {
+                return format;
+            }
+        }
+
+        if (contentUrl != null) {
+            final AssetFormat format = AssetFormat.byFilename(Uri.parse(contentUrl).getLastPathSegment());
+            if (format != null) {
+                return format;
+            }
+        }
+
+        return null;
+    }
+
+    DownloadService getService() {
         return service;
     }
 }
