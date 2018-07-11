@@ -1,7 +1,7 @@
 ---
 name: Bug report
-about: Report a bug
-
+about: Report a problem
+label: bug
 ---
 
 #### Goal
@@ -26,7 +26,7 @@ about: Report a bug
 
 #### Version of library and tooling
 
-PlayKit version: ?
+DTG version: ?
 
 Android Studio version: ?
 
