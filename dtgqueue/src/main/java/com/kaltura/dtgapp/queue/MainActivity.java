@@ -8,6 +8,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
@@ -239,8 +240,12 @@ public class MainActivity extends ListActivity {
     private Map<String, Item> itemMap = new HashMap<>();
 
     private DownloadStateListener cmListener = new DownloadStateListener() {
+
+        long start;
+
         @Override
         public void onDownloadComplete(DownloadItem item) {
+            Log.e(TAG, "onDownloadComplete: " + (SystemClock.elapsedRealtime() - start));
             itemStateChanged(item);
         }
 
@@ -251,6 +256,7 @@ public class MainActivity extends ListActivity {
 
         @Override
         public void onDownloadStart(DownloadItem item) {
+            start = SystemClock.elapsedRealtime();
             itemStateChanged(item);
         }
 
@@ -553,7 +559,7 @@ public class MainActivity extends ListActivity {
         downloadItem.loadMetadata();
         itemStateChanged(downloadItem);
     }
-    
+
     
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
