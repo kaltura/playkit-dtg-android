@@ -439,9 +439,6 @@ public class MediaCodecAudioTrackRenderer extends MediaCodecTrackRenderer implem
       case MSG_SET_VOLUME:
         audioTrack.setVolume((Float) message);
         break;
-      case MSG_SET_PLAYBACK_PARAMS:
-        audioTrack.setPlaybackParams((PlaybackParams) message);
-        break;
       default:
         super.handleMessage(messageType, message);
         break;
