@@ -348,7 +348,7 @@ public class DownloadService extends Service {
     private File getItemDataDir(String itemId) {
         assertStarted();
 
-        return new File(downloadsDir, "items/" + itemId + "/data");    // TODO: make sure name is safe.
+        return new File(downloadsDir, "items/" + itemId + "/data");
     }
 
     private boolean isServiceStopped() {
