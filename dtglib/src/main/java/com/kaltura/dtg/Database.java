@@ -459,8 +459,6 @@ class Database {
     }
 
     synchronized ArrayList<DownloadItemImp> readItemsFromDB(DownloadState[] states) {
-        // TODO: unify some code with findItem()
-
         String stateNames[] = new String[states.length];
         for (int i = 0; i < states.length; i++) {
             stateNames[i] = states[i].name();
@@ -475,8 +473,6 @@ class Database {
             cursor = database.query(TBL_ITEMS,
                     ALL_ITEM_COLS,
                     COL_ITEM_STATE + " IN " + placeholders, stateNames, null, null, null);
-
-            // TODO: consider using a LinkedList and/or doing a COUNT query to pre-allocate the list.
 
             while (cursor.moveToNext()) {
                 DownloadItemImp item = readItem(cursor);
@@ -579,7 +575,6 @@ class Database {
                     selection,
                     selectionArgsArray,
                     null, null, COL_TRACK_ID + " ASC");
-            // TODO: 13/09/2016 Consider order by type+bitrate 
 
             while (cursor.moveToNext()) {
                 BaseTrack track = BaseTrack.create(cursor, assetFormat);

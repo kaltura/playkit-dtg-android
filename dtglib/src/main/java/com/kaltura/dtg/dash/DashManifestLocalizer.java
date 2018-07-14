@@ -65,7 +65,6 @@ class DashManifestLocalizer {
     }
 
     private boolean shouldKeepAdaptationSet(int index) {
-        // TODO: make the search more efficient
         for (BaseTrack keepTrack : keepTracks) {
             DashTrack dashTrack = (DashTrack) keepTrack;
             if (dashTrack.adaptationIndex == index) {
@@ -76,7 +75,6 @@ class DashManifestLocalizer {
     }
 
     private boolean shouldKeepRepresentation(int adaptationIndex, int representationIndex) {
-        // TODO: make the search more efficient
         for (BaseTrack keepTrack : keepTracks) {
             DashTrack dashTrack = (DashTrack) keepTrack;
             if (dashTrack.adaptationIndex == adaptationIndex && dashTrack.representationIndex == representationIndex) {

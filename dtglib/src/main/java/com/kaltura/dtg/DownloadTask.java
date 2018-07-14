@@ -18,7 +18,6 @@ public class DownloadTask {
     private static final String TAG = "DownloadTask";
     private static final int PROGRESS_REPORT_COUNT = 100;
 
-    // TODO: Hold url and targetFile as Strings, only convert to URL/File when used.
     final String taskId;
     final URL url;
     final File targetFile;

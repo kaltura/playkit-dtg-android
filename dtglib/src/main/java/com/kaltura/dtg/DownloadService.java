@@ -514,9 +514,6 @@ public class DownloadService extends Service {
     }
 
     private DownloadItemImp findItemImpl(String itemId) {
-
-        // TODO: cache items in memory?
-
         DownloadItemImp item = database.findItemInDB(itemId);
         if (item != null) {
             item.setProvider(this);
