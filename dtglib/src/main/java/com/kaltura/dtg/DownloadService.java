@@ -133,7 +133,7 @@ public class DownloadService extends Service {
         if (newState == DownloadTask.State.COMPLETED) {
             database.markTaskAsComplete(task);
             pendingCount = countPendingFiles(itemId, null);
-            Log.i(TAG, "Pending tasks for item: " + pendingCount);
+            Log.i(TAG, "Pending tasks for item: " + pendingCount + "; finished " + task.url.getPath());
         }
 
         if (newState == DownloadTask.State.ERROR) {
