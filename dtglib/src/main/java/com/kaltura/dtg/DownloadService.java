@@ -34,6 +34,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
+import static android.os.SystemClock.elapsedRealtime;
+
 public class DownloadService extends Service {
 
     private static final String TAG = "DownloadService";
@@ -55,6 +57,9 @@ public class DownloadService extends Service {
     private ContentManager.Settings settings;
 
     private Set<String> removedItems = new HashSet<>();
+
+    private ItemCache itemCache = new ItemCache();
+
     private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
 
         @Override
@@ -157,7 +162,7 @@ public class DownloadService extends Service {
         }
 
         final long totalBytes = item.incDownloadBytes(newBytes);
-        updateItemInfoInDB(item, Database.COL_ITEM_DOWNLOADED_SIZE);
+        itemCache.markDirty(itemId);
 
         if (pendingCount == 0) {
             // We finished the last (or only) chunk of the item.
@@ -208,6 +213,9 @@ public class DownloadService extends Service {
         listenerThread = new HandlerThread("DownloadTaskListener");
         listenerThread.start();
         taskProgressHandler = new Handler(listenerThread.getLooper());
+
+
+        taskProgressHandler.post(itemCache.cacheManager());
     }
 
     private void stopHandlerThreads() {
@@ -520,6 +528,7 @@ public class DownloadService extends Service {
 
         deleteItemFiles(itemId);
         database.removeItemFromDB(itemId);
+        itemCache.remove(itemId);
     }
 
     private void deleteItemFiles(String item) {
@@ -530,9 +539,15 @@ public class DownloadService extends Service {
     }
 
     private DownloadItemImp findItemImpl(String itemId) {
-        DownloadItemImp item = database.findItemInDB(itemId);
+        DownloadItemImp item = itemCache.get(itemId);
+        if (item != null) {
+            return item;
+        }
+
+        item = database.findItemInDB(itemId);
         if (item != null) {
             item.setProvider(this);
+            itemCache.put(item);
         }
 
         return item;
@@ -551,6 +566,7 @@ public class DownloadService extends Service {
     }
 
     public long getDownloadedItemSize(@Nullable String itemId) {
+        // TODO: 15/07/2018 Maybe use the cache directly
         return database.getDownloadedItemSize(itemId);
     }
 
@@ -695,6 +711,64 @@ public class DownloadService extends Service {
     class LocalBinder extends Binder {
         DownloadService getService() {
             return DownloadService.this;
+        }
+    }
+
+    class ItemCache {
+        private Map<String, DownloadItemImp> itemCache = new HashMap<>();
+        private Set<String> dbFlushNeeded = new HashSet<>();
+        private Map<String, Long> itemLastUseTime = new HashMap<>();
+
+        private void markDirty(String itemId) {
+            dbFlushNeeded.add(itemId);
+        }
+
+        private Runnable cacheManager() {
+            return new Runnable() {
+                @Override
+                public void run() {
+
+                    // Flush dirty items to db
+                    for (String itemId : dbFlushNeeded) {
+                        final DownloadItemImp item = itemCache.get(itemId);
+                        updateItemInfoInDB(item, Database.COL_ITEM_DOWNLOADED_SIZE);
+                    }
+
+                    // Remove unused items
+                    final Iterator<Map.Entry<String, Long>> iterator = itemLastUseTime.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                        final Map.Entry<String, Long> entry = iterator.next();
+                        if (elapsedRealtime() - entry.getValue() > 60000) {
+                            final String itemId = entry.getKey();
+                            iterator.remove();
+                            itemCache.remove(itemId);
+                            dbFlushNeeded.remove(itemId);
+                        }
+                    }
+
+                    taskProgressHandler.postDelayed(this, 200);
+                }
+            };
+        }
+
+        public DownloadItemImp get(String itemId) {
+            final DownloadItemImp item = itemCache.get(itemId);
+            if (item != null) {
+                itemLastUseTime.put(itemId, elapsedRealtime());
+            }
+            return item;
+        }
+
+        public void put(DownloadItemImp item) {
+            final String itemId = item.getItemId();
+            itemCache.put(itemId, item);
+            itemLastUseTime.put(itemId, elapsedRealtime());
+        }
+
+        public void remove(String itemId) {
+            itemCache.remove(itemId);
+            itemLastUseTime.remove(itemId);
+            dbFlushNeeded.remove(itemId);
         }
     }
 }
