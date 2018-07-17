@@ -7,12 +7,16 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,8 +56,43 @@ class Database {
     private final SQLiteOpenHelper helper;
     private final SQLiteDatabase database;
 
+    private BufferedWriter traceWriter;
+    private long start;// = SystemClock.elapsedRealtime();
+
+    private void trace(String funcName, Object... args) {
+        if (start == 0) return;
+        try {
+            traceWriter.append(String.valueOf(SystemClock.elapsedRealtime() - start));
+            traceWriter.append(' ');
+            traceWriter.append(funcName).append('\t');
+            for (Object arg : args) {
+                if (arg instanceof Object[]) {
+                    traceWriter.append('[');
+                    for (Object s : ((Object[]) arg)) {
+                        traceWriter.append(String.valueOf(s));
+
+                    }
+                    traceWriter.append(']');
+                } else {
+                    traceWriter.append(String.valueOf(arg));
+                }
+                traceWriter.append(' ');
+            }
+            traceWriter.newLine();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
 
     Database(File dbFile, final Context context) {
+
+        try {
+            traceWriter = new BufferedWriter(new FileWriter(dbFile.getParent() + "/dbtrace.txt"));
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+
         helper = new SQLiteOpenHelper(context, dbFile.getAbsolutePath(), null, DB_VERSION) {
 
             @Override
@@ -170,6 +209,8 @@ class Database {
     }
 
     synchronized void addDownloadTasksToDB(final DownloadItem item, final List<DownloadTask> downloadTasks) {
+        trace("addDownloadTasksToDB", item.getItemId(), downloadTasks.size());
+
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -194,6 +235,7 @@ class Database {
     }
 
     synchronized ArrayList<DownloadTask> readPendingDownloadTasksFromDB(final String itemId) {
+        trace("readPendingDownloadTasksFromDB", itemId);
 
         final ArrayList<DownloadTask> downloadTasks = new ArrayList<>();
 
@@ -223,6 +265,7 @@ class Database {
     }
 
     synchronized void markTaskAsComplete(final DownloadTask downloadTask) {
+        trace("markTaskAsComplete", downloadTask.itemId, downloadTask.taskId);
 
         doTransaction(new Transaction() {
             @Override
@@ -236,9 +279,13 @@ class Database {
                 return true;
             }
         });
+
+        trace("markTaskAsComplete done", downloadTask.itemId, downloadTask.taskId);
     }
 
     synchronized DownloadItemImp findItemInDB(String itemId) {
+
+        trace("findItemInDB", itemId);
 
         Cursor cursor = null;
         DownloadItemImp item = null;
@@ -260,6 +307,7 @@ class Database {
     }
 
     synchronized void addItemToDB(final DownloadItemImp item, final File itemDataDir) {
+        trace("addItemToDB", item.getItemId());
 
         doTransaction(new Transaction() {
             @Override
@@ -279,6 +327,8 @@ class Database {
 
     synchronized void removeItemFromDB(final String itemId) {
 
+        trace("removeItemFromDB", itemId);
+
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -293,6 +343,8 @@ class Database {
     }
 
     synchronized void updateItemState(final String itemId, final DownloadState itemState) {
+        trace("updateItemState", itemId, itemState);
+
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -307,6 +359,8 @@ class Database {
     }
 
     synchronized void setDownloadFinishTime(final String itemId) {
+        trace("setDownloadFinishTime", itemId);
+
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -321,6 +375,8 @@ class Database {
     }
 
     synchronized void setEstimatedSize(final String itemId, final long estimatedSizeBytes) {
+        trace("setEstimatedSize", itemId);
+
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -333,6 +389,8 @@ class Database {
     }
 
     synchronized void updateDownloadedFileSize(final String itemId, final long downloadedFileSize) {
+        trace("updateDownloadedFileSize", itemId);
+
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -355,6 +413,8 @@ class Database {
 
     // If itemId is null, sum all items.
     private synchronized long getItemColumnLong(@Nullable String itemId, @NonNull String col) {
+        trace("getItemColumnLong", itemId, col);
+
         SQLiteDatabase db = database;
         Cursor cursor = null;
         try {
@@ -374,6 +434,8 @@ class Database {
 
     synchronized void updateItemInfo(final DownloadItemImp item, final String[] columns) {
         final String itemId = item.getItemId();
+        trace("updateItemInfo", itemId, columns);
+
         if (columns == null || columns.length == 0) {
             throw new IllegalArgumentException("columns.length must be >0");
         }
@@ -416,9 +478,11 @@ class Database {
                 return true;
             }
         });
+        trace("updateItemInfo done", itemId, columns);
     }
 
     private DownloadItemImp readItem(Cursor cursor) {
+
         String[] columns = cursor.getColumnNames();
 
         // the bare minimum: itemId and contentURL
@@ -459,6 +523,8 @@ class Database {
     }
 
     synchronized ArrayList<DownloadItemImp> readItemsFromDB(DownloadState[] states) {
+        trace("readItemsFromDB", states);
+
         String stateNames[] = new String[states.length];
         for (int i = 0; i < states.length; i++) {
             stateNames[i] = states[i].name();
@@ -488,6 +554,8 @@ class Database {
 
     synchronized int countPendingFiles(String itemId, @Nullable String trackId) {
 
+        trace("countPendingFiles", itemId, trackId);
+
         SQLiteDatabase db = database;
         Cursor cursor = null;
         int count = 0;
@@ -516,6 +584,8 @@ class Database {
     }
 
     synchronized void addTracks(final DownloadItemImp item, final List<BaseTrack> availableTracks, final List<BaseTrack> selectedTracks) {
+        trace("addTracks", item.getItemId(), availableTracks.size(), selectedTracks.size());
+
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
@@ -545,6 +615,8 @@ class Database {
     }
 
     synchronized List<BaseTrack> readTracks(String itemId, DownloadItem.TrackType type, @Nullable BaseTrack.TrackState state, AssetFormat assetFormat) {
+        trace("readTracks", itemId, type, state, assetFormat);
+
         Cursor cursor = null;
         List<BaseTrack> tracks = new ArrayList<>(10);
         try {
@@ -585,6 +657,8 @@ class Database {
     }
 
     synchronized void updateTracksState(final String itemId, final List<BaseTrack> tracks, final BaseTrack.TrackState newState) {
+        trace("updateTracksState", itemId, tracks.size(), newState);
+
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
