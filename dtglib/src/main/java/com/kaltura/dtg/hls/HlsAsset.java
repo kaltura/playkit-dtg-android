@@ -58,7 +58,7 @@ public class HlsAsset {
     private void parseVariants(List<Variant> variants, List<Track> trackList, TrackType trackType) {
         for (Variant variant : variants) {
 
-            final Track track = new Track(variant, trackType);
+            final Track track = new Track(variant, trackType, masterUrl);
             trackList.add(track);
         }
     }
@@ -75,9 +75,9 @@ public class HlsAsset {
         int firstMasterLine;
         int lastMasterLine;
 
-        private Track(Variant variant, TrackType trackType) {
+        private Track(Variant variant, TrackType trackType, String masterUrl) {
             super(trackType, variant.format);
-            this.url = variant.url;
+            this.url = Utils.resolveUrl(masterUrl, variant.url);
             this.firstMasterLine = variant.firstLineNum;
             this.lastMasterLine = variant.lastLineNum;
         }
