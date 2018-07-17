@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -452,6 +453,12 @@ public class DownloadService extends Service {
             });
 
         } else {
+            // Shuffle to mix large and small files together, making download speed look smooth.
+            // Otherwise, all small files (subtitles, keys) are downloaded together. Because of
+            // http request overhead the download speed is very slow when downloading the small
+            // files and fast when downloading the large ones (video).
+            Collections.shuffle(chunksToDownload, new Random(42));
+
             downloadChunks(chunksToDownload, itemId);
             updateItemState(item, DownloadState.IN_PROGRESS);
         }
