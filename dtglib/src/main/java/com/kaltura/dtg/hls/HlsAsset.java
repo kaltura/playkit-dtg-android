@@ -118,7 +118,7 @@ public class HlsAsset {
 
         @Override
         protected String getRelativeId() {
-            return String.valueOf(lastMasterLine > 0 ? lastMasterLine : firstMasterLine);
+            return "" + firstMasterLine;
         }
 
         @Override

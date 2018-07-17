@@ -19,6 +19,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.LineNumberReader;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -188,20 +189,31 @@ public class HlsDownloader extends AbrDownloader {
 
         // Now linesToDelete is a set of lines that should be DELETED from the master
         LineNumberReader reader = null;
-        Writer writer = null;
+        PrintWriter writer = null;
+        int trackLineNumber = 0;
         try {
             reader = new LineNumberReader(new FileReader(getOriginalMasterFile()));
-            writer = new BufferedWriter(new FileWriter(getLocalMasterFile()));
+            writer = new PrintWriter(getLocalMasterFile());
 
             String line;
             while ((line = reader.readLine()) != null) {
                 final int lineNumber = reader.getLineNumber();
                 if (!linesToDelete.contains(lineNumber)) {
                     // Fix URI
-                    line = maybeReplaceTrackUri(line, lineNumber);
-                    writer.write(line);
+                    if (TextUtils.isEmpty(line)) {
+                        writer.println();
+                    } else if (line.charAt(0) == '#') {
+                        if (line.startsWith("#EXT-X-STREAM-INF:")) {
+                            writer.println(line);
+                            trackLineNumber = lineNumber;
+                        } else {
+                            writer.println(maybeReplaceTrackUri(line, lineNumber));
+                            trackLineNumber = 0;
+                        }
+                    } else {
+                        writer.println(maybeReplaceTrackUri(line, trackLineNumber));
+                    }
                 }
-                writer.write('\n');
             }
         } finally {
             Utils.safeClose(writer);
@@ -214,11 +226,11 @@ public class HlsDownloader extends AbrDownloader {
         return new File(getTargetDir(), LOCAL_MASTER);
     }
 
-    private String maybeReplaceUri(@NonNull String line, int lineNum, Object type) {
+    private String maybeReplaceUri(@NonNull String line, int lineNum, String type) {
 
         String uri = extractUri(line);
         if (uri != null) {
-            return line.replace(uri, getLocalMediaFilename(lineNum, (String) type));
+            return line.replace(uri, getLocalMediaFilename(lineNum, type));
         }
         return line;
     }
