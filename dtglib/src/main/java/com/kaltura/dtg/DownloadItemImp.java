@@ -67,10 +67,6 @@ public class DownloadItemImp implements DownloadItem {
         this.service = provider;
     }
 
-    void updateItemState(DownloadState state) {
-        service.updateItemState(this.getItemId(), state);
-    }
-
     void setFinishedTime(long finishedTime) {
         this.finishedTime = finishedTime;
     }

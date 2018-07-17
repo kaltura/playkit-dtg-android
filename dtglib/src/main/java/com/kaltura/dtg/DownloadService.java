@@ -21,7 +21,9 @@ import java.net.HttpRetryException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +36,8 @@ import java.util.concurrent.TimeUnit;
 public class DownloadService extends Service {
 
     private static final String TAG = "DownloadService";
+    private static final String NO_MEDIA_EMPTY_FILE = ".nomedia";
+
     private final Context context;  // allow mocking
     private LocalBinder localBinder = new LocalBinder();
     private Database database;
@@ -64,8 +68,8 @@ public class DownloadService extends Service {
             }
         }
     };
-    private String NO_MEDIA_EMPTY_FILE = ".nomedia";
-    private DownloadStateListener noopListener = new DownloadStateListener() {
+
+    private final DownloadStateListener noopListener = new DownloadStateListener() {
         @Override
         public void onDownloadComplete(DownloadItem item) {
 
@@ -138,8 +142,9 @@ public class DownloadService extends Service {
 
         if (newState == DownloadTask.State.ERROR) {
             Log.d(TAG, "Task has failed; cancelling item " + itemId);
-            item.setState(DownloadState.FAILED);
-            database.updateItemState(itemId, DownloadState.FAILED);
+
+            updateItemState(item, DownloadState.FAILED);
+
             futureMap.cancelItem(itemId);
             listenerHandler.post(new Runnable() {
                 @Override
@@ -157,8 +162,7 @@ public class DownloadService extends Service {
             // We finished the last (or only) chunk of the item.
             database.setDownloadFinishTime(itemId);
 
-            item.setState(DownloadState.COMPLETED);
-            database.updateItemState(item.getItemId(), DownloadState.COMPLETED);
+            updateItemState(item, DownloadState.COMPLETED);
             listenerHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -438,7 +442,7 @@ public class DownloadService extends Service {
         ArrayList<DownloadTask> chunksToDownload = database.readPendingDownloadTasksFromDB(itemId);
 
         if (chunksToDownload.isEmpty()) {
-            database.updateItemState(itemId, DownloadState.COMPLETED);
+            updateItemState(item, DownloadState.COMPLETED);
 
             listenerHandler.post(new Runnable() {
                 @Override
@@ -449,23 +453,27 @@ public class DownloadService extends Service {
 
         } else {
             downloadChunks(chunksToDownload, itemId);
-            database.updateItemState(itemId, DownloadState.IN_PROGRESS);
+            updateItemState(item, DownloadState.IN_PROGRESS);
         }
 
         return item.getState();
+    }
+
+    private void updateItemState(DownloadItemImp item, DownloadState state) {
+        item.setState(state);
+        database.updateItemState(item.getItemId(), state);
     }
 
     public void pauseDownload(final DownloadItemImp item) {
         assertStarted();
 
         if (item != null) {
-            int countPendingFiles = database.countPendingFiles(item.getItemId());
+            int countPendingFiles = countPendingFiles(item.getItemId());
             if (countPendingFiles > 0) {
 
                 pauseItemDownload(item.getItemId());
 
-                item.setState(DownloadState.PAUSED);
-                database.updateItemState(item.getItemId(), DownloadState.PAUSED);
+                updateItemState(item, DownloadState.PAUSED);
 
                 listenerHandler.post(new Runnable() {
                     @Override
@@ -483,7 +491,7 @@ public class DownloadService extends Service {
         // resume should be considered as download start
 
         DownloadState itemState = startDownload(item.getItemId());
-        item.updateItemState(itemState);
+        updateItemState(item, itemState);
     }
 
     public void removeItem(DownloadItemImp item) {
@@ -499,11 +507,12 @@ public class DownloadService extends Service {
         // pauseDownload takes time to interrupt all downloads, and the downloads report their
         // progress. Keep a list of the items that were removed in this session and ignore their
         // progress.
-        removedItems.add(item.getItemId());
+        final String itemId = item.getItemId();
+        removedItems.add(itemId);
 
 
-        deleteItemFiles(item.getItemId());
-        database.removeItemFromDB(item);
+        deleteItemFiles(itemId);
+        database.removeItemFromDB(itemId);
     }
 
     private void deleteItemFiles(String item) {
@@ -571,12 +580,6 @@ public class DownloadService extends Service {
         return item;
     }
 
-    public void updateItemState(String itemId, DownloadState state) {
-        assertStarted();
-
-        database.updateItemState(itemId, state);
-    }
-
     public List<DownloadItemImp> getDownloads(DownloadState[] states) {
         assertStarted();
 
@@ -636,6 +639,10 @@ public class DownloadService extends Service {
 
     public int countPendingFiles(String itemId, @Nullable BaseTrack track) {
         return database.countPendingFiles(itemId, track != null ? track.getRelativeId() : null);
+    }
+
+    public int countPendingFiles(String itemId) {
+        return database.countPendingFiles(itemId, null);
     }
 
     private FutureTask futureTask(final String itemId, final DownloadTask task) {

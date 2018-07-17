@@ -124,8 +124,4 @@ class ServiceProxy {
     public long getEstimatedItemSize(@Nullable String itemId) {
         return service.getEstimatedItemSize(itemId);
     }
-
-    public void updateItemState(String itemId, DownloadState state) {
-        service.updateItemState(itemId, state);
-    }
 }

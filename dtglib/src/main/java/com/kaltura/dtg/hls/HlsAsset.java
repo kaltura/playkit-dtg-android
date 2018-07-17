@@ -129,7 +129,6 @@ public class HlsAsset {
 
             Track track = (Track) o;
 
-            if (durationMs != track.durationMs) return false;
             if (firstMasterLine != track.firstMasterLine) return false;
             if (lastMasterLine != track.lastMasterLine) return false;
             return url != null ? url.equals(track.url) : track.url == null;

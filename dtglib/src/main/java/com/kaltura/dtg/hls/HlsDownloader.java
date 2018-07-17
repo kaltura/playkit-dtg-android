@@ -82,8 +82,6 @@ public class HlsDownloader extends AbrDownloader {
         final LinkedHashSet<DownloadTask> tasks = new LinkedHashSet<>();
         List<BaseTrack> trackList = getSelectedTracksFlat();
 
-        Log.d(TAG, "createDownloadTasks: " + trackList);
-
         long totalEstimatedSize = 0;
 
         for (BaseTrack baseTrack : trackList) {

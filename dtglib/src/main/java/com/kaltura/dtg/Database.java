@@ -145,9 +145,9 @@ class Database {
         return strings;
     }
 
-    synchronized private boolean doTransaction(Transaction transaction) {
+    synchronized private void doTransaction(Transaction transaction) {
         if (database == null) {
-            return false;
+            return;
         }
 
         boolean success;
@@ -162,7 +162,6 @@ class Database {
         } finally {
             database.endTransaction();
         }
-        return success;
     }
 
     synchronized void close() {
@@ -278,16 +277,16 @@ class Database {
         });
     }
 
-    synchronized void removeItemFromDB(final DownloadItemImp item) {
+    synchronized void removeItemFromDB(final String itemId) {
 
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
-                db.delete(TBL_ITEMS, COL_ITEM_ID + "=?", new String[]{item.getItemId()});
+                db.delete(TBL_ITEMS, COL_ITEM_ID + "=?", new String[]{itemId});
 
                 // There's an "on delete cascade" between TBL_ITEMS and TBL_DOWNLOAD_FILES,
                 // but it wasn't active in the previous schema.
-                db.delete(TBL_DOWNLOAD_FILES, COL_ITEM_ID + "=?", new String[]{item.getItemId()});
+                db.delete(TBL_DOWNLOAD_FILES, COL_ITEM_ID + "=?", new String[]{itemId});
                 return true;
             }
         });
@@ -374,6 +373,7 @@ class Database {
     }
 
     synchronized void updateItemInfo(final DownloadItemImp item, final String[] columns) {
+        final String itemId = item.getItemId();
         if (columns == null || columns.length == 0) {
             throw new IllegalArgumentException("columns.length must be >0");
         }
@@ -412,7 +412,7 @@ class Database {
                     Log.e(TAG, "No values; columns=" + Arrays.toString(columns));
                     return false;
                 }
-                db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{item.getItemId()});
+                db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
                 return true;
             }
         });
@@ -484,10 +484,6 @@ class Database {
 
 
         return items;
-    }
-
-    synchronized int countPendingFiles(String itemId) {
-        return countPendingFiles(itemId, null);
     }
 
     synchronized int countPendingFiles(String itemId, @Nullable String trackId) {
