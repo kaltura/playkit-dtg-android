@@ -274,6 +274,16 @@ public class MainActivity extends ListActivity {
         public void onDownloadMetadata(final DownloadItem item, Exception error) {
             itemStateChanged(item);
 
+            if (error != null) {
+                Toast.makeText(context, error.toString(), Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            if (true) {
+                item.startDownload();
+                return;
+            }
+
 
             final List<DownloadItem.Track> tracks = new ArrayList<>();
             final DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
