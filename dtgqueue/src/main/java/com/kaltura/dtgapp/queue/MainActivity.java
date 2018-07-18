@@ -275,7 +275,7 @@ public class MainActivity extends ListActivity {
             itemStateChanged(item);
 
             if (error != null) {
-                Toast.makeText(context, error.toString(), Toast.LENGTH_LONG).show();
+                toast(error.toString());
                 return;
             }
 
@@ -477,7 +477,7 @@ public class MainActivity extends ListActivity {
         itemArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         loadTestItems(itemArrayAdapter);
         if (!isNetworkAvailable()) {
-            Toast.makeText(context, "NO NETWORK AVAILABLE", Toast.LENGTH_LONG).show();
+            toast("NO NETWORK AVAILABLE");
         }
         contentManager = ContentManager.getInstance(this);
         contentManager.getSettings().applicationName = "MyApplication";
@@ -511,7 +511,7 @@ public class MainActivity extends ListActivity {
                                         contentManager.start(new ContentManager.OnStartedListener() {
                                             @Override
                                             public void onStarted() {
-                                                Toast.makeText(context, "Service started", Toast.LENGTH_SHORT).show();
+                                                toast("Service started");
                                             }
                                         });
                                         break;
@@ -642,11 +642,15 @@ public class MainActivity extends ListActivity {
     }
 
     private void checkStatus(Item item) {
-        String absolutePath = contentManager.getLocalFile(item.getId()).getAbsolutePath();
+        final File localFile = contentManager.getLocalFile(item.getId());
+        if (localFile == null) {
+            return;
+        }
+        String absolutePath = localFile.getAbsolutePath();
         localAssetsManager.checkAssetStatus(absolutePath, item.getId(), new LocalAssetsManager.AssetStatusListener() {
             @Override
             public void onStatus(String localAssetPath, long expiryTimeSeconds, long availableTimeSeconds, boolean isRegistered) {
-                Toast.makeText(MainActivity.this, "" + expiryTimeSeconds +  " " + availableTimeSeconds, Toast.LENGTH_LONG).show();
+                toast("" + expiryTimeSeconds +  " " + availableTimeSeconds);
             }
         });
 
@@ -680,7 +684,7 @@ public class MainActivity extends ListActivity {
 
         final File localFile = contentManager.getLocalFile(item.getId());
         if (localFile == null) {
-            Toast.makeText(this, "File not found", Toast.LENGTH_SHORT).show();
+            toast("File not found");
             return;
         }
         final String localAssetPath = localFile.getAbsolutePath();
@@ -689,6 +693,15 @@ public class MainActivity extends ListActivity {
             public void onRemoved(String localAssetPath) {
                 item.drmRegistered = false;
                 notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void toast(final String text) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(context, text, Toast.LENGTH_LONG).show();
             }
         });
     }
