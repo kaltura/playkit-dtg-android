@@ -279,12 +279,6 @@ public class MainActivity extends ListActivity {
                 return;
             }
 
-            if (true) {
-                item.startDownload();
-                return;
-            }
-
-
             final List<DownloadItem.Track> tracks = new ArrayList<>();
             final DownloadItem.TrackSelector trackSelector = item.getTrackSelector();
             if (trackSelector == null) {
