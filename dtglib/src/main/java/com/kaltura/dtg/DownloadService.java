@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.dtg.DownloadItem.TrackType;
@@ -133,7 +132,7 @@ public class DownloadService extends Service {
             return;
         }
 
-        final DownloadItemImp item = findItemImpl(itemId);
+        final DownloadItemImp item = itemCache.get(itemId);
         if (item == null) {
             Log.e(TAG, "Can't find item by id: " + itemId + "; taskId: " + task.taskId);
             return;
@@ -149,7 +148,7 @@ public class DownloadService extends Service {
         if (newState == DownloadTask.State.ERROR) {
             Log.d(TAG, "Task has failed; cancelling item " + itemId);
 
-            updateItemState(item, DownloadState.FAILED);
+            itemCache.updateItemState(item, DownloadState.FAILED);
 
             futureMap.cancelItem(itemId);
             listenerHandler.post(new Runnable() {
@@ -168,7 +167,7 @@ public class DownloadService extends Service {
             // We finished the last (or only) chunk of the item.
             database.setDownloadFinishTime(itemId);
 
-            updateItemState(item, DownloadState.COMPLETED);
+            itemCache.updateItemState(item, DownloadState.COMPLETED);
             listenerHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -215,7 +214,7 @@ public class DownloadService extends Service {
         taskProgressHandler = new Handler(listenerThread.getLooper());
 
 
-        taskProgressHandler.post(itemCache.cacheManager());
+        itemCache.scheduleCacheManager(taskProgressHandler);
     }
 
     private void stopHandlerThreads() {
@@ -247,8 +246,10 @@ public class DownloadService extends Service {
     }
 
     private void updateItemInfoInDB(DownloadItemImp item, String... columns) {
+        itemCache.updateItemInfo(item, columns);
         if (database != null) {
             database.updateItemInfo(item, columns);
+
         }
     }
 
@@ -344,9 +345,9 @@ public class DownloadService extends Service {
             public void run() {
                 try {
                     newDownload(item);
-                    item.setState(DownloadState.INFO_LOADED);
+                    itemCache.updateItemState(item, DownloadState.INFO_LOADED);
                     updateItemInfoInDB(item,
-                            Database.COL_ITEM_STATE, Database.COL_ITEM_ESTIMATED_SIZE,
+                            Database.COL_ITEM_ESTIMATED_SIZE,
                             Database.COL_ITEM_PLAYBACK_PATH);
                     downloadStateListener.onDownloadMetadata(item, null);
 
@@ -423,22 +424,17 @@ public class DownloadService extends Service {
         database.addTracks(item, availableTracks, selectedTracks);
     }
 
-    public DownloadState startDownload(final String itemId) {
+    DownloadState startDownload(final DownloadItemImp item) {
         assertStarted();
-        if (TextUtils.isEmpty(itemId)) {
-            throw new IllegalStateException("Can't download empty itemId");
-        }
 
-        final DownloadItemImp item = findItemImpl(itemId);
-        if (item == null) {
-            throw new IllegalStateException("Can't find item in db");
-        }
+        // TODO: 18/07/2018 Refresh item state
 
         if (item.getState() == DownloadState.NEW) {
+            final DownloadItemImp downloadItemImp = itemCache.get(item.getItemId());
             throw new IllegalStateException("Can't start download while itemState == NEW");
         }
 
-        item.setState(DownloadState.IN_PROGRESS);
+        itemCache.updateItemState(item, DownloadState.IN_PROGRESS);
 
         listenerHandler.post(new Runnable() {
             @Override
@@ -448,10 +444,10 @@ public class DownloadService extends Service {
         });
 
         // Read download tasks from db
-        ArrayList<DownloadTask> chunksToDownload = database.readPendingDownloadTasksFromDB(itemId);
+        ArrayList<DownloadTask> chunksToDownload = database.readPendingDownloadTasksFromDB(item.getItemId());
 
         if (chunksToDownload.isEmpty()) {
-            updateItemState(item, DownloadState.COMPLETED);
+            itemCache.updateItemState(item, DownloadState.COMPLETED);
 
             listenerHandler.post(new Runnable() {
                 @Override
@@ -467,16 +463,11 @@ public class DownloadService extends Service {
             // files and fast when downloading the large ones (video).
             Collections.shuffle(chunksToDownload, new Random(42));
 
-            downloadChunks(chunksToDownload, itemId);
-            updateItemState(item, DownloadState.IN_PROGRESS);
+            downloadChunks(chunksToDownload, item.getItemId());
+            itemCache.updateItemState(item, DownloadState.IN_PROGRESS);
         }
 
         return item.getState();
-    }
-
-    private void updateItemState(DownloadItemImp item, DownloadState state) {
-        item.setState(state);
-        database.updateItemState(item.getItemId(), state);
     }
 
     public void pauseDownload(final DownloadItemImp item) {
@@ -488,7 +479,7 @@ public class DownloadService extends Service {
 
                 pauseItemDownload(item.getItemId());
 
-                updateItemState(item, DownloadState.PAUSED);
+                itemCache.updateItemState(item, DownloadState.PAUSED);
 
                 listenerHandler.post(new Runnable() {
                     @Override
@@ -505,8 +496,8 @@ public class DownloadService extends Service {
 
         // resume should be considered as download start
 
-        DownloadState itemState = startDownload(item.getItemId());
-        updateItemState(item, itemState);
+        DownloadState itemState = startDownload(item);
+        itemCache.updateItemState(item, itemState);
     }
 
     public void removeItem(DownloadItemImp item) {
@@ -527,7 +518,6 @@ public class DownloadService extends Service {
 
 
         deleteItemFiles(itemId);
-        database.removeItemFromDB(itemId);
         itemCache.remove(itemId);
     }
 
@@ -536,21 +526,6 @@ public class DownloadService extends Service {
         File file = new File(path);
 
         Utils.deleteRecursive(file);
-    }
-
-    private DownloadItemImp findItemImpl(String itemId) {
-        DownloadItemImp item = itemCache.get(itemId);
-        if (item != null) {
-            return item;
-        }
-
-        item = database.findItemInDB(itemId);
-        if (item != null) {
-            item.setProvider(this);
-            itemCache.put(item);
-        }
-
-        return item;
     }
 
     /**
@@ -562,12 +537,16 @@ public class DownloadService extends Service {
     public DownloadItemImp findItem(String itemId) {
         assertStarted();
 
-        return findItemImpl(itemId);
+        return itemCache.get(itemId);
     }
 
-    public long getDownloadedItemSize(@Nullable String itemId) {
-        // TODO: 15/07/2018 Maybe use the cache directly
-        return database.getDownloadedItemSize(itemId);
+    long getDownloadedItemSize(@Nullable String itemId) {
+        final DownloadItemImp item = itemCache.get(itemId);
+        if (item != null) {
+            return item.getDownloadedSizeBytes();
+        }
+
+        return 0;
     }
 
     public DownloadItemImp createItem(String itemId, String contentURL) {
@@ -577,7 +556,7 @@ public class DownloadService extends Service {
         removedItems.remove(itemId);
 
 
-        DownloadItemImp item = findItemImpl(itemId);
+        DownloadItemImp item = itemCache.get(itemId);
         // If item already exists, return null.
         if (item != null) {
             return null;    // don't create, DON'T return db item.
@@ -599,7 +578,7 @@ public class DownloadService extends Service {
 
         database.addItemToDB(item, itemDataDir);
 
-        item.setProvider(this);
+        item.setService(this);
         return item;
     }
 
@@ -609,7 +588,7 @@ public class DownloadService extends Service {
         ArrayList<DownloadItemImp> items = database.readItemsFromDB(states);
 
         for (DownloadItemImp item : items) {
-            item.setProvider(this);
+            item.setService(this);
         }
 
         return Collections.unmodifiableList(items);
@@ -626,7 +605,7 @@ public class DownloadService extends Service {
     public File getLocalFile(String itemId) {
         assertStarted();
 
-        DownloadItemImp item = findItemImpl(itemId);
+        DownloadItemImp item = itemCache.get(itemId);
         if (item == null) {
             return null;
         }
@@ -714,8 +693,8 @@ public class DownloadService extends Service {
         }
     }
 
-    class ItemCache {
-        private Map<String, DownloadItemImp> itemCache = new HashMap<>();
+    private class ItemCache {
+        private Map<String, DownloadItemImp> cache = new HashMap<>();
         private Set<String> dbFlushNeeded = new HashSet<>();
         private Map<String, Long> itemLastUseTime = new HashMap<>();
 
@@ -723,14 +702,14 @@ public class DownloadService extends Service {
             dbFlushNeeded.add(itemId);
         }
 
-        private Runnable cacheManager() {
-            return new Runnable() {
+        private void scheduleCacheManager(Handler handler) {
+            handler.post(new Runnable() {
                 @Override
                 public void run() {
 
                     // Flush dirty items to db
                     for (String itemId : dbFlushNeeded) {
-                        final DownloadItemImp item = itemCache.get(itemId);
+                        final DownloadItemImp item = cache.get(itemId);
                         updateItemInfoInDB(item, Database.COL_ITEM_DOWNLOADED_SIZE);
                     }
 
@@ -741,34 +720,68 @@ public class DownloadService extends Service {
                         if (elapsedRealtime() - entry.getValue() > 60000) {
                             final String itemId = entry.getKey();
                             iterator.remove();
-                            itemCache.remove(itemId);
+                            cache.remove(itemId);
                             dbFlushNeeded.remove(itemId);
                         }
                     }
 
                     taskProgressHandler.postDelayed(this, 200);
                 }
-            };
+            });
         }
 
-        public DownloadItemImp get(String itemId) {
-            final DownloadItemImp item = itemCache.get(itemId);
+        private DownloadItemImp get(String itemId) {
+            DownloadItemImp item = cache.get(itemId);
             if (item != null) {
                 itemLastUseTime.put(itemId, elapsedRealtime());
+                return item;
             }
+
+            item = database.findItemInDB(itemId);
+            if (item != null) {
+                item.setService(DownloadService.this);
+                cache.put(itemId, item);
+                itemLastUseTime.put(itemId, elapsedRealtime());
+            }
+
             return item;
         }
 
-        public void put(DownloadItemImp item) {
-            final String itemId = item.getItemId();
-            itemCache.put(itemId, item);
-            itemLastUseTime.put(itemId, elapsedRealtime());
-        }
-
-        public void remove(String itemId) {
-            itemCache.remove(itemId);
+        private void remove(String itemId) {
+            cache.remove(itemId);
             itemLastUseTime.remove(itemId);
             dbFlushNeeded.remove(itemId);
+            database.removeItemFromDB(itemId);
+        }
+
+        private void updateItemState(DownloadItemImp item, DownloadState state) {
+            item.setState(state);
+
+            updateItemInfo(item, new String[]{Database.COL_ITEM_STATE});
+        }
+
+        private void updateItemInfo(DownloadItemImp item, String[] columns) {
+            final DownloadItemImp cachedItem = cache.get(item.getItemId());
+            if (cachedItem != null) {
+                // Update cached item too
+                for (String column : columns) {
+                    switch (column) {
+                        case Database.COL_ITEM_ESTIMATED_SIZE:
+                            cachedItem.setEstimatedSizeBytes(item.getEstimatedSizeBytes());
+                            break;
+                        case Database.COL_ITEM_PLAYBACK_PATH:
+                            cachedItem.setPlaybackPath(item.getPlaybackPath());
+                            break;
+                        case Database.COL_ITEM_DOWNLOADED_SIZE:
+                            cachedItem.setDownloadedSizeBytes(item.getDownloadedSizeBytes());
+                            break;
+                        case Database.COL_ITEM_STATE:
+                            cachedItem.setState(item.getState());
+                            break;
+                    }
+                }
+            }
+            database.updateItemInfo(item, columns);
         }
     }
 }
