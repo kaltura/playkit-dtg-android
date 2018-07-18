@@ -63,7 +63,7 @@ public class DownloadItemImp implements DownloadItem {
         this.playbackPath = playbackPath;
     }
 
-    void setProvider(DownloadService provider) {
+    void setService(DownloadService provider) {
         this.service = provider;
     }
 

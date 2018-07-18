@@ -75,7 +75,7 @@ public class ContentManagerImp extends ContentManager {
     private Context context;
     private String sessionId;
     private String applicationName;
-    private ServiceProxy provider;
+    private ServiceProxy serviceProxy;
     private File itemsDir;
     private boolean started;
     private boolean autoResumeItemsInProgress = true;
@@ -119,12 +119,12 @@ public class ContentManagerImp extends ContentManager {
 
     @Override
     public void stop() {
-        if (provider == null) {
+        if (serviceProxy == null) {
             started = false;
             return;
         }
-        provider.stop();
-        provider = null;
+        serviceProxy.stop();
+        serviceProxy = null;
         started = false;
     }
 
@@ -134,7 +134,7 @@ public class ContentManagerImp extends ContentManager {
         this.sessionId = UUID.randomUUID().toString();
         this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
         this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
-        if (provider != null) {
+        if (serviceProxy != null) {
             // Call the onstarted callback even if it has already been started
             if (onStartedListener != null) {
                 onStartedListener.onStarted();
@@ -142,9 +142,9 @@ public class ContentManagerImp extends ContentManager {
             return;
         }
 
-        provider = new ServiceProxy(context, settings);
-        provider.setDownloadStateListener(downloadStateRelay);
-        provider.start(new OnStartedListener() {
+        serviceProxy = new ServiceProxy(context, settings);
+        serviceProxy.setDownloadStateListener(downloadStateRelay);
+        serviceProxy.start(new OnStartedListener() {
             @Override
             public void onStarted() {
                 started = true;
@@ -170,7 +170,7 @@ public class ContentManagerImp extends ContentManager {
 
         List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
         for (DownloadItem item : downloads) {
-            provider.pauseDownload(item);
+            serviceProxy.pauseDownload(item);
         }
     }
 
@@ -181,7 +181,7 @@ public class ContentManagerImp extends ContentManager {
 
         List<DownloadItem> downloads = getDownloads(DownloadState.PAUSED);
         for (DownloadItem item : downloads) {
-            provider.resumeDownload(item);
+            serviceProxy.resumeDownload(item);
         }
     }
 
@@ -189,7 +189,7 @@ public class ContentManagerImp extends ContentManager {
     public DownloadItem findItem(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
         assertProviderAndItem(itemId);
-        return provider.findItem(itemId);
+        return serviceProxy.findItem(itemId);
     }
 
     @Override
@@ -197,11 +197,11 @@ public class ContentManagerImp extends ContentManager {
         checkIfManagerStarted();
         assertProvider();
 
-        return provider.getDownloadedItemSize(itemId);
+        return serviceProxy.getDownloadedItemSize(itemId);
     }
 
     private void assertProvider() {
-        if (provider == null) {
+        if (serviceProxy == null) {
             throw new IllegalStateException("Provider Operation Not Valid");
         }
     }
@@ -210,7 +210,7 @@ public class ContentManagerImp extends ContentManager {
     public long getEstimatedItemSize(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
         assertProviderAndItem(itemId);
-        return provider.getEstimatedItemSize(itemId);
+        return serviceProxy.getEstimatedItemSize(itemId);
     }
 
     @Override
@@ -219,7 +219,7 @@ public class ContentManagerImp extends ContentManager {
         itemId = safeItemId(itemId);
         assertProviderAndItem(itemId);
         DownloadRequestParams downloadRequestParams = adapter.adapt(new DownloadRequestParams(Uri.parse(contentURL), null));
-        return provider.createItem(itemId, downloadRequestParams.url.toString());
+        return serviceProxy.createItem(itemId, downloadRequestParams.url.toString());
     }
 
     private String safeItemId(String itemId) {
@@ -237,7 +237,7 @@ public class ContentManagerImp extends ContentManager {
             throw new IllegalStateException("DownloadItem Is Null");
         }
 
-        provider.removeItem(item);
+        serviceProxy.removeItem(item);
     }
 
     private File getItemDir(String itemId) {
@@ -255,7 +255,7 @@ public class ContentManagerImp extends ContentManager {
     public List<DownloadItem> getDownloads(DownloadState... states) throws IllegalStateException {
         checkIfManagerStarted();
         assertProvider();
-        return new ArrayList<>(provider.getDownloads(states));
+        return new ArrayList<>(serviceProxy.getDownloads(states));
     }
 
     @Override
@@ -263,11 +263,11 @@ public class ContentManagerImp extends ContentManager {
         checkIfManagerStarted();
         assertProviderAndItem(itemId);
 
-        return provider.getPlaybackURL(itemId);
+        return serviceProxy.getPlaybackURL(itemId);
     }
 
     private void assertProviderAndItem(String itemId) {
-        if (provider == null || TextUtils.isEmpty(itemId)) {
+        if (serviceProxy == null || TextUtils.isEmpty(itemId)) {
             throw new IllegalStateException("Provider Operation Not Valid");
         }
     }
@@ -276,7 +276,7 @@ public class ContentManagerImp extends ContentManager {
     public File getLocalFile(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
         assertProviderAndItem(itemId);
-        return provider.getLocalFile(itemId);
+        return serviceProxy.getLocalFile(itemId);
     }
 
     private void checkIfManagerStarted() {
