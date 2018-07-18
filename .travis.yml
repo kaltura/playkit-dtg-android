@@ -4,13 +4,6 @@ jdk:
 android:
   components:
   - tools
-  - extra-android-m2repository
-cache:
-  directories:
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
-before_cache:
-  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 before_script:
   - curl https://kaltura.github.io/playkit/tools/android-sdk-license.sh | sh
 script:
