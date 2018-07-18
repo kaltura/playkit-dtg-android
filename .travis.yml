@@ -18,8 +18,7 @@ cache:
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 before_script:
-  - mkdir -p $ANDROID_HOME/licenses
-  - echo $android_sdk_license > $ANDROID_HOME/licenses/android-sdk-license
+  - yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
 script:
   - ./gradlew dtglib:build dtgqueue:build
 after_success:
