@@ -253,7 +253,7 @@ public class DownloadService extends Service {
         }
     }
 
-    public void updateItemEstimatedSizeInDB(DownloadItemImp item) {
+    void updateItemEstimatedSizeInDB(DownloadItemImp item) {
         updateItemInfoInDB(item, Database.COL_ITEM_ESTIMATED_SIZE);
     }
 
@@ -263,7 +263,7 @@ public class DownloadService extends Service {
         }
     }
 
-    public void start() {
+    void start() {
 
         Log.d(TAG, "start()");
 
@@ -297,7 +297,7 @@ public class DownloadService extends Service {
         started = true;
     }
 
-    public void stop() {
+    void stop() {
 
         Log.d(TAG, "stop()");
 
@@ -337,7 +337,7 @@ public class DownloadService extends Service {
         }
     }
 
-    public void loadItemMetadata(final DownloadItemImp item) {
+    void loadItemMetadata(final DownloadItemImp item) {
         assertStarted();
 
         AsyncTask.execute(new Runnable() {
@@ -413,14 +413,14 @@ public class DownloadService extends Service {
         addDownloadTasksToDB(item, Collections.singletonList(downloadTask));
     }
 
-    public void addDownloadTasksToDB(DownloadItemImp item, List<DownloadTask> tasks) {
+    void addDownloadTasksToDB(DownloadItemImp item, List<DownloadTask> tasks) {
 
         // Filter-out things that are already 
 
         database.addDownloadTasksToDB(item, tasks);
     }
 
-    public void addTracksToDB(DownloadItemImp item, List<BaseTrack> availableTracks, List<BaseTrack> selectedTracks) {
+    void addTracksToDB(DownloadItemImp item, List<BaseTrack> availableTracks, List<BaseTrack> selectedTracks) {
         database.addTracks(item, availableTracks, selectedTracks);
     }
 
@@ -470,7 +470,7 @@ public class DownloadService extends Service {
         return item.getState();
     }
 
-    public void pauseDownload(final DownloadItemImp item) {
+    void pauseDownload(final DownloadItemImp item) {
         assertStarted();
 
         if (item != null) {
@@ -491,7 +491,7 @@ public class DownloadService extends Service {
         }
     }
 
-    public void resumeDownload(DownloadItemImp item) {
+    void resumeDownload(DownloadItemImp item) {
         assertStarted();
 
         // resume should be considered as download start
@@ -500,7 +500,7 @@ public class DownloadService extends Service {
         itemCache.updateItemState(item, itemState);
     }
 
-    public void removeItem(DownloadItemImp item) {
+    void removeItem(DownloadItemImp item) {
         assertStarted();
 
         if (item == null) {
@@ -533,8 +533,7 @@ public class DownloadService extends Service {
      *
      * @return An item identified by itemId, or null if not found.
      */
-
-    public DownloadItemImp findItem(String itemId) {
+    DownloadItemImp findItem(String itemId) {
         assertStarted();
 
         return itemCache.get(itemId);
@@ -549,7 +548,7 @@ public class DownloadService extends Service {
         return 0;
     }
 
-    public DownloadItemImp createItem(String itemId, String contentURL) {
+    DownloadItemImp createItem(String itemId, String contentURL) {
         assertStarted();
 
         // if this item was just removed, unmark it as removed.
@@ -582,7 +581,7 @@ public class DownloadService extends Service {
         return item;
     }
 
-    public List<DownloadItemImp> getDownloads(DownloadState[] states) {
+    List<DownloadItemImp> getDownloads(DownloadState[] states) {
         assertStarted();
 
         ArrayList<DownloadItemImp> items = database.readItemsFromDB(states);
@@ -594,7 +593,7 @@ public class DownloadService extends Service {
         return Collections.unmodifiableList(items);
     }
 
-    public String getPlaybackURL(String itemId) {
+    String getPlaybackURL(String itemId) {
         File localFile = getLocalFile(itemId);
         if (localFile == null) {
             return null;
@@ -602,7 +601,7 @@ public class DownloadService extends Service {
         return Uri.fromFile(localFile).toString();
     }
 
-    public File getLocalFile(String itemId) {
+    File getLocalFile(String itemId) {
         assertStarted();
 
         DownloadItemImp item = itemCache.get(itemId);
@@ -618,32 +617,32 @@ public class DownloadService extends Service {
         return new File(item.getDataDir(), playbackPath);
     }
 
-    public void setDownloadStateListener(DownloadStateListener listener) {
+    void setDownloadStateListener(DownloadStateListener listener) {
         if (listener == null) {
             listener = noopListener;
         }
         downloadStateListener = listener;
     }
 
-    public long getEstimatedItemSize(String itemId) {
+    long getEstimatedItemSize(String itemId) {
         assertStarted();
 
         return database.getEstimatedItemSize(itemId);
     }
 
-    public List<BaseTrack> readTracksFromDB(String itemId, TrackType trackType, BaseTrack.TrackState state, AssetFormat assetFormat) {
+    List<BaseTrack> readTracksFromDB(String itemId, TrackType trackType, BaseTrack.TrackState state, AssetFormat assetFormat) {
         return database.readTracks(itemId, trackType, state, assetFormat);
     }
 
-    public void updateTracksInDB(String itemId, Map<TrackType, List<BaseTrack>> tracksMap, BaseTrack.TrackState state) {
+    void updateTracksInDB(String itemId, Map<TrackType, List<BaseTrack>> tracksMap, BaseTrack.TrackState state) {
         database.updateTracksState(itemId, Utils.flattenTrackList(tracksMap), state);
     }
 
-    public int countPendingFiles(String itemId, @Nullable BaseTrack track) {
+    int countPendingFiles(String itemId, @Nullable BaseTrack track) {
         return database.countPendingFiles(itemId, track != null ? track.getRelativeId() : null);
     }
 
-    public int countPendingFiles(String itemId) {
+    int countPendingFiles(String itemId) {
         return database.countPendingFiles(itemId, null);
     }
 
@@ -674,7 +673,7 @@ public class DownloadService extends Service {
         };
     }
 
-    public void setDownloadSettings(ContentManager.Settings downloadSettings) {
+    void setDownloadSettings(ContentManager.Settings downloadSettings) {
         if (started) {
             throw new IllegalStateException("Can't change settings after start");
         }
