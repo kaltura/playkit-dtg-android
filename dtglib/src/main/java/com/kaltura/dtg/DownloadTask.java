@@ -219,16 +219,17 @@ public class DownloadTask {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof DownloadTask) {
-            DownloadTask otherTask = (DownloadTask) o;
-            return Utils.equals(url, otherTask.url) && Utils.equals(targetFile, otherTask.targetFile);
-        }
-        return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DownloadTask that = (DownloadTask) o;
+        return Utils.equals(url, that.url) &&
+                Utils.equals(targetFile, that.targetFile);
     }
 
     @Override
     public int hashCode() {
-        return Utils.hash(super.hashCode(), url, targetFile);
+
+        return Utils.hash(url, targetFile);
     }
 
     void setDownloadSettings(ContentManager.Settings downloadSettings) {
