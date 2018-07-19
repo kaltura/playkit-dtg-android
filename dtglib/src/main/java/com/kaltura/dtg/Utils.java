@@ -25,14 +25,14 @@ import java.util.Map;
 public class Utils {
     private static final String TAG = "DTGUtils";
 
-    public static String createTable(String name, String... coldefs) {
+    public static String createTable(String name, String... colDefs) {
         StringBuilder sb = new StringBuilder();
         sb.append("CREATE TABLE ").append(name).append("(");
-        for (int i = 0; i < coldefs.length; i += 2) {
+        for (int i = 0; i < colDefs.length; i += 2) {
             if (i > 0) {
                 sb.append(",\n");
             }
-            sb.append(coldefs[i]).append(" ").append(coldefs[i + 1]);
+            sb.append(colDefs[i]).append(" ").append(colDefs[i + 1]);
         }
         sb.append(");");
         String str = sb.toString();

@@ -21,9 +21,7 @@ import java.net.HttpRetryException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,7 +37,7 @@ public class DownloadService extends Service {
     private static final String NO_MEDIA_EMPTY_FILE = ".nomedia";
 
     private final Context context;  // allow mocking
-    private LocalBinder localBinder = new LocalBinder();
+    private final LocalBinder localBinder = new LocalBinder();
     private Database database;
     private DownloadRequestParams.Adapter adapter;
     private File downloadsDir;
@@ -47,13 +45,13 @@ public class DownloadService extends Service {
     private boolean stopping;
     private DownloadStateListener downloadStateListener;
     private ExecutorService executorService;
-    private ItemFutureMap futureMap = new ItemFutureMap();
+    private final ItemFutureMap futureMap = new ItemFutureMap();
     private Handler listenerHandler = null;
 
     private Handler taskProgressHandler = null;
     private ContentManager.Settings settings;
 
-    private Set<String> removedItems = new HashSet<>();
+    private final Set<String> removedItems = new HashSet<>();
     private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
 
         @Override
@@ -265,11 +263,11 @@ public class DownloadService extends Service {
             downloadsDir = new File(extFilesDir, "dtg/clear");
             makeDirs(downloadsDir, "provider downloads");
             if (settings.createNoMediaFileInDownloadsDir) {
-                File noMediafileExternal = new File(extFilesDir, NO_MEDIA_EMPTY_FILE);
+                File noMediaFileExternal = new File(extFilesDir, NO_MEDIA_EMPTY_FILE);
                 try {
-                    noMediafileExternal.createNewFile();
+                    noMediaFileExternal.createNewFile();
                 } catch (IOException e) {
-                    throw new IllegalStateException("Can't create nomedia file at " + noMediafileExternal);
+                    throw new IllegalStateException("Can't create .nomedia file at " + noMediaFileExternal);
                 }
             }
         } else {
@@ -641,7 +639,7 @@ public class DownloadService extends Service {
         return database.countPendingFiles(itemId, track != null ? track.getRelativeId() : null);
     }
 
-    public int countPendingFiles(String itemId) {
+    private int countPendingFiles(String itemId) {
         return database.countPendingFiles(itemId, null);
     }
 

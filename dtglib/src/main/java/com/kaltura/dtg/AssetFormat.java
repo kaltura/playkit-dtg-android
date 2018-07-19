@@ -3,7 +3,7 @@ package com.kaltura.dtg;
 public enum AssetFormat {
     dash, hls, mp4, wvm, mp3, invalid;
 
-    static AssetFormat[] valid = {dash, hls, mp4, wvm, mp3};
+    static final AssetFormat[] valid = {dash, hls, mp4, wvm, mp3};
 
     public String extension() {
         switch (this) {

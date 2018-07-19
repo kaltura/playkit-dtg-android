@@ -14,7 +14,7 @@ import java.util.concurrent.Future;
 
 class ItemFutureMap {
     private static final String TAG = "ItemFutureMap";
-    private Map<String, Set<Future>> map;
+    private final Map<String, Set<Future>> map;
 
     ItemFutureMap() {
         map = new HashMap<>();

@@ -45,6 +45,7 @@ public class DashTrack extends BaseTrack {
         return "a" + adaptationIndex + "r" + representationIndex;
     }
 
+    @SuppressWarnings("SimplifiableIfStatement")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
