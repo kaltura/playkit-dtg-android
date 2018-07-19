@@ -53,9 +53,11 @@ class Database {
     static final String COL_TRACK_BITRATE = "TrackBitrate";
     static final String COL_TRACK_REL_ID = "TrackRelativeId";
     private static final String COL_FILE_COMPLETE = "FileComplete";
+    private static final String EXT_FILES_PREFIX = "$extFiles/";
 
     private final SQLiteOpenHelper helper;
     private final SQLiteDatabase database;
+    private final String externalFilesDir;
 
     private BufferedWriter traceWriter;
     private long start;// = SystemClock.elapsedRealtime();
@@ -87,6 +89,9 @@ class Database {
 
 
     Database(File dbFile, final Context context) {
+
+        final File externalFilesDir = context.getExternalFilesDir(null);
+        this.externalFilesDir = externalFilesDir != null ? externalFilesDir.getAbsolutePath() + "/" : null;
 
         try {
             traceWriter = new BufferedWriter(new FileWriter(dbFile.getParent() + "/dbtrace.txt"));
@@ -168,7 +173,7 @@ class Database {
                     // Add COL_FILE_ORDER to files
                     db.execSQL(Utils.format("ALTER TABLE %s ADD COLUMN %s INTEGER", TBL_DOWNLOAD_FILES, COL_FILE_ORDER));
 
-                    // TODO: 19/07/2018 change path to relative
+                    changeTargetFileToRelative(db);
                 }
 
                 db.setTransactionSuccessful();
@@ -183,6 +188,13 @@ class Database {
             }
         };
         database = helper.getWritableDatabase();
+    }
+
+    // Only to be called from onUpgrade()
+    private void changeTargetFileToRelative(SQLiteDatabase db) {
+        final String sql = Utils.format("UPDATE %s SET %s = replace(%s, ?, '%s')",
+                TBL_DOWNLOAD_FILES, COL_TARGET_FILE, COL_TARGET_FILE, EXT_FILES_PREFIX);
+        db.execSQL(sql, new String[]{externalFilesDir});
     }
 
     private static void safeClose(Cursor cursor) {
@@ -229,7 +241,7 @@ class Database {
                 for (DownloadTask task : downloadTasks) {
                     values.put(COL_ITEM_ID, item.getItemId());
                     values.put(COL_FILE_URL, task.url.toString());
-                    values.put(COL_TARGET_FILE, task.targetFile.getAbsolutePath());// FIXME: 19/07/2018 use relative path
+                    values.put(COL_TARGET_FILE, relativeExtFilesPath(task.targetFile));
                     values.put(COL_TRACK_REL_ID, task.trackRelativeId);
                     values.put(COL_FILE_ORDER, task.order);
                     try {
@@ -262,7 +274,8 @@ class Database {
                 String file = cursor.getString(1);
                 int order = cursor.isNull(2) ? DownloadTask.UNKNOWN_ORDER : cursor.getInt(2);
 
-                DownloadTask task = new DownloadTask(Uri.parse(url), file, order);
+                File targetFile = absoluteExtFilesFile(file);
+                DownloadTask task = new DownloadTask(Uri.parse(url), targetFile, order);
                 task.itemId = itemId;
 
                 downloadTasks.add(task);
@@ -275,6 +288,23 @@ class Database {
         return downloadTasks;
     }
 
+    @NonNull
+    private File absoluteExtFilesFile(String file) {
+        if (file.startsWith("/")) return new File(file);    // already absolute
+        if (file.startsWith(EXT_FILES_PREFIX)) {
+            return new File(file.replace(EXT_FILES_PREFIX, externalFilesDir));
+        }
+        throw new IllegalArgumentException("Can't resolve filename " + file);
+    }
+
+    private String relativeExtFilesPath(File targetFile) {
+        final String absolutePath = targetFile.getAbsolutePath();
+        if (absolutePath.startsWith(externalFilesDir)) {
+            return absolutePath.replace(externalFilesDir, EXT_FILES_PREFIX);
+        }
+        throw new IllegalArgumentException("Can't convert filename " + targetFile);
+    }
+
     synchronized void markTaskAsComplete(final DownloadTask downloadTask) {
         trace("markTaskAsComplete", downloadTask.itemId, downloadTask.taskId);
 
@@ -285,7 +315,7 @@ class Database {
                 values.put(COL_FILE_COMPLETE, 1);
 
                 db.updateWithOnConflict(TBL_DOWNLOAD_FILES, values, COL_TARGET_FILE + "==?",
-                        new String[]{downloadTask.targetFile.getAbsolutePath()},
+                        new String[]{relativeExtFilesPath(downloadTask.targetFile)},
                         SQLiteDatabase.CONFLICT_IGNORE);
                 return true;
             }
