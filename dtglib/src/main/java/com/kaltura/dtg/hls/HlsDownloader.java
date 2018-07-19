@@ -46,12 +46,12 @@ public class HlsDownloader extends AbrDownloader {
         super(item);
     }
 
-    private static void maybeAddTask(LinkedHashSet<DownloadTask> tasks, String relativeId, File trackTargetDir, int lineNum, String type, String url) throws MalformedURLException {
+    private static void maybeAddTask(LinkedHashSet<DownloadTask> tasks, String relativeId, File trackTargetDir, int lineNum, String type, String url, int order) throws MalformedURLException {
         if (url == null) {
             return;
         }
         final File file = new File(trackTargetDir, getLocalMediaFilename(lineNum, type));
-        final DownloadTask task = new DownloadTask(new URL(url), file);
+        final DownloadTask task = new DownloadTask(new URL(url), file, order);
         task.setTrackRelativeId(relativeId);
         tasks.add(task);
     }
@@ -92,9 +92,11 @@ public class HlsDownloader extends AbrDownloader {
                 readOrDownloadTrackPlaylist(track);
             }
 
+            int order = 0;
             for (HlsAsset.Chunk chunk : track.chunks) {
-                maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.lineNum, "media", chunk.url);
-                maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.encryptionKeyLineNum, "key", chunk.encryptionKeyUri);
+                order++;
+                maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.lineNum, "media", chunk.url, order);
+                maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.encryptionKeyLineNum, "key", chunk.encryptionKeyUri, order);
             }
 
             // Update size

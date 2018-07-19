@@ -405,7 +405,7 @@ public class DownloadService extends Service {
 
         String fileNameFullPath = Utils.getHashedFileName(url.getPath());
         File targetFile = new File(item.getDataDir(), fileNameFullPath);
-        DownloadTask downloadTask = new DownloadTask(url, targetFile);
+        DownloadTask downloadTask = new DownloadTask(url, targetFile, 1);
 
         item.setEstimatedSizeBytes(length);
         item.setPlaybackPath(fileNameFullPath);
@@ -457,11 +457,15 @@ public class DownloadService extends Service {
             });
 
         } else {
-            // Shuffle to mix large and small files together, making download speed look smooth.
-            // Otherwise, all small files (subtitles, keys) are downloaded together. Because of
-            // http request overhead the download speed is very slow when downloading the small
-            // files and fast when downloading the large ones (video).
-            Collections.shuffle(chunksToDownload, new Random(42));
+
+            if (chunksToDownload.get(0).order == DownloadTask.UNKNOWN_ORDER) {
+                // Shuffle to mix large and small files together, making download speed look smooth.
+                // Otherwise, all small files (subtitles, keys) are downloaded together. Because of
+                // http request overhead the download speed is very slow when downloading the small
+                // files and fast when downloading the large ones (video).
+                // This is not needed if the tasks are correctly ordered.
+                Collections.shuffle(chunksToDownload, new Random(42));
+            }
 
             downloadChunks(chunksToDownload, item.getItemId());
             itemCache.updateItemState(item, DownloadState.IN_PROGRESS);

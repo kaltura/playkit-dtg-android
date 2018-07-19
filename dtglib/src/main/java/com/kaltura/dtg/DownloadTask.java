@@ -15,6 +15,7 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 
 public class DownloadTask {
+    public static final int UNKNOWN_ORDER = -1;
     private static final String TAG = "DownloadTask";
     private static final int PROGRESS_REPORT_COUNT = 100;
 
@@ -24,25 +25,31 @@ public class DownloadTask {
     String itemId;
 
     String trackRelativeId;
+    int order;
 
     private Listener listener;  // this is the service
 
     private int retryCount = 0;
     private ContentManager.Settings downloadSettings;
 
-    public DownloadTask(URL url, File targetFile) {
+    public DownloadTask(URL url, File targetFile, int order) {
         this.url = url;
         this.targetFile = targetFile;
         this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
+        this.order = order;
     }
 
-    DownloadTask(String url, String targetFile) throws MalformedURLException {
-        this(new URL(url), new File(targetFile));
+    DownloadTask(String url, String targetFile, int order) throws MalformedURLException {
+        this(new URL(url), new File(targetFile), order);
     }
 
 
     public void setTrackRelativeId(String trackRelativeId) {
         this.trackRelativeId = trackRelativeId;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
     }
 
 

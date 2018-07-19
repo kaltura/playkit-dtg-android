@@ -25,13 +25,14 @@ import java.util.List;
 import java.util.Locale;
 
 class Database {
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 3;
     private static final String TBL_DOWNLOAD_FILES = "Files";
     private static final String COL_FILE_URL = "FileURL";
     private static final String COL_TARGET_FILE = "TargetFile";
     private static final String TBL_ITEMS = "Items";
     private static final String COL_ITEM_ID = "ItemID";
     private static final String COL_CONTENT_URL = "ContentURL";
+    private static final String COL_FILE_ORDER = "OrderInTrack";
     static final String COL_ITEM_STATE = "ItemState";
     private static final String COL_ITEM_ADD_TIME = "TimeAdded";
     private static final String COL_ITEM_FINISH_TIME = "TimeFinished";
@@ -146,7 +147,7 @@ class Database {
             public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
                 db.beginTransaction();
 
-                if (newVersion == 2) {
+                if (oldVersion < 2) {
                     // Upgrade 1 -> 2: Track table was missing
                     createTrackTable(db);
 
@@ -158,6 +159,15 @@ class Database {
                     db.execSQL("INSERT INTO " + TBL_DOWNLOAD_FILES + "(" + COL_ITEM_ID + "," + COL_FILE_URL + "," + COL_TARGET_FILE + ") " +
                             "SELECT ItemID, FileURL, TargetFile FROM Files");
                     db.execSQL("DROP TABLE OLD_" + TBL_DOWNLOAD_FILES);
+                }
+
+                if (oldVersion < 3) {
+                    // Assuming v2 or just finished upgrade to v2
+
+                    // Add COL_FILE_ORDER to files
+                    db.execSQL("ALTER TABLE " + TBL_DOWNLOAD_FILES + " ADD COLUMN " + COL_FILE_ORDER + " INTEGER");
+
+                    // TODO: 19/07/2018 change path to relative
                 }
 
                 db.setTransactionSuccessful();
@@ -218,8 +228,9 @@ class Database {
                 for (DownloadTask task : downloadTasks) {
                     values.put(COL_ITEM_ID, item.getItemId());
                     values.put(COL_FILE_URL, task.url.toExternalForm());
-                    values.put(COL_TARGET_FILE, task.targetFile.getAbsolutePath());
+                    values.put(COL_TARGET_FILE, task.targetFile.getAbsolutePath());// FIXME: 19/07/2018 use relative path
                     values.put(COL_TRACK_REL_ID, task.trackRelativeId);
+                    values.put(COL_FILE_ORDER, task.order);
                     try {
                         long rowid = db.insertWithOnConflict(TBL_DOWNLOAD_FILES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
                         if (rowid <= 0) {
@@ -242,14 +253,15 @@ class Database {
         Cursor cursor = null;
 
         try {
-            cursor = database.query(TBL_DOWNLOAD_FILES, new String[]{COL_FILE_URL, COL_TARGET_FILE},
-                    COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0", new String[]{itemId}, null, null, "ROWID");
+            cursor = database.query(TBL_DOWNLOAD_FILES, new String[]{COL_FILE_URL, COL_TARGET_FILE, COL_FILE_ORDER},
+                    COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0", new String[]{itemId}, null, null, COL_FILE_ORDER);
 
             while (cursor.moveToNext()) {
                 String url = cursor.getString(0);
                 String file = cursor.getString(1);
+                int order = cursor.isNull(2) ? DownloadTask.UNKNOWN_ORDER : cursor.getInt(2);
                 try {
-                    DownloadTask task = new DownloadTask(url, file);
+                    DownloadTask task = new DownloadTask(url, file, order);
                     task.itemId = itemId;
                     downloadTasks.add(task);
                 } catch (MalformedURLException e) {
@@ -523,7 +535,7 @@ class Database {
     }
 
     synchronized ArrayList<DownloadItemImp> readItemsFromDB(DownloadState[] states) {
-        trace("readItemsFromDB", states);
+        trace("readItemsFromDB", (Object) states);
 
         String stateNames[] = new String[states.length];
         for (int i = 0; i < states.length; i++) {
