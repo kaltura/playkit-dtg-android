@@ -25,12 +25,12 @@ public abstract class AbrDownloader {
     protected static final int MAX_MANIFEST_SIZE = 10 * 1024 * 1024;
     private static final String TAG = "AbrDownloader";
     private final DownloadItemImp item;
-    protected String manifestUrl;
+    protected final String manifestUrl;
     protected byte[] originManifestBytes;
     protected boolean trackSelectionApplied;
     private long itemDurationMS;
     private long estimatedDownloadSize;
-    private File targetDir;
+    private final File targetDir;
     private Map<TrackType, List<BaseTrack>> selectedTracks;
     private Map<TrackType, List<BaseTrack>> availableTracks;
     private LinkedHashSet<DownloadTask> downloadTasks;
@@ -347,7 +347,7 @@ public abstract class AbrDownloader {
     }
 
     private static class TrackUpdatingData {
-        private Map<DownloadItem.TrackType, List<BaseTrack>> originalSelectedTracks;
+        private final Map<DownloadItem.TrackType, List<BaseTrack>> originalSelectedTracks;
         private boolean trackSelectionChanged;
 
         private TrackUpdatingData(Map<TrackType, List<BaseTrack>> originalSelectedTracks) {

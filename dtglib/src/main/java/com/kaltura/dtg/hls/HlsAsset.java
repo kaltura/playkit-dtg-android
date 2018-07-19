@@ -22,14 +22,13 @@ import java.util.List;
 public class HlsAsset {
 
     private static final String TAG = "HlsAsset";
-    static HlsPlaylistParser parser = new HlsPlaylistParser();
+    static final HlsPlaylistParser parser = new HlsPlaylistParser();
 
     private String masterUrl;
-    private byte[] masterBytes;
     long durationMs;
-    List<Track> videoTracks = new ArrayList<>();
-    List<Track> audioTracks = new ArrayList<>();
-    List<Track> textTracks = new ArrayList<>();
+    final List<Track> videoTracks = new ArrayList<>();
+    final List<Track> audioTracks = new ArrayList<>();
+    final List<Track> textTracks = new ArrayList<>();
 
     HlsAsset() {
     }
@@ -44,9 +43,8 @@ public class HlsAsset {
 
     public HlsAsset parse(final String masterUrl, final byte[] masterBytes) {
         this.masterUrl = masterUrl;
-        this.masterBytes = masterBytes;
 
-        final HlsMasterPlaylist masterPlaylist = (HlsMasterPlaylist) exoParse(this.masterUrl, this.masterBytes);
+        final HlsMasterPlaylist masterPlaylist = (HlsMasterPlaylist) exoParse(this.masterUrl, masterBytes);
 
         parseVariants(masterPlaylist.variants, videoTracks, TrackType.VIDEO);
         parseVariants(masterPlaylist.audios, audioTracks, TrackType.AUDIO);
@@ -121,6 +119,7 @@ public class HlsAsset {
             return "" + firstMasterLine;
         }
 
+        @SuppressWarnings("SimplifiableIfStatement")
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;

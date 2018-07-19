@@ -15,13 +15,13 @@ class ServiceProxy {
 
     private static final String TAG = "ServiceProxy";
     private final ContentManager.Settings settings;
-    private Context context;
+    private final Context context;
     private DownloadService service;
     private DownloadStateListener listener;
 
     private ContentManager.OnStartedListener onStartedListener;
     private int maxConcurrentDownloads;
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
             service = ((DownloadService.LocalBinder) binder).getService();

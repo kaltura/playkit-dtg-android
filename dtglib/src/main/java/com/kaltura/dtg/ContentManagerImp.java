@@ -72,15 +72,15 @@ public class ContentManagerImp extends ContentManager {
     };
 
     private int maxConcurrentDownloads;
-    private Context context;
+    private final Context context;
     private String sessionId;
     private String applicationName;
     private ServiceProxy serviceProxy;
-    private File itemsDir;
+    private final File itemsDir;
     private boolean started;
     private boolean autoResumeItemsInProgress = true;
     private DownloadRequestParams.Adapter adapter;
-    private Settings settings = new Settings();
+    private final Settings settings = new Settings();
 
     private ContentManagerImp(Context context) {
         this.context = context.getApplicationContext();
@@ -135,7 +135,7 @@ public class ContentManagerImp extends ContentManager {
         this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
         this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
         if (serviceProxy != null) {
-            // Call the onstarted callback even if it has already been started
+            // Call the onStarted callback even if it has already been started
             if (onStartedListener != null) {
                 onStartedListener.onStarted();
             }
@@ -247,7 +247,7 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public File getAppDataDir(String itemId) {
         File appDataDir = new File(getItemDir(itemId), "appData");
-        appDataDir.mkdirs();
+        Utils.mkdirs(appDataDir);
         return appDataDir;
     }
 
