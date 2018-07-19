@@ -141,11 +141,11 @@ public class DownloadService extends Service {
         if (newState == DownloadTask.State.COMPLETED) {
             database.markTaskAsComplete(task);
             pendingCount = countPendingFiles(itemId, null);
-            Log.i(TAG, "Pending tasks for item: " + pendingCount + "; finished " + task.url.getPath());
+            Log.i(TAG, "Pending tasks for item: " + pendingCount + "; finished " + task.url.getLastPathSegment());
         }
 
         if (newState == DownloadTask.State.ERROR) {
-            Log.d(TAG, "Task has failed; cancelling item " + itemId);
+            Log.d(TAG, "Task has failed; cancelling item " + itemId + " offending URL: " + task.url);
 
             itemCache.updateItemState(item, DownloadState.FAILED);
 
