@@ -1,5 +1,6 @@
 package com.kaltura.dtg.hls;
 
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -22,7 +23,6 @@ import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,7 +51,7 @@ public class HlsDownloader extends AbrDownloader {
             return;
         }
         final File file = new File(trackTargetDir, getLocalMediaFilename(lineNum, type));
-        final DownloadTask task = new DownloadTask(new URL(url), file, order);
+        final DownloadTask task = new DownloadTask(Uri.parse(url), file, order);
         task.setTrackRelativeId(relativeId);
         tasks.add(task);
     }

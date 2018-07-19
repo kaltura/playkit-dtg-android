@@ -17,7 +17,6 @@ import com.kaltura.dtg.DownloadItem.TrackType;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpRetryException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -399,7 +398,7 @@ public class DownloadService extends Service {
         if (contentURL.startsWith("widevine")) {
             contentURL = contentURL.replaceFirst("widevine", "http");
         }
-        URL url = new URL(contentURL);
+        Uri url = Uri.parse(contentURL);
 
         long length = Utils.httpHeadGetLength(url);
 

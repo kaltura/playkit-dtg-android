@@ -1,5 +1,6 @@
 package com.kaltura.dtg;
 
+import android.net.Uri;
 import android.util.Log;
 
 import java.io.File;
@@ -10,9 +11,7 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.HttpRetryException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
-import java.net.URL;
 
 public class DownloadTask {
     public static final int UNKNOWN_ORDER = -1;
@@ -20,7 +19,7 @@ public class DownloadTask {
     private static final int PROGRESS_REPORT_COUNT = 100;
 
     final String taskId;
-    final URL url;
+    final Uri url;
     final File targetFile;
     String itemId;
 
@@ -32,15 +31,15 @@ public class DownloadTask {
     private int retryCount = 0;
     private ContentManager.Settings downloadSettings;
 
-    public DownloadTask(URL url, File targetFile, int order) {
+    public DownloadTask(Uri url, File targetFile, int order) {
         this.url = url;
         this.targetFile = targetFile;
         this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
         this.order = order;
     }
 
-    DownloadTask(String url, String targetFile, int order) throws MalformedURLException {
-        this(new URL(url), new File(targetFile), order);
+    DownloadTask(String url, String targetFile, int order) {
+        this(Uri.parse(url), new File(targetFile), order);
     }
 
 
@@ -64,7 +63,7 @@ public class DownloadTask {
 
     void download() throws HttpRetryException {
 
-        URL url = this.url;
+        Uri uri = this.url;
         File targetFile = this.targetFile;
 //        Log.d(TAG, "Task " + taskId + ": download " + url + " to " + targetFile);
 
@@ -82,7 +81,7 @@ public class DownloadTask {
         // If file is already downloaded, make sure it's not larger than the remote.
         if (localFileSize > 0) {
             try {
-                long remoteFileSize = Utils.httpHeadGetLength(url);
+                long remoteFileSize = Utils.httpHeadGetLength(uri);
 
                 // finish before even starting, if file is already complete.
                 if (localFileSize == remoteFileSize) {
@@ -103,7 +102,7 @@ public class DownloadTask {
                 reportProgress(State.STOPPED, 0, null);
                 return;
             } catch (IOException e) {
-                Log.e(TAG, "HEAD request failed for " + url, e);
+                Log.e(TAG, "HEAD request failed for " + uri, e);
                 // Nothing to do, but this is not fatal. Just continue.
             }
         }
@@ -119,7 +118,7 @@ public class DownloadTask {
 
         int progressReportBytes = 0;
         try {
-            conn = (HttpURLConnection) url.openConnection();
+            conn = Utils.openConnection(uri);
             conn.setReadTimeout(downloadSettings.httpTimeoutMillis);
             conn.setConnectTimeout(downloadSettings.httpTimeoutMillis);
             conn.setDoInput(true);
@@ -132,7 +131,7 @@ public class DownloadTask {
 
             int response = conn.getResponseCode();
             if (response >= 400) {
-                throw new IOException(Utils.format("Response code for %s is %d", url, response));
+                throw new IOException(Utils.format("Response code for %s is %d", uri, response));
             }
 
             inputStream = conn.getInputStream();
@@ -173,7 +172,7 @@ public class DownloadTask {
             // Not a fatal error -- consider retry.
             retryCount++;
             if (retryCount < downloadSettings.maxDownloadRetries) {
-                throw new HttpRetryException(e.getMessage(), 1, url.toExternalForm());
+                throw new HttpRetryException(e.getMessage(), 1, uri.toString());
             }
 //            Log.d(TAG, "Task " + taskId + " failed", e);
             stopReason = State.ERROR;

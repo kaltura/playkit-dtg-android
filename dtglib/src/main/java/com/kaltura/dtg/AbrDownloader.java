@@ -12,7 +12,6 @@ import com.kaltura.dtg.hls.HlsDownloader;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -145,9 +144,8 @@ public abstract class AbrDownloader {
     protected abstract void createTracks();
 
     private void downloadManifest() throws IOException {
-        URL url = new URL(manifestUrl);
         File targetFile = new File(getTargetDir(), storedOriginManifestName());
-        originManifestBytes = Utils.downloadToFile(url, targetFile, MAX_MANIFEST_SIZE);
+        originManifestBytes = Utils.downloadToFile(Uri.parse(manifestUrl), targetFile, MAX_MANIFEST_SIZE);
     }
 
     List<BaseTrack> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {

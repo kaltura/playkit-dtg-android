@@ -17,7 +17,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -227,7 +226,7 @@ class Database {
                 ContentValues values = new ContentValues();
                 for (DownloadTask task : downloadTasks) {
                     values.put(COL_ITEM_ID, item.getItemId());
-                    values.put(COL_FILE_URL, task.url.toExternalForm());
+                    values.put(COL_FILE_URL, task.url.toString());
                     values.put(COL_TARGET_FILE, task.targetFile.getAbsolutePath());// FIXME: 19/07/2018 use relative path
                     values.put(COL_TRACK_REL_ID, task.trackRelativeId);
                     values.put(COL_FILE_ORDER, task.order);
@@ -260,13 +259,11 @@ class Database {
                 String url = cursor.getString(0);
                 String file = cursor.getString(1);
                 int order = cursor.isNull(2) ? DownloadTask.UNKNOWN_ORDER : cursor.getInt(2);
-                try {
-                    DownloadTask task = new DownloadTask(url, file, order);
-                    task.itemId = itemId;
-                    downloadTasks.add(task);
-                } catch (MalformedURLException e) {
-                    Log.w(TAG, "Malformed URL while reading downloads from db", e);
-                }
+
+                DownloadTask task = new DownloadTask(url, file, order);
+                task.itemId = itemId;
+
+                downloadTasks.add(task);
             }
 
         } finally {

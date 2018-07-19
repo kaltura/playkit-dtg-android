@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -149,9 +148,9 @@ public class DashDownloader extends AbrDownloader {
         return LOCAL_MANIFEST_MPD;
     }
 
-    private void addTask(RangedUri url, String file, String trackId, int order) throws MalformedURLException {
+    private void addTask(RangedUri url, String file, String trackId, int order) {
         File targetFile = new File(getTargetDir(), file);
-        DownloadTask task = new DownloadTask(new URL(url.getUriString()), targetFile, order);
+        DownloadTask task = new DownloadTask(url.getUri(), targetFile, order);
         task.setTrackRelativeId(trackId);
         task.setOrder(order);
         getDownloadTasks().add(task);
