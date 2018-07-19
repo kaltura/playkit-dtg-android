@@ -1,6 +1,7 @@
 package com.kaltura.dtg.dash;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
@@ -107,6 +108,8 @@ public class DashDownloader extends AbrDownloader {
             addTask(initializationUri, "init-" + reprId + ".mp4", dashTrack.getRelativeId(), 0);
         }
 
+        String ext = TextUtils.equals(representation.format.mimeType, "text/vtt") ? ".vtt" : ".m4s";
+
         if (representation instanceof Representation.MultiSegmentRepresentation) {
             Representation.MultiSegmentRepresentation rep = (Representation.MultiSegmentRepresentation) representation;
 
@@ -114,16 +117,13 @@ public class DashDownloader extends AbrDownloader {
             int lastSegmentNum = rep.getLastSegmentNum(periodDurationUs);
             for (int segmentNum = rep.getFirstSegmentNum(); segmentNum <= lastSegmentNum; segmentNum++) {
                 RangedUri url = rep.getSegmentUrl(segmentNum);
-                addTask(url, "seg-" + reprId + "-" + segmentNum + ".m4s", dashTrack.getRelativeId(), segmentNum);
+                addTask(url, "seg-" + reprId + "-" + segmentNum + ext, dashTrack.getRelativeId(), segmentNum);
             }
 
         } else if (representation instanceof Representation.SingleSegmentRepresentation) {
             Representation.SingleSegmentRepresentation rep = (Representation.SingleSegmentRepresentation) representation;
-            if (rep.format.mimeType.equalsIgnoreCase("text/vtt")) {
-                RangedUri url = rep.getIndex().getSegmentUrl(0);
-                addTask(url, reprId + ".vtt", dashTrack.getRelativeId(), 1);
-            }
-            // TODO: 19/07/2018 What if it's not vtt?
+            RangedUri url = rep.getIndex().getSegmentUrl(0);
+            addTask(url, reprId + ext, dashTrack.getRelativeId(), 1);
         }
 
         setEstimatedDownloadSize(getEstimatedDownloadSize() + (getItemDurationMS() * representation.format.bitrate / 8 / 1000));
