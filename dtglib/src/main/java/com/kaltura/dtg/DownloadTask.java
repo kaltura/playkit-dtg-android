@@ -221,17 +221,14 @@ public class DownloadTask {
     public boolean equals(Object o) {
         if (o instanceof DownloadTask) {
             DownloadTask otherTask = (DownloadTask) o;
-            return this.url.equals(otherTask.url) && this.targetFile.equals(otherTask.targetFile);
+            return Utils.equals(url, otherTask.url) && Utils.equals(targetFile, otherTask.targetFile);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        int code = 17;
-        code = 31 * code + (this.url == null ? 0 : this.url.hashCode());
-        code = 31 * code + (this.targetFile == null ? 0 : this.targetFile.hashCode());
-        return code;
+        return Utils.hash(super.hashCode(), url, targetFile);
     }
 
     void setDownloadSettings(ContentManager.Settings downloadSettings) {

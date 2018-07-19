@@ -426,7 +426,7 @@ public class DownloadService extends Service {
     DownloadState startDownload(final DownloadItemImp item) {
         assertStarted();
 
-        // TODO: 18/07/2018 Refresh item state
+        // Refresh item state
 
         if (item.getState() == DownloadState.NEW) {
             final DownloadItemImp downloadItemImp = itemCache.get(item.getItemId());

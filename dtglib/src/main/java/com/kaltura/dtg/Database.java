@@ -7,6 +7,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -152,19 +153,20 @@ class Database {
 
                     // recreate Files table
                     db.execSQL("DROP INDEX IF EXISTS unique_Files_ItemID_FileURL");
-                    db.execSQL("ALTER TABLE " + TBL_DOWNLOAD_FILES + " RENAME TO OLD_" + TBL_DOWNLOAD_FILES);
+                    db.execSQL(Utils.format("ALTER TABLE %s RENAME TO OLD_%s", TBL_DOWNLOAD_FILES, TBL_DOWNLOAD_FILES));
                     createFilesTable(db);
 
-                    db.execSQL("INSERT INTO " + TBL_DOWNLOAD_FILES + "(" + COL_ITEM_ID + "," + COL_FILE_URL + "," + COL_TARGET_FILE + ") " +
-                            "SELECT ItemID, FileURL, TargetFile FROM Files");
-                    db.execSQL("DROP TABLE OLD_" + TBL_DOWNLOAD_FILES);
+                    db.execSQL(Utils.format("INSERT INTO %s(%s,%s,%s) SELECT %s, %s, %s FROM %s",
+                            TBL_DOWNLOAD_FILES, COL_ITEM_ID, COL_FILE_URL, COL_TARGET_FILE,
+                            COL_ITEM_ID, COL_FILE_URL, COL_TARGET_FILE, TBL_DOWNLOAD_FILES));
+                    db.execSQL(Utils.format("DROP TABLE OLD_%s", TBL_DOWNLOAD_FILES));
                 }
 
                 if (oldVersion < 3) {
                     // Assuming v2 or just finished upgrade to v2
 
                     // Add COL_FILE_ORDER to files
-                    db.execSQL("ALTER TABLE " + TBL_DOWNLOAD_FILES + " ADD COLUMN " + COL_FILE_ORDER + " INTEGER");
+                    db.execSQL(Utils.format("ALTER TABLE %s ADD COLUMN %s INTEGER", TBL_DOWNLOAD_FILES, COL_FILE_ORDER));
 
                     // TODO: 19/07/2018 change path to relative
                 }
@@ -260,7 +262,7 @@ class Database {
                 String file = cursor.getString(1);
                 int order = cursor.isNull(2) ? DownloadTask.UNKNOWN_ORDER : cursor.getInt(2);
 
-                DownloadTask task = new DownloadTask(url, file, order);
+                DownloadTask task = new DownloadTask(Uri.parse(url), file, order);
                 task.itemId = itemId;
 
                 downloadTasks.add(task);

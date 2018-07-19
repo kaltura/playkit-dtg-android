@@ -18,6 +18,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -81,6 +82,14 @@ public class Utils {
 
     public static String format(String format, Object... args) {
         return String.format(Locale.ENGLISH, format, args);
+    }
+
+    public static boolean equals(Object a, Object b) {
+        return (a == b) || (a != null && a.equals(b));
+    }
+
+    public static int hash(Object... objects) {
+        return Arrays.hashCode(objects);
     }
 
     @NonNull
