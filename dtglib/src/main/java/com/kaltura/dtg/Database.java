@@ -53,7 +53,8 @@ class Database {
     static final String COL_TRACK_BITRATE = "TrackBitrate";
     static final String COL_TRACK_REL_ID = "TrackRelativeId";
     private static final String COL_FILE_COMPLETE = "FileComplete";
-    private static final String EXT_FILES_PREFIX = "$extFiles/";
+
+    private static final String EXTFILES_SCHEME = "extfiles";
 
     private final SQLiteOpenHelper helper;
     private final SQLiteDatabase database;
@@ -192,9 +193,9 @@ class Database {
 
     // Only to be called from onUpgrade()
     private void changeTargetFileToRelative(SQLiteDatabase db) {
-        final String sql = Utils.format("UPDATE %s SET %s = replace(%s, ?, '%s')",
-                TBL_DOWNLOAD_FILES, COL_TARGET_FILE, COL_TARGET_FILE, EXT_FILES_PREFIX);
-        db.execSQL(sql, new String[]{externalFilesDir});
+        final String sql = Utils.format("UPDATE %s SET %s = replace(%s, ?, ?)",
+                TBL_DOWNLOAD_FILES, COL_TARGET_FILE, COL_TARGET_FILE);
+        db.execSQL(sql, new String[]{externalFilesDir, EXTFILES_SCHEME + ":///"});
     }
 
     private static void safeClose(Cursor cursor) {
@@ -291,17 +292,23 @@ class Database {
     @NonNull
     private File absoluteExtFilesFile(String file) {
         if (file.startsWith("/")) return new File(file);    // already absolute
-        if (file.startsWith(EXT_FILES_PREFIX)) {
-            return new File(file.replace(EXT_FILES_PREFIX, externalFilesDir));
+
+        final Uri uri = Uri.parse(file);
+
+        if (TextUtils.equals(uri.getScheme(), EXTFILES_SCHEME)) {
+            return new File(externalFilesDir, uri.getPath());
         }
+
         throw new IllegalArgumentException("Can't resolve filename " + file);
     }
 
     private String relativeExtFilesPath(File targetFile) {
         final String absolutePath = targetFile.getAbsolutePath();
+
         if (absolutePath.startsWith(externalFilesDir)) {
-            return absolutePath.replace(externalFilesDir, EXT_FILES_PREFIX);
+            return absolutePath.replace(externalFilesDir, EXTFILES_SCHEME + ":///");
         }
+
         throw new IllegalArgumentException("Can't convert filename " + targetFile);
     }
 
