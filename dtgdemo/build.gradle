@@ -4,7 +4,7 @@ android {
     compileSdkVersion 26
 
     defaultConfig {
-        applicationId "com.kaltura.dtgapp.queue"
+        applicationId "com.kaltura.dtg.demo"
         minSdkVersion 17
         targetSdkVersion 26
         versionCode 1

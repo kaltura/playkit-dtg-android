@@ -1,4 +1,4 @@
-package com.kaltura.dtgapp.queue;
+package com.kaltura.dtg.demo;
 
 import android.app.ListActivity;
 import android.content.Context;
