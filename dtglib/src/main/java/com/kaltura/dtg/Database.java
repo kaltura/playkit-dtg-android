@@ -129,7 +129,8 @@ class Database {
                         COL_FILE_URL, "TEXT NOT NULL",
                         COL_TARGET_FILE, "TEXT NOT NULL",
                         COL_TRACK_REL_ID, "TEXT",
-                        COL_FILE_COMPLETE, "INTEGER NOT NULL DEFAULT 0"
+                        COL_FILE_COMPLETE, "INTEGER NOT NULL DEFAULT 0",
+                        COL_FILE_ORDER, "INTEGER"
                 ));
                 db.execSQL(Utils.createUniqueIndex(TBL_DOWNLOAD_FILES, COL_ITEM_ID, COL_FILE_URL));
             }
