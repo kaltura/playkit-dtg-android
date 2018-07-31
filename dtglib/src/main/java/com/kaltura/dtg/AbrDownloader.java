@@ -99,6 +99,9 @@ public abstract class AbrDownloader {
         item.setEstimatedSizeBytes(estimatedDownloadSize);
         item.setDurationMS(itemDurationMS);
 
+        downloadService.updateItemDurationInDB(item);
+
+
         LinkedHashSet<DownloadTask> downloadTasks = this.downloadTasks;
         //Log.d(TAG, "tasks:" + downloadTasks);
 
@@ -201,6 +204,7 @@ public abstract class AbrDownloader {
 
         // Update duration
         item.setDurationMS(itemDurationMS);
+        service.updateItemDurationInDB(item);
 
         // Update item size
         item.setEstimatedSizeBytes(estimatedDownloadSize);

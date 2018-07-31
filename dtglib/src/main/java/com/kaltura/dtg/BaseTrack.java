@@ -16,7 +16,7 @@ import java.util.List;
 
 public abstract class BaseTrack implements DownloadItem.Track {
     static final String[] REQUIRED_DB_FIELDS =
-            {Database.COL_TRACK_ID, Database.COL_TRACK_TYPE, Database.COL_TRACK_LANGUAGE, Database.COL_TRACK_BITRATE, Database.COL_TRACK_EXTRA};
+            {Database.COL_TRACK_ID, Database.COL_TRACK_TYPE, Database.COL_TRACK_LANGUAGE, Database.COL_TRACK_BITRATE, Database.COL_TRACK_EXTRA, Database.COL_TRACK_CODECS};
 
     private static final String EXTRA_WIDTH = "width";
     private static final String EXTRA_HEIGHT = "height";
@@ -37,12 +37,6 @@ public abstract class BaseTrack implements DownloadItem.Track {
         this.language = format.language;
     }
 
-    protected BaseTrack(DownloadItem.TrackType type, String language, long bitrate) {
-        this.type = type;
-        this.language = language;
-        this.bitrate = bitrate;
-    }
-
     protected BaseTrack(Cursor cursor) {
         String[] columns = cursor.getColumnNames();
         for (int i = 0; i < columns.length; i++) {
@@ -58,6 +52,9 @@ public abstract class BaseTrack implements DownloadItem.Track {
                     break;
                 case Database.COL_TRACK_EXTRA:
                     parseExtra(cursor.getString(i));
+                    break;
+                case Database.COL_TRACK_CODECS:
+                    codecs = cursor.getString(i);
                     break;
             }
         }
@@ -109,6 +106,7 @@ public abstract class BaseTrack implements DownloadItem.Track {
         values.put(Database.COL_TRACK_BITRATE, getBitrate());
         values.put(Database.COL_TRACK_TYPE, getType().name());
         values.put(Database.COL_TRACK_REL_ID, getRelativeId());
+        values.put(Database.COL_TRACK_CODECS, getCodecs());
         String extra = dumpExtra();
         if (extra != null) {
             values.put(Database.COL_TRACK_EXTRA, extra);

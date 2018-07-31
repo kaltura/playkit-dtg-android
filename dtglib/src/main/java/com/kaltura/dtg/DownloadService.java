@@ -256,6 +256,10 @@ public class DownloadService extends Service {
         updateItemInfoInDB(item, Database.COL_ITEM_ESTIMATED_SIZE);
     }
 
+    void updateItemDurationInDB(DownloadItemImp item) {
+        updateItemInfoInDB(item, Database.COL_ITEM_DURATION);
+    }
+
     private void assertStarted() {
         if (!started) {
             throw new IllegalStateException("Service not started");
