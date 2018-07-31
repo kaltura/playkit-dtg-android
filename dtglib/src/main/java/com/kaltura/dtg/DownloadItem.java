@@ -13,6 +13,8 @@ public interface DownloadItem {
 
     void startDownload();
 
+    long getDurationMS();
+
     long getEstimatedSizeBytes();
 
     long getDownloadedSizeBytes();
@@ -73,5 +75,7 @@ public interface DownloadItem {
         int getWidth();
 
         int getHeight();
+
+        String getCodecs();
     }
 }

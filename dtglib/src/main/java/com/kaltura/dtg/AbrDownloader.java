@@ -27,14 +27,14 @@ public abstract class AbrDownloader {
     protected final String manifestUrl;
     protected byte[] originManifestBytes;
     protected boolean trackSelectionApplied;
-    private long itemDurationMS;
-    private long estimatedDownloadSize;
-    private final File targetDir;
-    private Map<TrackType, List<BaseTrack>> selectedTracks;
-    private Map<TrackType, List<BaseTrack>> availableTracks;
-    private LinkedHashSet<DownloadTask> downloadTasks;
-    private TrackUpdatingData trackUpdatingData;    // only used in update mode
-    private Mode mode = Mode.create;
+    protected long itemDurationMS;
+    protected long estimatedDownloadSize;
+    protected final File targetDir;
+    protected Map<TrackType, List<BaseTrack>> selectedTracks;
+    protected Map<TrackType, List<BaseTrack>> availableTracks;
+    protected LinkedHashSet<DownloadTask> downloadTasks;
+    protected TrackUpdatingData trackUpdatingData;    // only used in update mode
+    protected Mode mode = Mode.create;
 
     protected AbrDownloader(DownloadItemImp item) {
         this.item = item;
@@ -97,8 +97,9 @@ public abstract class AbrDownloader {
         downloadService.addTracksToDB(item, availableTracks, selectedTracks);
 
         item.setEstimatedSizeBytes(estimatedDownloadSize);
+        item.setDurationMS(itemDurationMS);
 
-        LinkedHashSet<DownloadTask> downloadTasks = this.getDownloadTasks();
+        LinkedHashSet<DownloadTask> downloadTasks = this.downloadTasks;
         //Log.d(TAG, "tasks:" + downloadTasks);
 
         item.setPlaybackPath(this.storedLocalManifestName());
@@ -192,14 +193,17 @@ public abstract class AbrDownloader {
 
         final DownloadService service = item.getService();
         service.updateTracksInDB(item.getItemId(), tracksToUnselect, BaseTrack.TrackState.NOT_SELECTED);
-        service.updateTracksInDB(item.getItemId(), getSelectedTracksMap(), BaseTrack.TrackState.SELECTED);
+        service.updateTracksInDB(item.getItemId(), selectedTracks, BaseTrack.TrackState.SELECTED);
 
         // Add DownloadTasks
         createDownloadTasks();
-        service.addDownloadTasksToDB(item, new ArrayList<>(getDownloadTasks()));
+        service.addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
+
+        // Update duration
+        item.setDurationMS(itemDurationMS);
 
         // Update item size
-        item.setEstimatedSizeBytes(getEstimatedDownloadSize());
+        item.setEstimatedSizeBytes(estimatedDownloadSize);
         service.updateItemEstimatedSizeInDB(item);
 
         // Update localized manifest
@@ -276,10 +280,6 @@ public abstract class AbrDownloader {
         return selectedTracks.get(type);
     }
 
-    private Map<TrackType, List<BaseTrack>> getSelectedTracksMap() {
-        return selectedTracks;
-    }
-
     private void setSelectedTracksMap(Map<TrackType, List<BaseTrack>> selectedTracks) {
         this.selectedTracks = selectedTracks;
     }
@@ -295,16 +295,8 @@ public abstract class AbrDownloader {
         return Collections.unmodifiableList(availableTracks.get(type));
     }
 
-    protected long getItemDurationMS() {
-        return itemDurationMS;
-    }
-
     protected void setItemDurationMS(long itemDurationMS) {
         this.itemDurationMS = itemDurationMS;
-    }
-
-    protected long getEstimatedDownloadSize() {
-        return estimatedDownloadSize;
     }
 
     protected void setEstimatedDownloadSize(long estimatedDownloadSize) {
@@ -325,10 +317,6 @@ public abstract class AbrDownloader {
 
     protected List<BaseTrack> getAvailableTracksFlat() {
         return Utils.flattenTrackList(availableTracks);
-    }
-
-    protected LinkedHashSet<DownloadTask> getDownloadTasks() {
-        return downloadTasks;
     }
 
     protected void setDownloadTasks(LinkedHashSet<DownloadTask> downloadTasks) {

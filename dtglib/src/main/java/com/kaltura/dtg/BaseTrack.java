@@ -173,6 +173,11 @@ public abstract class BaseTrack implements DownloadItem.Track {
     }
 
     @Override
+    public String getCodecs() {
+        return codecs;
+    }
+
+    @Override
     public int getWidth() {
         return width;
     }

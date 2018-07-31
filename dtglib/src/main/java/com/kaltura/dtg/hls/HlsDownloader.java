@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,7 +45,7 @@ public class HlsDownloader extends AbrDownloader {
         super(item);
     }
 
-    private static void maybeAddTask(LinkedHashSet<DownloadTask> tasks, String relativeId, File trackTargetDir, int lineNum, String type, String url, int order) throws MalformedURLException {
+    private static void maybeAddTask(LinkedHashSet<DownloadTask> tasks, String relativeId, File trackTargetDir, int lineNum, String type, String url, int order) {
         if (url == null) {
             return;
         }
@@ -83,6 +82,7 @@ public class HlsDownloader extends AbrDownloader {
         List<BaseTrack> trackList = getSelectedTracksFlat();
 
         long totalEstimatedSize = 0;
+        long maxDuration = 0;
 
         for (BaseTrack baseTrack : trackList) {
             final HlsAsset.Track track = (HlsAsset.Track) baseTrack;
@@ -99,6 +99,8 @@ public class HlsDownloader extends AbrDownloader {
                 maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.encryptionKeyLineNum, "key", chunk.encryptionKeyUri, order);
             }
 
+            maxDuration = Math.max(maxDuration, track.durationMs);
+
             // Update size
             long bitrate = track.getType() == DownloadItem.TrackType.VIDEO ? track.getBitrate() :
                     track.getType() == DownloadItem.TrackType.AUDIO ? AUDIO_BITRATE_FOR_ESTIMATION : 0;
@@ -109,6 +111,7 @@ public class HlsDownloader extends AbrDownloader {
         }
 
         setDownloadTasks(tasks);
+        setItemDurationMS(maxDuration);
         setEstimatedDownloadSize(totalEstimatedSize);
     }
 

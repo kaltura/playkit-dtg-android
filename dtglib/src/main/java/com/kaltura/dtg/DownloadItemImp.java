@@ -22,6 +22,7 @@ public class DownloadItemImp implements DownloadItem {
     private String playbackPath;
 
     private TrackSelector trackSelector;
+    private long durationMS;
 
     DownloadItemImp(String itemId, String contentURL) {
         this.itemId = itemId;
@@ -80,6 +81,15 @@ public class DownloadItemImp implements DownloadItem {
     @Override
     public void startDownload() {
         service.startDownload(this);
+    }
+
+    @Override
+    public long getDurationMS() {
+        return durationMS;
+    }
+
+    public void setDurationMS(long duration) {
+        this.durationMS = duration;
     }
 
     @Override
