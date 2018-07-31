@@ -74,6 +74,8 @@ public abstract class AbrDownloader {
 
     void create(DownloadService downloadService, DownloadStateListener downloadStateListener) throws IOException {
 
+        item.setFormat(getAssetFormat());
+
         downloadManifest();
         parseOriginManifest();
         createTracks();

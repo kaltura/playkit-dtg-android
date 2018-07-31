@@ -585,6 +585,9 @@ class Database {
                     break;
             }
         }
+
+        item.setFormat(AssetFormat.byFilename(item.getPlaybackPath()));
+
         return item;
     }
 
