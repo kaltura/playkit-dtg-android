@@ -37,12 +37,13 @@ public class HlsDownloader extends AbrDownloader {
     private static final String ORIGIN_M3U8 = "origin.m3u8";
     private static final String LOCAL_MASTER = "master.m3u8";
     private static final String LOCAL_MEDIA = "media.m3u8";
-    private static final int AUDIO_BITRATE_FOR_ESTIMATION = 64 * 1024;
+    private final int defaultHlsAudioBitrateEstimation;
 
     private HlsAsset hlsAsset;
 
-    public HlsDownloader(DownloadItemImp item) {
+    public HlsDownloader(DownloadItemImp item, int defaultHlsAudioBitrateEstimation) {
         super(item);
+        this.defaultHlsAudioBitrateEstimation = defaultHlsAudioBitrateEstimation;
     }
 
     private static void maybeAddTask(LinkedHashSet<DownloadTask> tasks, String relativeId, File trackTargetDir, int lineNum, String type, String url, int order) {
@@ -102,8 +103,8 @@ public class HlsDownloader extends AbrDownloader {
             maxDuration = Math.max(maxDuration, track.durationMs);
 
             // Update size
-            long bitrate = track.getType() == DownloadItem.TrackType.VIDEO ? track.getBitrate() :
-                    track.getType() == DownloadItem.TrackType.AUDIO ? AUDIO_BITRATE_FOR_ESTIMATION : 0;
+            long bitrate = track.getBitrate() > 0 ? track.getBitrate() :
+                    track.getType() == DownloadItem.TrackType.AUDIO ? defaultHlsAudioBitrateEstimation : 0;
 
             if (bitrate > 0 && track.durationMs > 0) {
                 totalEstimatedSize += bitrate * track.durationMs / 1000 / 8;

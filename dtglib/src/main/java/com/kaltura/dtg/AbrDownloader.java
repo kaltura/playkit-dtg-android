@@ -43,21 +43,21 @@ public abstract class AbrDownloader {
         this.manifestUrl = item.getContentURL();
     }
 
-    static AbrDownloader newDownloader(DownloadItemImp item) {
+    static AbrDownloader newDownloader(DownloadItemImp item, ContentManager.Settings settings) {
         String fileName = Uri.parse(item.getContentURL()).getLastPathSegment();
         switch (AssetFormat.byFilename(fileName)) {
             case dash:
                 return new DashDownloader(item);
             case hls:
-                return new HlsDownloader(item);
+                return new HlsDownloader(item, settings.defaultHlsAudioBitrateEstimation);
         }
 
         return null;
     }
 
     @Nullable
-    static TrackSelector newTrackUpdater(DownloadItemImp item) {
-        AbrDownloader downloader = newDownloader(item);
+    static TrackSelector newTrackUpdater(DownloadItemImp item, ContentManager.Settings settings) {
+        AbrDownloader downloader = newDownloader(item, settings);
         if (downloader == null) {
             return null;
         }

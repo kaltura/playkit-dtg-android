@@ -148,7 +148,7 @@ public class DownloadItemImp implements DownloadItem {
 
         // If selection is in progress, return the current selector.
         if (trackSelector == null) {
-            trackSelector = AbrDownloader.newTrackUpdater(this);
+            trackSelector = AbrDownloader.newTrackUpdater(this, service.settings);
         }
 
         return trackSelector;

@@ -52,7 +52,7 @@ public class DownloadService extends Service {
     private Handler listenerHandler = null;
 
     private Handler taskProgressHandler = null;
-    private ContentManager.Settings settings;
+    ContentManager.Settings settings;
 
     private final Set<String> removedItems = new HashSet<>();
 
@@ -388,7 +388,7 @@ public class DownloadService extends Service {
     }
 
     private void newAbrDownload(DownloadItemImp item) throws IOException {
-        final AbrDownloader downloader = AbrDownloader.newDownloader(item);
+        final AbrDownloader downloader = AbrDownloader.newDownloader(item, settings);
         if (downloader == null) {
             return;
         }
@@ -686,11 +686,7 @@ public class DownloadService extends Service {
         }
 
         // Copy fields.
-        this.settings = new ContentManager.Settings();
-        this.settings.httpTimeoutMillis = downloadSettings.httpTimeoutMillis;
-        this.settings.maxDownloadRetries = downloadSettings.maxDownloadRetries;
-        this.settings.maxConcurrentDownloads = downloadSettings.maxConcurrentDownloads;
-        this.settings.createNoMediaFileInDownloadsDir = downloadSettings.createNoMediaFileInDownloadsDir;
+        this.settings = downloadSettings.copy();
     }
 
     class LocalBinder extends Binder {

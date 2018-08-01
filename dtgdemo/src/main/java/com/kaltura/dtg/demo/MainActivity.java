@@ -474,6 +474,7 @@ public class MainActivity extends ListActivity {
             toast("NO NETWORK AVAILABLE");
         }
         contentManager = ContentManager.getInstance(this);
+//        contentManager.getSettings().defaultHlsAudioBitrateEstimation = 128000;
         contentManager.getSettings().applicationName = "MyApplication";
         contentManager.getSettings().maxConcurrentDownloads = 4;
         contentManager.getSettings().createNoMediaFileInDownloadsDir = true;
@@ -582,6 +583,7 @@ public class MainActivity extends ListActivity {
         final DownloadItem downloadItem = contentManager.findItem(item.getId());
         if (downloadItem != null) {
             item.downloadState = downloadItem.getState();
+            Log.d(TAG, "duration: " + downloadItem.getDurationMS());
         }
 
         final Action[] actions = Action.actions(item);

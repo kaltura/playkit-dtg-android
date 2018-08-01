@@ -131,12 +131,20 @@ public abstract class ContentManager {
         void onStarted();
     }
 
-    public static class Settings {
+    public static class Settings implements Cloneable {
         public int maxDownloadRetries = 5;
         public int httpTimeoutMillis = 15000;
         public int maxConcurrentDownloads = 4;
         public String applicationName = "";
-        //createNoMediaFileInDownloadsDir -> disabling the creation of this file will cause Android FS to index the files in the dtd download dir as media files
         public boolean createNoMediaFileInDownloadsDir = true;
+        public int defaultHlsAudioBitrateEstimation = 64000;
+
+        Settings copy() {
+            try {
+                return (Settings) clone();
+            } catch (CloneNotSupportedException e) {
+                return null;
+            }
+        }
     }
 }
