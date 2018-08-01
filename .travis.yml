@@ -7,7 +7,7 @@ android:
 before_script:
   - curl https://kaltura.github.io/fe-tools/android/license.sh | sh
 script:
-  - ./gradlew dtglib:build dtgqueue:build
+  - ./gradlew dtglib:build dtgdemo:build
 after_success:
   - ./travis-push-to-bintray.sh
 notifications:
@@ -15,6 +15,5 @@ notifications:
     recipients:
       - noam.tamim@kaltura.com
       - gilad.nadav@kaltura.com
-      - Anton.Afanasiev@kaltura.com
     on_success: change
     on_failure: always
