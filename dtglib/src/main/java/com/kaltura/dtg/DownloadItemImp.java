@@ -23,7 +23,6 @@ public class DownloadItemImp implements DownloadItem {
 
     private TrackSelector trackSelector;
     private long durationMS;
-    private AssetFormat format;
 
     DownloadItemImp(String itemId, String contentURL) {
         this.itemId = itemId;
@@ -179,14 +178,5 @@ public class DownloadItemImp implements DownloadItem {
 
     DownloadService getService() {
         return service;
-    }
-
-    public void setFormat(AssetFormat format) {
-        this.format = format;
-    }
-
-    @Override
-    public AssetFormat getFormat() {
-        return format;
     }
 }
