@@ -51,6 +51,13 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+class DemoParams {
+//    static int forceReducedLicenseDurationSeconds = 600;
+    static int forceReducedLicenseDurationSeconds = 0;
+
+
+    static int defaultHlsAudioBitrateEstimation = 64000;
+}
 
 class ItemLoader {
 
@@ -95,7 +102,7 @@ class ItemLoader {
                             return; // don't add because we don't have a source
                         }
 
-                        // forceReducedLicenseDuration(source, 600);
+                        forceReducedLicenseDuration(source, DemoParams.forceReducedLicenseDurationSeconds);
 
                         Item item = new Item(source, mediaEntry.getName());
                         items.set(index, item);
@@ -124,6 +131,7 @@ class ItemLoader {
     }
 
     private static void forceReducedLicenseDuration(PKMediaSource source, int seconds) {
+        if (seconds <= 0) return;
         for (PKDrmParams params : source.getDrmData()) {
             if (params.getScheme() == PKDrmParams.Scheme.WidevineCENC) {
                 String url = params.getLicenseUri();
@@ -474,7 +482,7 @@ public class MainActivity extends ListActivity {
             toast("NO NETWORK AVAILABLE");
         }
         contentManager = ContentManager.getInstance(this);
-//        contentManager.getSettings().defaultHlsAudioBitrateEstimation = 128000;
+        contentManager.getSettings().defaultHlsAudioBitrateEstimation = DemoParams.defaultHlsAudioBitrateEstimation;
         contentManager.getSettings().applicationName = "MyApplication";
         contentManager.getSettings().maxConcurrentDownloads = 4;
         contentManager.getSettings().createNoMediaFileInDownloadsDir = true;
