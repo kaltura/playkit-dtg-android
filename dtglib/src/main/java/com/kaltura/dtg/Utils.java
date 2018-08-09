@@ -9,6 +9,7 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,23 +17,22 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
-/**
- * Created by noamt on 5/13/15.
- */
 public class Utils {
     private static final String TAG = "DTGUtils";
 
-    public static String createTable(String name, String... coldefs) {
+    public static String createTable(String name, String... colDefs) {
         StringBuilder sb = new StringBuilder();
         sb.append("CREATE TABLE ").append(name).append("(");
-        for (int i = 0; i < coldefs.length; i += 2) {
+        for (int i = 0; i < colDefs.length; i += 2) {
             if (i > 0) {
                 sb.append(",\n");
             }
-            sb.append(coldefs[i]).append(" ").append(coldefs[i + 1]);
+            sb.append(colDefs[i]).append(" ").append(colDefs[i + 1]);
         }
         sb.append(");");
         String str = sb.toString();
@@ -51,29 +51,7 @@ public class Utils {
         return str;
     }
 
-    public static HashMap<String, Object> map(Object... keyValuePairs) {
-        HashMap<String, Object> map = new HashMap<>();
-
-        for (int i = 0; i < keyValuePairs.length; i += 2) {
-            map.put((String) keyValuePairs[i], keyValuePairs[i + 1]);
-        }
-
-        return map;
-    }
-
-    public static String dropTables(String... tables) {
-        // TODO: what's this doing?
-        StringBuilder sb = new StringBuilder();
-        for (String table : tables) {
-            // semicolon supported in sqlite?
-            //sb.append("DROP TABLE IF EXISTS ").append(table).append(";\n");
-        }
-        String str = sb.toString();
-        Log.i("DBUtils", "Drop tables:\n" + str);
-        return str;
-    }
-    
-    public static long dirSize(File dir) {
+    private static long dirSize(File dir) {
 
         if (dir.exists()) {
             long result = 0;
@@ -100,7 +78,7 @@ public class Utils {
         }
         fileOrDirectory.delete();
     }
-    
+
     public static String format(String format, Object... args) {
         return String.format(Locale.ENGLISH, format, args);
     }
@@ -119,7 +97,7 @@ public class Utils {
         return sb.toString();
     }
 
-    public static byte[] md5(String input) {
+    private static byte[] md5(String input) {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("MD5");
@@ -183,6 +161,10 @@ public class Utils {
         }
     }
 
+    public static byte[] downloadToFile(String url, File targetFile, int maxReturnSize) throws IOException {
+        return downloadToFile(new URL(url), targetFile, maxReturnSize);
+    }
+
     public static long httpHeadGetLength(URL url) throws IOException {
         HttpURLConnection connection = null;
         try {
@@ -208,23 +190,26 @@ public class Utils {
     }
 
     @NonNull
-    public static ByteArrayOutputStream fullyReadInputStream(InputStream inputStream, int byteLimit) throws IOException {
+    private static ByteArrayOutputStream fullyReadInputStream(InputStream inputStream, int byteLimit) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         byte data[] = new byte[1024];
         int count;
 
-        while ((count = inputStream.read(data)) != -1) {
-            int maxCount = byteLimit - bos.size();
-            if (count > maxCount) {
-                bos.write(data, 0, maxCount);
-                break;
-            } else {
-                bos.write(data, 0, count);
+        try {
+            while ((count = inputStream.read(data)) != -1) {
+                int maxCount = byteLimit - bos.size();
+                if (count > maxCount) {
+                    bos.write(data, 0, maxCount);
+                    break;
+                } else {
+                    bos.write(data, 0, count);
+                }
             }
+            bos.flush();
+        } finally {
+            safeClose(bos);
+            safeClose(inputStream);
         }
-        bos.flush();
-        bos.close();
-        inputStream.close();
         return bos;
     }
 
@@ -243,10 +228,54 @@ public class Utils {
         return path.substring(path.lastIndexOf('.'));
     }
 
-    public static String toBase64(byte[] data) {
+    static String toBase64(byte[] data) {
         if (data == null || data.length == 0) {
             return null;
         }
         return Base64.encodeToString(data, Base64.NO_WRAP);
+    }
+
+    @NonNull
+    public static List<BaseTrack> flattenTrackList(Map<DownloadItem.TrackType, List<BaseTrack>> tracksMap) {
+        List<BaseTrack> tracks = new ArrayList<>();
+        for (Map.Entry<DownloadItem.TrackType, List<BaseTrack>> entry : tracksMap.entrySet()) {
+            tracks.addAll(entry.getValue());
+        }
+        return tracks;
+    }
+
+    public static String resolveUrl(String baseUrl, String maybeRelative) {
+        if (maybeRelative == null) {
+            return null;
+        }
+        Uri uri = Uri.parse(maybeRelative);
+        if (uri.isAbsolute()) {
+            return maybeRelative;
+        }
+
+        // resolve with baseUrl
+        final Uri trackUri = Uri.parse(baseUrl);
+        final List<String> pathSegments = new ArrayList<>(trackUri.getPathSegments());
+        pathSegments.remove(pathSegments.size() - 1);
+        final String pathWithoutLastSegment = TextUtils.join("/", pathSegments);
+        uri = trackUri.buildUpon().encodedPath(pathWithoutLastSegment).appendEncodedPath(maybeRelative).build();
+        return uri.toString();
+    }
+
+    public static boolean mkdirs(File dir) {
+        return dir.mkdirs() || dir.isDirectory();
+    }
+
+    public static void mkdirsOrThrow(File dir) {
+        if (dir.mkdirs() || dir.isDirectory()) {
+            return;
+        }
+
+        throw new IllegalStateException("Can't create directory " + dir);
+    }
+
+    public static byte[] readFile(File file, int byteLimit) throws IOException {
+        FileInputStream inputStream = new FileInputStream(file);
+        return fullyReadInputStream(inputStream, byteLimit).toByteArray();
     }
 }

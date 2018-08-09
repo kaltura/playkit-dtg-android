@@ -1,35 +1,29 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
+import android.net.Uri;
 import android.util.Log;
 
-import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.DownloadState;
-
-import java.io.IOException;
 import java.util.Date;
 
-/**
- * Created by noamt on 30/05/2016.
- */
-class DefaultDownloadItem implements DownloadItem {
+public class DownloadItemImp implements DownloadItem {
 
-    private static final String TAG = "DefaultDownloadItem";
+    private static final String TAG = "DownloadItemImp";
     private final String itemId;
     private final String contentUrl;
 
-    private DefaultDownloadService service;
+    private DownloadService service;
     private DownloadState state = DownloadState.NEW;
     private long addedTime;
     private long finishedTime;
     private long estimatedSizeBytes;
     private long downloadedSizeBytes;
-    
+
     private String dataDir;
     private String playbackPath;
-    
+
     private TrackSelector trackSelector;
 
-    DefaultDownloadItem(String itemId, String contentURL) {
+    DownloadItemImp(String itemId, String contentURL) {
         this.itemId = itemId;
         this.contentUrl = contentURL;
 
@@ -53,7 +47,7 @@ class DefaultDownloadItem implements DownloadItem {
         return contentUrl;
     }
 
-    String getDataDir() {
+    public String getDataDir() {
         return dataDir;
     }
 
@@ -65,16 +59,12 @@ class DefaultDownloadItem implements DownloadItem {
         return playbackPath;
     }
 
-    void setPlaybackPath(String playbackPath) {
+    public void setPlaybackPath(String playbackPath) {
         this.playbackPath = playbackPath;
     }
-    
-    void setProvider(DefaultDownloadService provider) {
-        this.service = provider;
-    }
 
-    void updateItemState(DownloadState state) {
-        service.updateItemState(this.getItemId(), state);
+    void setProvider(DownloadService provider) {
+        this.service = provider;
     }
 
     void setFinishedTime(long finishedTime) {
@@ -90,15 +80,14 @@ class DefaultDownloadItem implements DownloadItem {
     @Override
     public void startDownload() {
         service.startDownload(this.getItemId());
-//        this.setState(state);
     }
-    
+
     @Override
     public long getEstimatedSizeBytes() {
         return estimatedSizeBytes;
     }
-    
-    void setEstimatedSizeBytes(long bytes) {
+
+    public void setEstimatedSizeBytes(long bytes) {
         estimatedSizeBytes = bytes;
     }
 
@@ -106,7 +95,7 @@ class DefaultDownloadItem implements DownloadItem {
     public long getDownloadedSizeBytes() {
         return downloadedSizeBytes;
     }
-    
+
     void setDownloadedSizeBytes(long bytes) {
         downloadedSizeBytes = bytes;
     }
@@ -141,35 +130,43 @@ class DefaultDownloadItem implements DownloadItem {
 
     @Override
     public TrackSelector getTrackSelector() {
-        
-        if (playbackPath ==null || !playbackPath.endsWith(".mpd")) {
-            Log.w(TAG, "Track selection is only supported for dash");
+
+        if (playbackPath == null || !(playbackPath.endsWith(AssetFormat.dash.extension()) || playbackPath.endsWith(AssetFormat.hls.extension()))) {
+            Log.w(TAG, "Track selection is only supported for dash/hls");
             return null;
         }
-        
-        // If selection is in progress, return the current selector.
-        
-        if (trackSelector == null) {
-            DashDownloadUpdater dashDownloadUpdater = null;
-            try {
-                dashDownloadUpdater = new DashDownloadUpdater(this);
-            } catch (IOException e) {
-                Log.e(TAG, "Error initializing DashDownloadUpdater", e);
-                return null;
-            }
-            TrackSelector trackSelector = dashDownloadUpdater.getTrackSelector();
 
-            setTrackSelector(trackSelector);
+        // If selection is in progress, return the current selector.
+        if (trackSelector == null) {
+            trackSelector = AbrDownloader.newTrackUpdater(this);
         }
 
         return trackSelector;
     }
 
-    void setTrackSelector(TrackSelector trackSelector) {
+    public void setTrackSelector(TrackSelector trackSelector) {
         this.trackSelector = trackSelector;
     }
 
-    DefaultDownloadService getService() {
+    AssetFormat getAssetFormat() {
+        if (playbackPath != null) {
+            final AssetFormat format = AssetFormat.byFilename(playbackPath);
+            if (format != null) {
+                return format;
+            }
+        }
+
+        if (contentUrl != null) {
+            final AssetFormat format = AssetFormat.byFilename(Uri.parse(contentUrl).getLastPathSegment());
+            if (format != null) {
+                return format;
+            }
+        }
+
+        return null;
+    }
+
+    DownloadService getService() {
         return service;
     }
 }

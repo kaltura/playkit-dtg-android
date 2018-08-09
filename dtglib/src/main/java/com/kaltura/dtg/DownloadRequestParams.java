@@ -1,12 +1,8 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.net.Uri;
 
 import java.util.Map;
-
-/**
- * Created by gilad.nadav on 13/09/2017.
- */
 
 public class DownloadRequestParams {
 

@@ -1,9 +1,6 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.util.Log;
-
-import com.kaltura.dtg.ContentManager;
-import com.kaltura.dtg.Utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,18 +14,15 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 
-/**
- * Created by noamt on 5/13/15.
- */
-class DownloadTask {
+public class DownloadTask {
     private static final String TAG = "DownloadTask";
     private static final int PROGRESS_REPORT_COUNT = 100;
 
-    // TODO: Hold url and targetFile as Strings, only convert to URL/File when used.
     final String taskId;
     final URL url;
     final File targetFile;
     String itemId;
+
     String trackRelativeId;
 
     private Listener listener;  // this is the service
@@ -36,7 +30,7 @@ class DownloadTask {
     private int retryCount = 0;
     private ContentManager.Settings downloadSettings;
 
-    DownloadTask(URL url, File targetFile) {
+    public DownloadTask(URL url, File targetFile) {
         this.url = url;
         this.targetFile = targetFile;
         this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
@@ -45,25 +39,28 @@ class DownloadTask {
     DownloadTask(String url, String targetFile) throws MalformedURLException {
         this(new URL(url), new File(targetFile));
     }
-    
-    
-    
+
+
+    public void setTrackRelativeId(String trackRelativeId) {
+        this.trackRelativeId = trackRelativeId;
+    }
+
+
     @Override
     public String toString() {
         return "<DownloadTask id='" + taskId + "' url='" + url + "' target='" + targetFile + "'>";
     }
 
     private boolean createParentDir(File targetFile) {
-        File parent = targetFile.getParentFile();
-        return parent.mkdirs() || parent.isDirectory();
+        return Utils.mkdirs(targetFile.getParentFile());
     }
-    
+
     void download() throws HttpRetryException {
-        
+
         URL url = this.url;
         File targetFile = this.targetFile;
 //        Log.d(TAG, "Task " + taskId + ": download " + url + " to " + targetFile);
-        
+
         // Create parent dir if needed
         if (!createParentDir(targetFile)) {
             Log.e(TAG, "Can't create parent dir");
@@ -74,12 +71,12 @@ class DownloadTask {
         reportProgress(State.STARTED, 0, null);
 
         long localFileSize = targetFile.length();
-        
+
         // If file is already downloaded, make sure it's not larger than the remote.
         if (localFileSize > 0) {
             try {
                 long remoteFileSize = Utils.httpHeadGetLength(url);
-                
+
                 // finish before even starting, if file is already complete.
                 if (localFileSize == remoteFileSize) {
                     // We're done.
@@ -109,7 +106,7 @@ class DownloadTask {
         InputStream inputStream = null;
         HttpURLConnection conn = null;
         FileOutputStream fileOutputStream = null;
-        
+
         State stopReason = null;
         Exception stopError = null;
 
@@ -209,7 +206,7 @@ class DownloadTask {
     public Listener getListener() {
         return listener;
     }
-    
+
     public void setListener(Listener listener) {
         this.listener = listener;
     }
@@ -236,7 +233,7 @@ class DownloadTask {
     }
 
     enum State {
-        IDLE, STARTED, IN_PROGRESS, COMPLETED, STOPPED, ERROR;
+        IDLE, STARTED, IN_PROGRESS, COMPLETED, STOPPED, ERROR
     }
 
     interface Listener {

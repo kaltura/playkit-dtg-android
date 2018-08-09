@@ -1,4 +1,4 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -12,12 +12,9 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.Future;
 
-/**
- * Created by noamt on 14/06/2016.
- */
 class ItemFutureMap {
     private static final String TAG = "ItemFutureMap";
-    private Map<String, Set<Future>> map;
+    private final Map<String, Set<Future>> map;
 
     ItemFutureMap() {
         map = new HashMap<>();
@@ -54,7 +51,7 @@ class ItemFutureMap {
         }
     }
 
-    synchronized public void cancelAll() {
+    synchronized void cancelAll() {
         for (String itemId : new HashSet<>(map.keySet())) {
             cancelItem(itemId);
         }

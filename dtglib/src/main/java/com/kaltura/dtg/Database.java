@@ -1,4 +1,4 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -12,10 +12,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.DownloadState;
-import com.kaltura.dtg.Utils;
-
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -24,43 +20,34 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-
-/**
- * Created by noamt on 5/20/15.
- */
 class Database {
-    static final int DB_VERSION = 2;
-    static final String TBL_DOWNLOAD_FILES = "Files";
-    static final String COL_FILE_URL = "FileURL";
-    static final String COL_TARGET_FILE = "TargetFile";
-    static final String TBL_ITEMS = "Items";
-    static final String COL_ITEM_ID = "ItemID";
-    static final String COL_CONTENT_URL = "ContentURL";
+    private static final int DB_VERSION = 2;
+    private static final String TBL_DOWNLOAD_FILES = "Files";
+    private static final String COL_FILE_URL = "FileURL";
+    private static final String COL_TARGET_FILE = "TargetFile";
+    private static final String TBL_ITEMS = "Items";
+    private static final String COL_ITEM_ID = "ItemID";
+    private static final String COL_CONTENT_URL = "ContentURL";
     static final String COL_ITEM_STATE = "ItemState";
-    static final String COL_ITEM_ADD_TIME = "TimeAdded";
-    static final String COL_ITEM_FINISH_TIME = "TimeFinished";
-    static final String COL_ITEM_DATA_DIR = "ItemDataDir";
+    private static final String COL_ITEM_ADD_TIME = "TimeAdded";
+    private static final String COL_ITEM_FINISH_TIME = "TimeFinished";
+    private static final String COL_ITEM_DATA_DIR = "ItemDataDir";
     static final String COL_ITEM_ESTIMATED_SIZE = "ItemEstimatedSize";
     static final String COL_ITEM_DOWNLOADED_SIZE = "ItemDownloadedSize";
     static final String COL_ITEM_PLAYBACK_PATH = "ItemPlaybackPath";
-//    static final String TBL_STORAGE = "Storage";
-//    static final String COL_STORAGE_ITEM_ID = "StorageId";
-//    static final String COL_STORAGE_OWNER_ID = "OwnerId";
-//    static final String COL_STORAGE_ITEM_KEY = "ItemKey";
-//    static final String COL_STORAGE_ITEM = "Item";
-    static final String[] ALL_ITEM_COLS = new String[]{COL_ITEM_ID, COL_CONTENT_URL,
+    private static final String[] ALL_ITEM_COLS = new String[]{COL_ITEM_ID, COL_CONTENT_URL,
             COL_ITEM_STATE, COL_ITEM_ADD_TIME, COL_ITEM_ESTIMATED_SIZE, COL_ITEM_DOWNLOADED_SIZE,
             COL_ITEM_PLAYBACK_PATH, COL_ITEM_DATA_DIR};
-    static final String TAG = "Database";
-    static final String TBL_TRACK = "Track";
+    private static final String TAG = "Database";
+    private static final String TBL_TRACK = "Track";
     static final String COL_TRACK_ID = "TrackId";
     static final String COL_TRACK_EXTRA = "TrackExtra";
-    static final String COL_TRACK_STATE = "TrackState";
+    private static final String COL_TRACK_STATE = "TrackState";
     static final String COL_TRACK_TYPE = "TrackType";
     static final String COL_TRACK_LANGUAGE = "TrackLanguage";
     static final String COL_TRACK_BITRATE = "TrackBitrate";
     static final String COL_TRACK_REL_ID = "TrackRelativeId";
-    static final String COL_FILE_COMPLETE = "FileComplete";
+    private static final String COL_FILE_COMPLETE = "FileComplete";
 
     private final SQLiteOpenHelper helper;
     private final SQLiteDatabase database;
@@ -119,21 +106,21 @@ class Database {
             @Override
             public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
                 db.beginTransaction();
-                
+
                 if (newVersion == 2) {
                     // Upgrade 1 -> 2: Track table was missing
                     createTrackTable(db);
-                    
+
                     // recreate Files table
                     db.execSQL("DROP INDEX IF EXISTS unique_Files_ItemID_FileURL");
                     db.execSQL("ALTER TABLE " + TBL_DOWNLOAD_FILES + " RENAME TO OLD_" + TBL_DOWNLOAD_FILES);
                     createFilesTable(db);
-                    
+
                     db.execSQL("INSERT INTO " + TBL_DOWNLOAD_FILES + "(" + COL_ITEM_ID + "," + COL_FILE_URL + "," + COL_TARGET_FILE + ") " +
                             "SELECT ItemID, FileURL, TargetFile FROM Files");
                     db.execSQL("DROP TABLE OLD_" + TBL_DOWNLOAD_FILES);
                 }
-                
+
                 db.setTransactionSuccessful();
                 db.endTransaction();
             }
@@ -158,9 +145,9 @@ class Database {
         return strings;
     }
 
-    synchronized private boolean doTransaction(Transaction transaction) {
+    synchronized private void doTransaction(Transaction transaction) {
         if (database == null) {
-            return false;
+            return;
         }
 
         boolean success;
@@ -175,7 +162,6 @@ class Database {
         } finally {
             database.endTransaction();
         }
-        return success;
     }
 
     synchronized void close() {
@@ -211,13 +197,12 @@ class Database {
 
         final ArrayList<DownloadTask> downloadTasks = new ArrayList<>();
 
-        SQLiteDatabase db = database;
         Cursor cursor = null;
 
         try {
-            cursor = db.query(TBL_DOWNLOAD_FILES, new String[]{COL_FILE_URL, COL_TARGET_FILE},
+            cursor = database.query(TBL_DOWNLOAD_FILES, new String[]{COL_FILE_URL, COL_TARGET_FILE},
                     COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0", new String[]{itemId}, null, null, "ROWID");
-            
+
             while (cursor.moveToNext()) {
                 String url = cursor.getString(0);
                 String file = cursor.getString(1);
@@ -238,13 +223,13 @@ class Database {
     }
 
     synchronized void markTaskAsComplete(final DownloadTask downloadTask) {
-        
+
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
                 ContentValues values = new ContentValues();
                 values.put(COL_FILE_COMPLETE, 1);
-                
+
                 db.updateWithOnConflict(TBL_DOWNLOAD_FILES, values, COL_TARGET_FILE + "==?",
                         new String[]{downloadTask.targetFile.getAbsolutePath()},
                         SQLiteDatabase.CONFLICT_IGNORE);
@@ -253,14 +238,13 @@ class Database {
         });
     }
 
-    synchronized DefaultDownloadItem findItemInDB(String itemId) {
+    synchronized DownloadItemImp findItemInDB(String itemId) {
 
-        SQLiteDatabase db = database;
         Cursor cursor = null;
-        DefaultDownloadItem item = null;
+        DownloadItemImp item = null;
 
         try {
-            cursor = db.query(TBL_ITEMS,
+            cursor = database.query(TBL_ITEMS,
                     ALL_ITEM_COLS,
                     COL_ITEM_ID + "==?", new String[]{itemId}, null, null, null);
 
@@ -275,7 +259,7 @@ class Database {
         return item;
     }
 
-    synchronized void addItemToDB(final DefaultDownloadItem item, final File itemDataDir) {
+    synchronized void addItemToDB(final DownloadItemImp item, final File itemDataDir) {
 
         doTransaction(new Transaction() {
             @Override
@@ -293,17 +277,17 @@ class Database {
         });
     }
 
-    synchronized void removeItemFromDB(final DefaultDownloadItem item) {
+    synchronized void removeItemFromDB(final String itemId) {
 
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
-                db.delete(TBL_ITEMS, COL_ITEM_ID + "=?", new String[]{item.getItemId()});
-                
+                db.delete(TBL_ITEMS, COL_ITEM_ID + "=?", new String[]{itemId});
+
                 // There's an "on delete cascade" between TBL_ITEMS and TBL_DOWNLOAD_FILES,
                 // but it wasn't active in the previous schema.
-                db.delete(TBL_DOWNLOAD_FILES, COL_ITEM_ID + "=?", new String[]{item.getItemId()});
-                return true; 
+                db.delete(TBL_DOWNLOAD_FILES, COL_ITEM_ID + "=?", new String[]{itemId});
+                return true;
             }
         });
     }
@@ -359,7 +343,7 @@ class Database {
             }
         });
     }
-    
+
     // If itemId is null, sum all items.
     long getEstimatedItemSize(@Nullable String itemId) {
         return getItemColumnLong(itemId, COL_ITEM_ESTIMATED_SIZE);
@@ -370,7 +354,7 @@ class Database {
     }
 
     // If itemId is null, sum all items.
-    synchronized long getItemColumnLong(@Nullable String itemId, @NonNull String col) {
+    private synchronized long getItemColumnLong(@Nullable String itemId, @NonNull String col) {
         SQLiteDatabase db = database;
         Cursor cursor = null;
         try {
@@ -388,8 +372,9 @@ class Database {
         }
     }
 
-    synchronized void updateItemInfo(final DefaultDownloadItem item, final String[] columns) {
-        if (columns==null || columns.length == 0) {
+    synchronized void updateItemInfo(final DownloadItemImp item, final String[] columns) {
+        final String itemId = item.getItemId();
+        if (columns == null || columns.length == 0) {
             throw new IllegalArgumentException("columns.length must be >0");
         }
         doTransaction(new Transaction() {
@@ -427,20 +412,20 @@ class Database {
                     Log.e(TAG, "No values; columns=" + Arrays.toString(columns));
                     return false;
                 }
-                db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{item.getItemId()});
+                db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
                 return true;
             }
         });
     }
 
-    private DefaultDownloadItem readItem(Cursor cursor) {
+    private DownloadItemImp readItem(Cursor cursor) {
         String[] columns = cursor.getColumnNames();
 
         // the bare minimum: itemId and contentURL
         String itemId = cursor.getString(cursor.getColumnIndexOrThrow(COL_ITEM_ID));
         String contentURL = cursor.getString(cursor.getColumnIndexOrThrow(COL_CONTENT_URL));
 
-        DefaultDownloadItem item = new DefaultDownloadItem(itemId, contentURL);
+        DownloadItemImp item = new DownloadItemImp(itemId, contentURL);
         for (int i = 0; i < columns.length; i++) {
             switch (columns[i]) {
                 case COL_ITEM_ID:
@@ -473,29 +458,24 @@ class Database {
         return item;
     }
 
-    synchronized ArrayList<DefaultDownloadItem> readItemsFromDB(DownloadState[] states) {
-        // TODO: unify some code with findItem()
-
+    synchronized ArrayList<DownloadItemImp> readItemsFromDB(DownloadState[] states) {
         String stateNames[] = new String[states.length];
         for (int i = 0; i < states.length; i++) {
             stateNames[i] = states[i].name();
         }
         String placeholders = "(" + TextUtils.join(",", Collections.nCopies(stateNames.length, "?")) + ")";
 
-        ArrayList<DefaultDownloadItem> items = new ArrayList<>();
+        ArrayList<DownloadItemImp> items = new ArrayList<>();
 
-        SQLiteDatabase db = database;
         Cursor cursor = null;
 
         try {
-            cursor = db.query(TBL_ITEMS,
+            cursor = database.query(TBL_ITEMS,
                     ALL_ITEM_COLS,
                     COL_ITEM_STATE + " IN " + placeholders, stateNames, null, null, null);
 
-            // TODO: consider using a LinkedList and/or doing a COUNT query to pre-allocate the list.
-
             while (cursor.moveToNext()) {
-                DefaultDownloadItem item = readItem(cursor);
+                DownloadItemImp item = readItem(cursor);
                 items.add(item);
             }
         } finally {
@@ -506,10 +486,6 @@ class Database {
         return items;
     }
 
-    synchronized int countPendingFiles(String itemId) {
-        return countPendingFiles(itemId, null);
-    }
-    
     synchronized int countPendingFiles(String itemId, @Nullable String trackId) {
 
         SQLiteDatabase db = database;
@@ -521,7 +497,7 @@ class Database {
                 String sql = "SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
                         " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0 AND " + COL_TRACK_REL_ID + "==?";
                 cursor = db.rawQuery(sql, new String[]{itemId, trackId});
-                
+
             } else {
                 String sql = "SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
                         " WHERE " + COL_ITEM_ID + "==? AND " + COL_FILE_COMPLETE + "==0";
@@ -539,44 +515,45 @@ class Database {
         return count;
     }
 
-    synchronized void addTracks(final DefaultDownloadItem item, final List<DashTrack> availableTracks, final List<DashTrack> selectedTracks) {
+    synchronized void addTracks(final DownloadItemImp item, final List<BaseTrack> availableTracks, final List<BaseTrack> selectedTracks) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
-                
-                for (DashTrack track : availableTracks) {
+
+                for (BaseTrack track : availableTracks) {
                     ContentValues values = track.toContentValues();
                     values.put(COL_ITEM_ID, item.getItemId());
-                    values.put(COL_TRACK_STATE, DashDownloader.TrackState.NOT_SELECTED.name());
+                    values.put(COL_TRACK_STATE, BaseTrack.TrackState.NOT_SELECTED.name());
                     try {
                         db.insertOrThrow(TBL_TRACK, null, values);
                     } catch (SQLiteConstraintException e) {
                         Log.w(TAG, "Insert failed", e);
+                        Log.w(TAG, "execute: itemId=" + item.getItemId() + " rel=" + track.getRelativeId());
                     }
                 }
 
-                for (DashTrack track : selectedTracks) {
+                for (BaseTrack track : selectedTracks) {
                     ContentValues values = new ContentValues();
-                    values.put(COL_TRACK_STATE, DashDownloader.TrackState.SELECTED.name());
-                    db.update(TBL_TRACK, values, COL_ITEM_ID + "=? AND " + COL_TRACK_REL_ID + "=?", 
+                    values.put(COL_TRACK_STATE, BaseTrack.TrackState.SELECTED.name());
+                    db.update(TBL_TRACK, values, COL_ITEM_ID + "=? AND " + COL_TRACK_REL_ID + "=?",
                             strings(item.getItemId(), track.getRelativeId()));
                 }
-                
+
                 return true;
             }
         });
     }
-    
-    synchronized List<DashTrack> readTracks(String itemId, DownloadItem.TrackType type, @Nullable DashDownloader.TrackState state) {
+
+    synchronized List<BaseTrack> readTracks(String itemId, DownloadItem.TrackType type, @Nullable BaseTrack.TrackState state, AssetFormat assetFormat) {
         Cursor cursor = null;
-        List<DashTrack> tracks = new ArrayList<>(10);
+        List<BaseTrack> tracks = new ArrayList<>(10);
         try {
             List<String> selectionCols = new ArrayList<>();
             List<String> selectionArgs = new ArrayList<>();
-            
+
             selectionCols.add(COL_ITEM_ID);
             selectionArgs.add(itemId);
-            
+
             if (type != null) {
                 selectionCols.add(COL_TRACK_TYPE);
                 selectionArgs.add(type.name());
@@ -590,36 +567,41 @@ class Database {
             String selection = TextUtils.join("=? AND ", selectionCols) + "=?";
             String[] selectionArgsArray = selectionArgs.toArray(new String[selectionArgs.size()]);
             cursor = database.query(TBL_TRACK,
-                    DashTrack.REQUIRED_DB_FIELDS,
+                    BaseTrack.REQUIRED_DB_FIELDS,
                     selection,
                     selectionArgsArray,
                     null, null, COL_TRACK_ID + " ASC");
-            // TODO: 13/09/2016 Consider order by type+bitrate 
-            
+
             while (cursor.moveToNext()) {
-                DashTrack track = new DashTrack(cursor);
+                BaseTrack track = BaseTrack.create(cursor, assetFormat);
                 tracks.add(track);
             }
-            
+
         } finally {
             safeClose(cursor);
         }
-        
+
         return tracks;
     }
 
-    synchronized void updateTracksState(final String itemId, final List<DashTrack> tracks, final DashDownloader.TrackState newState) {
+    synchronized void updateTracksState(final String itemId, final List<BaseTrack> tracks, final BaseTrack.TrackState newState) {
         doTransaction(new Transaction() {
             @Override
             public boolean execute(SQLiteDatabase db) {
-                
+
                 ContentValues values = new ContentValues();
                 values.put(COL_TRACK_STATE, newState.name());
 
-                for (DashTrack track : tracks) {
-                    db.update(TBL_TRACK, values, COL_ITEM_ID + "=? AND " + COL_TRACK_REL_ID + "=?", strings(itemId, track.getRelativeId()));
+                for (BaseTrack track : tracks) {
+                    final String whereClause = COL_ITEM_ID + "=? AND " + COL_TRACK_REL_ID + "=?";
+                    final String[] whereArgs = strings(itemId, track.getRelativeId());
+                    db.update(TBL_TRACK, values, whereClause, whereArgs);
+
+                    if (newState == BaseTrack.TrackState.NOT_SELECTED) {
+                        db.delete(TBL_DOWNLOAD_FILES, whereClause, whereArgs);
+                    }
                 }
-                
+
                 return true;
             }
         });
@@ -628,5 +610,5 @@ class Database {
     interface Transaction {
         boolean execute(SQLiteDatabase db);
     }
-        
+
 }

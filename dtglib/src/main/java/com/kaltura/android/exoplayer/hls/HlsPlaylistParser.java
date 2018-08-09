@@ -115,7 +115,7 @@ public final class HlsPlaylistParser implements UriLoadable.Parser<HlsPlaylist> 
       while ((line = reader.readLine()) != null) {
         line = line.trim();
         if (line.isEmpty()) {
-          // Do nothing.
+          extraLines.add(line);
         } else if (line.startsWith(STREAM_INF_TAG)) {
           extraLines.add(line);
           return parseMasterPlaylist(new LineIterator(extraLines, reader), connectionUrl);
@@ -153,9 +153,12 @@ public final class HlsPlaylistParser implements UriLoadable.Parser<HlsPlaylist> 
     String muxedCaptionLanguage = null;
 
     boolean expectingStreamInfUrl = false;
+    int firstLineNum = 0;
     String line;
+    int lineNum;
     while (iterator.hasNext()) {
       line = iterator.next();
+      lineNum = iterator.lineNum;
       if (line.startsWith(MEDIA_TAG)) {
         String type = HlsParserUtil.parseStringAttr(line, TYPE_ATTR_REGEX, TYPE_ATTR);
         if (CLOSED_CAPTIONS_TYPE.equals(type)) {
@@ -171,7 +174,7 @@ public final class HlsPlaylistParser implements UriLoadable.Parser<HlsPlaylist> 
           String language = HlsParserUtil.parseOptionalStringAttr(line, LANGUAGE_ATTR_REGEX);
           Format format = new Format(subtitleName, MimeTypes.APPLICATION_M3U8, -1, -1, -1, -1, -1,
               -1, language, codecs);
-          subtitles.add(new Variant(uri, format));
+          subtitles.add(new Variant(uri, format, lineNum, 0));
         } else if (AUDIO_TYPE.equals(type)) {
           // We assume all audios belong to the same group.
           String language = HlsParserUtil.parseOptionalStringAttr(line, LANGUAGE_ATTR_REGEX);
@@ -180,7 +183,7 @@ public final class HlsPlaylistParser implements UriLoadable.Parser<HlsPlaylist> 
             String audioName = HlsParserUtil.parseStringAttr(line, NAME_ATTR_REGEX, NAME_ATTR);
             Format format = new Format(audioName, MimeTypes.APPLICATION_M3U8, -1, -1, -1, -1, -1,
                 -1, language, codecs);
-            audios.add(new Variant(uri, format));
+            audios.add(new Variant(uri, format, lineNum, 0));
           } else {
             muxedAudioLanguage = language;
           }
@@ -208,19 +211,21 @@ public final class HlsPlaylistParser implements UriLoadable.Parser<HlsPlaylist> 
           height = -1;
         }
         expectingStreamInfUrl = true;
+        firstLineNum = lineNum;
       } else if (!line.startsWith("#") && expectingStreamInfUrl) {
         if (name == null) {
           name = Integer.toString(variants.size());
         }
         Format format = new Format(name, MimeTypes.APPLICATION_M3U8, width, height, -1, -1, -1,
             bitrate, null, codecs);
-        variants.add(new Variant(line, format));
+        variants.add(new Variant(line, format, firstLineNum, lineNum));
         bitrate = 0;
         codecs = null;
         name = null;
         width = -1;
         height = -1;
         expectingStreamInfUrl = false;
+        firstLineNum = 0;
       }
     }
     return new HlsMasterPlaylist(baseUri, variants, audios, subtitles, muxedAudioLanguage,
@@ -245,6 +250,7 @@ public final class HlsPlaylistParser implements UriLoadable.Parser<HlsPlaylist> 
     boolean isEncrypted = false;
     String encryptionKeyUri = null;
     String encryptionIV = null;
+    int encryptionKeyLineNum = 0;
 
     String line;
     while (iterator.hasNext()) {
@@ -266,6 +272,7 @@ public final class HlsPlaylistParser implements UriLoadable.Parser<HlsPlaylist> 
         if (isEncrypted) {
           encryptionKeyUri = HlsParserUtil.parseStringAttr(line, URI_ATTR_REGEX, URI_ATTR);
           encryptionIV = HlsParserUtil.parseOptionalStringAttr(line, IV_ATTR_REGEX);
+          encryptionKeyLineNum = iterator.lineNum;
         } else {
           encryptionKeyUri = null;
           encryptionIV = null;
@@ -294,9 +301,9 @@ public final class HlsPlaylistParser implements UriLoadable.Parser<HlsPlaylist> 
         if (segmentByterangeLength == C.LENGTH_UNBOUNDED) {
           segmentByterangeOffset = 0;
         }
-        segments.add(new HlsMediaPlaylist.Segment(line, segmentDurationSecs, discontinuitySequenceNumber,
+        segments.add(new HlsMediaPlaylist.Segment(line, iterator.lineNum, segmentDurationSecs, discontinuitySequenceNumber,
             segmentStartTimeUs, isEncrypted, encryptionKeyUri, segmentEncryptionIV,
-            segmentByterangeOffset, segmentByterangeLength));
+            segmentByterangeOffset, segmentByterangeLength, encryptionKeyLineNum));
         segmentStartTimeUs += (long) (segmentDurationSecs * C.MICROS_PER_SECOND);
         segmentDurationSecs = 0.0;
         if (segmentByterangeLength != C.LENGTH_UNBOUNDED) {
@@ -335,6 +342,7 @@ public final class HlsPlaylistParser implements UriLoadable.Parser<HlsPlaylist> 
     private final Queue<String> extraLines;
 
     private String next;
+    private int lineNum = 0;
 
     public LineIterator(Queue<String> extraLines, BufferedReader reader) {
       this.extraLines = extraLines;
@@ -347,10 +355,12 @@ public final class HlsPlaylistParser implements UriLoadable.Parser<HlsPlaylist> 
       }
       if (!extraLines.isEmpty()) {
         next = extraLines.poll();
+        lineNum++;
         return true;
       }
       while ((next = reader.readLine()) != null) {
         next = next.trim();
+        lineNum++;
         if (!next.isEmpty()) {
           return true;
         }

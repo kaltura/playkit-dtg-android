@@ -8,7 +8,7 @@
 
     <application>
         <service
-            android:name=".clear.DefaultDownloadService"
+            android:name=".DownloadService"
             android:enabled="true"
             android:exported="false" >
         </service>

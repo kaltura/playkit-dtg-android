@@ -1,15 +1,9 @@
-package com.kaltura.dtg.clear;
+package com.kaltura.dtg;
 
 import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
-
-import com.kaltura.dtg.AppBuildConfig;
-import com.kaltura.dtg.ContentManager;
-import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.DownloadState;
-import com.kaltura.dtg.DownloadStateListener;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,7 +16,7 @@ public class ContentManagerImp extends ContentManager {
     private static final String TAG = "ContentManagerImp";
 
     private static ContentManager sInstance;
-    private final HashSet<DownloadStateListener> stateListeners = new HashSet<>(1);
+    private final HashSet<DownloadStateListener> stateListeners = new HashSet<>();
     private final DownloadStateListener downloadStateRelay = new DownloadStateListener() {
 
         // Pass the state to all listeners.
@@ -76,17 +70,17 @@ public class ContentManagerImp extends ContentManager {
             }
         }
     };
-    
+
     private int maxConcurrentDownloads;
-    private Context context;
+    private final Context context;
     private String sessionId;
     private String applicationName;
-    private DefaultProviderProxy provider;
-    private File itemsDir;
+    private ServiceProxy provider;
+    private final File itemsDir;
     private boolean started;
     private boolean autoResumeItemsInProgress = true;
     private DownloadRequestParams.Adapter adapter;
-    private Settings settings = new Settings();
+    private final Settings settings = new Settings();
 
     private ContentManagerImp(Context context) {
         this.context = context.getApplicationContext();
@@ -95,12 +89,10 @@ public class ContentManagerImp extends ContentManager {
         itemsDir = new File(filesDir, "dtg/items");
 
         // make sure all directories are there.
-        filesDir.mkdirs();
-        itemsDir.mkdirs();
-        
-        AppBuildConfig.init(context);
+        Utils.mkdirsOrThrow(filesDir);
+        Utils.mkdirsOrThrow(itemsDir);
     }
-    
+
     public static ContentManager getInstance(Context context) {
         if (sInstance == null) {
             synchronized (ContentManager.class) {
@@ -111,7 +103,7 @@ public class ContentManagerImp extends ContentManager {
         }
         return sInstance;
     }
-    
+
 
     // Public API
 
@@ -124,7 +116,7 @@ public class ContentManagerImp extends ContentManager {
     public void removeDownloadStateListener(DownloadStateListener listener) {
         stateListeners.remove(listener);
     }
-    
+
     @Override
     public void stop() {
         if (provider == null) {
@@ -139,44 +131,42 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public void start(final OnStartedListener onStartedListener) {
         Log.d(TAG, "start Content Manager");
-        this.sessionId =  UUID.randomUUID().toString();
+        this.sessionId = UUID.randomUUID().toString();
         this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
         this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
         if (provider != null) {
-            // Call the onstarted callback even if it has already been started
+            // Call the onStarted callback even if it has already been started
             if (onStartedListener != null) {
                 onStartedListener.onStarted();
             }
             return;
         }
 
-        provider = new DefaultProviderProxy(context, settings);
+        provider = new ServiceProxy(context, settings);
         provider.setDownloadStateListener(downloadStateRelay);
         provider.start(new OnStartedListener() {
-                            @Override
-                            public void onStarted() {
-                                started = true;
-                                if (autoResumeItemsInProgress) {
-                                    // Resume all downloads that were in progress on stop.
-                                    List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
-                                    for (DownloadItem download : downloads) {
-                                        download.startDownload();
-                                    }
-                                }
-                                
-                                if (onStartedListener != null) {
-                                    onStartedListener.onStarted();
-                                }
-                            }
-                        });
+            @Override
+            public void onStarted() {
+                started = true;
+                if (autoResumeItemsInProgress) {
+                    // Resume all downloads that were in progress on stop.
+                    List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
+                    for (DownloadItem download : downloads) {
+                        download.startDownload();
+                    }
+                }
+
+                if (onStartedListener != null) {
+                    onStartedListener.onStarted();
+                }
+            }
+        });
     }
 
     @Override
     public void pauseDownloads() throws IllegalStateException {
         checkIfManagerStarted();
-        if (provider == null) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProvider();
 
         List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
         for (DownloadItem item : downloads) {
@@ -187,9 +177,7 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public void resumeDownloads() throws IllegalStateException {
         checkIfManagerStarted();
-        if (provider == null) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProvider();
 
         List<DownloadItem> downloads = getDownloads(DownloadState.PAUSED);
         for (DownloadItem item : downloads) {
@@ -200,101 +188,94 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public DownloadItem findItem(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
-        if (!isProviderOperationValid(itemId)) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProviderAndItem(itemId);
         return provider.findItem(itemId);
     }
 
     @Override
     public long getDownloadedItemSize(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
+        assertProvider();
+
+        return provider.getDownloadedItemSize(itemId);
+    }
+
+    private void assertProvider() {
         if (provider == null) {
             throw new IllegalStateException("Provider Operation Not Valid");
         }
-
-        return provider.getDownloadedItemSize(itemId);
     }
 
     @Override
     public long getEstimatedItemSize(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
-        if (!isProviderOperationValid(itemId)) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProviderAndItem(itemId);
         return provider.getEstimatedItemSize(itemId);
     }
 
     @Override
     public DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException {
         checkIfManagerStarted();
-        if (!isProviderOperationValid(itemId)) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        itemId = safeItemId(itemId);
+        assertProviderAndItem(itemId);
         DownloadRequestParams downloadRequestParams = adapter.adapt(new DownloadRequestParams(Uri.parse(contentURL), null));
         return provider.createItem(itemId, downloadRequestParams.url.toString());
+    }
+
+    private String safeItemId(String itemId) {
+        // The only forbidden chars are null and slash
+        return itemId.replace('/', '-').replace('\0', '-');
     }
 
     @Override
     public void removeItem(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
-        if (!isProviderOperationValid(itemId)) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProviderAndItem(itemId);
 
         DownloadItem item = findItem(itemId);
         if (item == null) {
             throw new IllegalStateException("DownloadItem Is Null");
         }
-        // TODO: can the lower-level methods use itemId and not item?
+
         provider.removeItem(item);
     }
 
     private File getItemDir(String itemId) {
-        // TODO: safe itemId?
-        File itemDir = new File(itemsDir, itemId);
-        return itemDir;
+        return new File(itemsDir, itemId);
     }
 
     @Override
     public File getAppDataDir(String itemId) {
         File appDataDir = new File(getItemDir(itemId), "appData");
-        appDataDir.mkdirs();
+        Utils.mkdirs(appDataDir);
         return appDataDir;
     }
 
     @Override
     public List<DownloadItem> getDownloads(DownloadState... states) throws IllegalStateException {
         checkIfManagerStarted();
-        if (provider == null) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProvider();
         return new ArrayList<>(provider.getDownloads(states));
     }
 
     @Override
     public String getPlaybackURL(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
-        if (!isProviderOperationValid(itemId)) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProviderAndItem(itemId);
 
         return provider.getPlaybackURL(itemId);
     }
 
-    private boolean isProviderOperationValid(String itemId) {
+    private void assertProviderAndItem(String itemId) {
         if (provider == null || TextUtils.isEmpty(itemId)) {
             throw new IllegalStateException("Provider Operation Not Valid");
         }
-        return true;
     }
 
     @Override
     public File getLocalFile(String itemId) throws IllegalStateException {
         checkIfManagerStarted();
-        if (provider == null || TextUtils.isEmpty(itemId)) {
-            throw new IllegalStateException("Provider Operation Not Valid");
-        }
+        assertProviderAndItem(itemId);
         return provider.getLocalFile(itemId);
     }
 
@@ -303,7 +284,7 @@ public class ContentManagerImp extends ContentManager {
             throw new IllegalStateException("Manager was not started.");
         }
     }
-    
+
     @Override
     public Settings getSettings() {
         if (started) {
@@ -321,7 +302,7 @@ public class ContentManagerImp extends ContentManager {
     public boolean isStarted() {
         return started;
     }
-    
+
     public String getSessionId() {
         return sessionId;
     }
