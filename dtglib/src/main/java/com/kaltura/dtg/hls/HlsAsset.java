@@ -119,28 +119,20 @@ public class HlsAsset {
             return "" + firstMasterLine;
         }
 
-        @SuppressWarnings("SimplifiableIfStatement")
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (!(o instanceof Track)) return false;
             if (!super.equals(o)) return false;
-
             Track track = (Track) o;
-
-            if (firstMasterLine != track.firstMasterLine) return false;
-            if (lastMasterLine != track.lastMasterLine) return false;
-            return url != null ? url.equals(track.url) : track.url == null;
+            return durationMs == track.durationMs &&
+                    firstMasterLine == track.firstMasterLine &&
+                    Utils.equals(url, track.url);
         }
 
         @Override
         public int hashCode() {
-            int result = (int) (durationMs ^ (durationMs >>> 32));
-            result = 31 * result + (url != null ? url.hashCode() : 0);
-            result = 31 * result + firstMasterLine;
-            result = 31 * result + lastMasterLine;
-            result = 31 * result + super.hashCode();
-            return result;
+            return Utils.hash(super.hashCode(), durationMs, url, firstMasterLine);
         }
     }
 

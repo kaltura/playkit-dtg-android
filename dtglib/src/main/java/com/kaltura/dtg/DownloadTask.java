@@ -1,5 +1,6 @@
 package com.kaltura.dtg;
 
+import android.net.Uri;
 import android.util.Log;
 
 import java.io.File;
@@ -10,39 +11,44 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.HttpRetryException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
-import java.net.URL;
 
 public class DownloadTask {
+    public static final int UNKNOWN_ORDER = -1;
     private static final String TAG = "DownloadTask";
     private static final int PROGRESS_REPORT_COUNT = 100;
 
     final String taskId;
-    final URL url;
+    final Uri url;
     final File targetFile;
     String itemId;
 
     String trackRelativeId;
+    int order;
 
     private Listener listener;  // this is the service
 
     private int retryCount = 0;
     private ContentManager.Settings downloadSettings;
 
-    public DownloadTask(URL url, File targetFile) {
+    public DownloadTask(Uri url, File targetFile, int order) {
         this.url = url;
         this.targetFile = targetFile;
         this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
+        this.order = order;
     }
 
-    DownloadTask(String url, String targetFile) throws MalformedURLException {
-        this(new URL(url), new File(targetFile));
+    DownloadTask(String url, String targetFile, int order) {
+        this(Uri.parse(url), new File(targetFile), order);
     }
 
 
     public void setTrackRelativeId(String trackRelativeId) {
         this.trackRelativeId = trackRelativeId;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
     }
 
 
@@ -57,7 +63,7 @@ public class DownloadTask {
 
     void download() throws HttpRetryException {
 
-        URL url = this.url;
+        Uri uri = this.url;
         File targetFile = this.targetFile;
 //        Log.d(TAG, "Task " + taskId + ": download " + url + " to " + targetFile);
 
@@ -75,7 +81,7 @@ public class DownloadTask {
         // If file is already downloaded, make sure it's not larger than the remote.
         if (localFileSize > 0) {
             try {
-                long remoteFileSize = Utils.httpHeadGetLength(url);
+                long remoteFileSize = Utils.httpHeadGetLength(uri);
 
                 // finish before even starting, if file is already complete.
                 if (localFileSize == remoteFileSize) {
@@ -96,7 +102,7 @@ public class DownloadTask {
                 reportProgress(State.STOPPED, 0, null);
                 return;
             } catch (IOException e) {
-                Log.e(TAG, "HEAD request failed for " + url, e);
+                Log.e(TAG, "HEAD request failed for " + uri, e);
                 // Nothing to do, but this is not fatal. Just continue.
             }
         }
@@ -112,7 +118,7 @@ public class DownloadTask {
 
         int progressReportBytes = 0;
         try {
-            conn = (HttpURLConnection) url.openConnection();
+            conn = Utils.openConnection(uri);
             conn.setReadTimeout(downloadSettings.httpTimeoutMillis);
             conn.setConnectTimeout(downloadSettings.httpTimeoutMillis);
             conn.setDoInput(true);
@@ -125,7 +131,7 @@ public class DownloadTask {
 
             int response = conn.getResponseCode();
             if (response >= 400) {
-                throw new IOException(Utils.format("Response code for %s is %d", url, response));
+                throw new IOException(Utils.format("Response code for %s is %d", uri, response));
             }
 
             inputStream = conn.getInputStream();
@@ -166,7 +172,7 @@ public class DownloadTask {
             // Not a fatal error -- consider retry.
             retryCount++;
             if (retryCount < downloadSettings.maxDownloadRetries) {
-                throw new HttpRetryException(e.getMessage(), 1, url.toExternalForm());
+                throw new HttpRetryException(e.getMessage(), 1, uri.toString());
             }
 //            Log.d(TAG, "Task " + taskId + " failed", e);
             stopReason = State.ERROR;
@@ -213,19 +219,17 @@ public class DownloadTask {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof DownloadTask) {
-            DownloadTask otherTask = (DownloadTask) o;
-            return this.url.equals(otherTask.url) && this.targetFile.equals(otherTask.targetFile);
-        }
-        return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DownloadTask that = (DownloadTask) o;
+        return Utils.equals(url, that.url) &&
+                Utils.equals(targetFile, that.targetFile);
     }
 
     @Override
     public int hashCode() {
-        int code = 17;
-        code = 31 * code + (this.url == null ? 0 : this.url.hashCode());
-        code = 31 * code + (this.targetFile == null ? 0 : this.targetFile.hashCode());
-        return code;
+
+        return Utils.hash(url, targetFile);
     }
 
     void setDownloadSettings(ContentManager.Settings downloadSettings) {

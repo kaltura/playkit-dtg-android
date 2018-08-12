@@ -1,6 +1,7 @@
 package com.kaltura.dtg.dash;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
@@ -24,7 +25,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -105,8 +105,10 @@ public class DashDownloader extends AbrDownloader {
         RangedUri initializationUri = representation.getInitializationUri();
 
         if (initializationUri != null) {
-            addTask(initializationUri, "init-" + reprId + ".mp4", dashTrack.getRelativeId());
+            addTask(initializationUri, "init-" + reprId + ".mp4", dashTrack.getRelativeId(), 0);
         }
+
+        String ext = TextUtils.equals(representation.format.mimeType, "text/vtt") ? ".vtt" : ".m4s";
 
         if (representation instanceof Representation.MultiSegmentRepresentation) {
             Representation.MultiSegmentRepresentation rep = (Representation.MultiSegmentRepresentation) representation;
@@ -115,15 +117,13 @@ public class DashDownloader extends AbrDownloader {
             int lastSegmentNum = rep.getLastSegmentNum(periodDurationUs);
             for (int segmentNum = rep.getFirstSegmentNum(); segmentNum <= lastSegmentNum; segmentNum++) {
                 RangedUri url = rep.getSegmentUrl(segmentNum);
-                addTask(url, "seg-" + reprId + "-" + segmentNum + ".m4s", dashTrack.getRelativeId());
+                addTask(url, "seg-" + reprId + "-" + segmentNum + ext, dashTrack.getRelativeId(), segmentNum);
             }
 
         } else if (representation instanceof Representation.SingleSegmentRepresentation) {
             Representation.SingleSegmentRepresentation rep = (Representation.SingleSegmentRepresentation) representation;
-            if (rep.format.mimeType.equalsIgnoreCase("text/vtt")) {
-                RangedUri url = rep.getIndex().getSegmentUrl(0);
-                addTask(url, reprId + ".vtt", dashTrack.getRelativeId());
-            }
+            RangedUri url = rep.getIndex().getSegmentUrl(0);
+            addTask(url, reprId + ext, dashTrack.getRelativeId(), 1);
         }
 
         setEstimatedDownloadSize(getEstimatedDownloadSize() + (getItemDurationMS() * representation.format.bitrate / 8 / 1000));
@@ -148,10 +148,11 @@ public class DashDownloader extends AbrDownloader {
         return LOCAL_MANIFEST_MPD;
     }
 
-    private void addTask(RangedUri url, String file, String trackId) throws MalformedURLException {
+    private void addTask(RangedUri url, String file, String trackId, int order) {
         File targetFile = new File(getTargetDir(), file);
-        DownloadTask task = new DownloadTask(new URL(url.getUriString()), targetFile);
+        DownloadTask task = new DownloadTask(url.getUri(), targetFile, order);
         task.setTrackRelativeId(trackId);
+        task.setOrder(order);
         getDownloadTasks().add(task);
     }
 

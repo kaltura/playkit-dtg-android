@@ -1,1 +1,1 @@
-include ':dtglib', ':dtgqueue'
+include ':dtglib', ':dtgdemo'

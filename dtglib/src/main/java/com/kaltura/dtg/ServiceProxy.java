@@ -74,10 +74,6 @@ class ServiceProxy {
         service.loadItemMetadata((DownloadItemImp) item);
     }
 
-    public DownloadState startDownload(String itemId) {
-        return service.startDownload(itemId);
-    }
-
     public void pauseDownload(DownloadItem item) {
         service.pauseDownload((DownloadItemImp) item);
     }

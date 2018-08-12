@@ -1,0 +1,35 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 27
+
+    defaultConfig {
+        applicationId "com.kaltura.dtg.demo"
+        minSdkVersion 17
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation project(':dtglib')
+
+//    implementation 'com.kaltura.playkit:playkit:3.5.0'
+    implementation 'com.kaltura:playkit-android:d053067a2f27cb169148e86811fe59c93d2ff2e3'
+    implementation 'com.kaltura:playkit-android-providers:997877b7b68566755d3d4f04dd5417687e38bed0'
+
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:support-v4:27.1.1'
+}

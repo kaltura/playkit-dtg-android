@@ -85,32 +85,22 @@ public abstract class BaseTrack implements DownloadItem.Track {
         return filtered;
     }
 
-    @SuppressWarnings("SimplifiableIfStatement")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof BaseTrack)) return false;
-
+        if (o == null || getClass() != o.getClass()) return false;
         BaseTrack baseTrack = (BaseTrack) o;
-
-        if (bitrate != baseTrack.bitrate) return false;
-        if (width != baseTrack.width) return false;
-        if (height != baseTrack.height) return false;
-        if (type != baseTrack.type) return false;
-        if (language != null ? !language.equals(baseTrack.language) : baseTrack.language != null)
-            return false;
-        return codecs != null ? codecs.equals(baseTrack.codecs) : baseTrack.codecs == null;
+        return bitrate == baseTrack.bitrate &&
+                width == baseTrack.width &&
+                height == baseTrack.height &&
+                type == baseTrack.type &&
+                Utils.equals(language, baseTrack.language) &&
+                Utils.equals(codecs, baseTrack.codecs);
     }
 
     @Override
     public int hashCode() {
-        int result = type != null ? type.hashCode() : 0;
-        result = 31 * result + (language != null ? language.hashCode() : 0);
-        result = 31 * result + (int) (bitrate ^ (bitrate >>> 32));
-        result = 31 * result + width;
-        result = 31 * result + height;
-        result = 31 * result + (codecs != null ? codecs.hashCode() : 0);
-        return result;
+        return Utils.hash(type, language, bitrate, width, height, codecs);
     }
 
     ContentValues toContentValues() {

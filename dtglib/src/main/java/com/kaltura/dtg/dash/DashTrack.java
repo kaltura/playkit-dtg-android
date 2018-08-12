@@ -5,6 +5,7 @@ import android.database.Cursor;
 import com.kaltura.android.exoplayer.chunk.Format;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,26 +46,19 @@ public class DashTrack extends BaseTrack {
         return "a" + adaptationIndex + "r" + representationIndex;
     }
 
-    @SuppressWarnings("SimplifiableIfStatement")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
+        if (!super.equals(o)) return false;
         DashTrack dashTrack = (DashTrack) o;
-
-        if (adaptationIndex != dashTrack.adaptationIndex) return false;
-        if (representationIndex != dashTrack.representationIndex) return false;
-
-        return super.equals(o);
+        return adaptationIndex == dashTrack.adaptationIndex &&
+                representationIndex == dashTrack.representationIndex;
     }
 
     @Override
     public int hashCode() {
-        int result = adaptationIndex;
-        result = 31 * result + representationIndex;
-        result = 31 * result + super.hashCode();
-        return result;
+        return Utils.hash(super.hashCode(), adaptationIndex, representationIndex);
     }
 
     @Override

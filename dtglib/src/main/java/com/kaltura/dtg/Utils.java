@@ -18,6 +18,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -83,6 +84,14 @@ public class Utils {
         return String.format(Locale.ENGLISH, format, args);
     }
 
+    public static boolean equals(Object a, Object b) {
+        return (a == b) || (a != null && a.equals(b));
+    }
+
+    public static int hash(Object... objects) {
+        return Arrays.hashCode(objects);
+    }
+
     @NonNull
     public static String md5Hex(String input) {
         return bytesToHex(md5(input));
@@ -123,13 +132,13 @@ public class Utils {
     // Download the URL to targetFile and also return the contents.
     // If file is larger than maxReturnSize, the returned array will have maxReturnSize bytes,
     // but the file will have all of them.
-    public static byte[] downloadToFile(URL url, File targetFile, int maxReturnSize) throws IOException {
+    public static byte[] downloadToFile(Uri uri, File targetFile, int maxReturnSize) throws IOException {
 
         InputStream inputStream = null;
         FileOutputStream fileOutputStream = null;
         HttpURLConnection conn = null;
         try {
-            conn = (HttpURLConnection) url.openConnection();
+            conn = openConnection(uri);
             conn.setRequestMethod("GET");
             conn.connect();
             inputStream = conn.getInputStream();
@@ -162,13 +171,13 @@ public class Utils {
     }
 
     public static byte[] downloadToFile(String url, File targetFile, int maxReturnSize) throws IOException {
-        return downloadToFile(new URL(url), targetFile, maxReturnSize);
+        return downloadToFile(Uri.parse(url), targetFile, maxReturnSize);
     }
 
-    public static long httpHeadGetLength(URL url) throws IOException {
+    public static long httpHeadGetLength(Uri uri) throws IOException {
         HttpURLConnection connection = null;
         try {
-            connection = (HttpURLConnection) url.openConnection();
+            connection = openConnection(uri);
             connection.setRequestMethod("HEAD");
             connection.setRequestProperty("Accept-Encoding", "");
             connection.connect();
@@ -187,6 +196,13 @@ public class Utils {
                 connection.disconnect();
             }
         }
+    }
+
+    public static HttpURLConnection openConnection(Uri uri) throws IOException {
+        if (uri == null) {
+            return null;
+        }
+        return (HttpURLConnection) new URL(uri.toString()).openConnection();
     }
 
     @NonNull
