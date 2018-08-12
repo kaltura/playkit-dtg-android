@@ -26,7 +26,7 @@ import java.util.Map;
 public class Utils {
     private static final String TAG = "DTGUtils";
 
-    public static String createTable(String name, String... colDefs) {
+    static String createTable(String name, String... colDefs) {
         StringBuilder sb = new StringBuilder();
         sb.append("CREATE TABLE ").append(name).append("(");
         for (int i = 0; i < colDefs.length; i += 2) {
@@ -41,7 +41,7 @@ public class Utils {
         return str;
     }
 
-    public static String createUniqueIndex(String tableName, String... colNames) {
+    static String createUniqueIndex(String tableName, String... colNames) {
 
         String str = "CREATE UNIQUE INDEX " +
                 "unique_" + tableName + "_" + TextUtils.join("_", colNames) +
@@ -71,7 +71,7 @@ public class Utils {
         return 0;
     }
 
-    public static void deleteRecursive(File fileOrDirectory) {
+    static void deleteRecursive(File fileOrDirectory) {
         if (fileOrDirectory.isDirectory()) {
             for (File child : fileOrDirectory.listFiles()) {
                 deleteRecursive(child);
@@ -174,7 +174,7 @@ public class Utils {
         return downloadToFile(Uri.parse(url), targetFile, maxReturnSize);
     }
 
-    public static long httpHeadGetLength(Uri uri) throws IOException {
+    static long httpHeadGetLength(Uri uri) throws IOException {
         HttpURLConnection connection = null;
         try {
             connection = openConnection(uri);
@@ -198,7 +198,7 @@ public class Utils {
         }
     }
 
-    public static HttpURLConnection openConnection(Uri uri) throws IOException {
+    static HttpURLConnection openConnection(Uri uri) throws IOException {
         if (uri == null) {
             return null;
         }
@@ -231,7 +231,7 @@ public class Utils {
 
     // Returns hex-encoded md5 of the input, appending the extension.
     // "a.mp4" ==> "2a1f28800d49717bbf88dc2c704f4390.mp4"
-    public static String getHashedFileName(String original) {
+    static String getHashedFileName(String original) {
         String ext = getFileExtension(original);
         return md5Hex(original) + ext;
     }
@@ -252,7 +252,7 @@ public class Utils {
     }
 
     @NonNull
-    public static List<BaseTrack> flattenTrackList(Map<DownloadItem.TrackType, List<BaseTrack>> tracksMap) {
+    static List<BaseTrack> flattenTrackList(Map<DownloadItem.TrackType, List<BaseTrack>> tracksMap) {
         List<BaseTrack> tracks = new ArrayList<>();
         for (Map.Entry<DownloadItem.TrackType, List<BaseTrack>> entry : tracksMap.entrySet()) {
             tracks.addAll(entry.getValue());
@@ -293,5 +293,9 @@ public class Utils {
     public static byte[] readFile(File file, int byteLimit) throws IOException {
         FileInputStream inputStream = new FileInputStream(file);
         return fullyReadInputStream(inputStream, byteLimit).toByteArray();
+    }
+
+    public static long estimateTrackSize(int trackBitrate, long durationMS) {
+        return trackBitrate * durationMS / 1000 / 8;    // first multiply, then divide
     }
 }

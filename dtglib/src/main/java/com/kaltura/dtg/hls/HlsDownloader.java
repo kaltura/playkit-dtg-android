@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,15 +37,16 @@ public class HlsDownloader extends AbrDownloader {
     private static final String ORIGIN_M3U8 = "origin.m3u8";
     private static final String LOCAL_MASTER = "master.m3u8";
     private static final String LOCAL_MEDIA = "media.m3u8";
-    private static final int AUDIO_BITRATE_FOR_ESTIMATION = 64 * 1024;
+    private final int defaultHlsAudioBitrateEstimation;
 
     private HlsAsset hlsAsset;
 
-    public HlsDownloader(DownloadItemImp item) {
+    public HlsDownloader(DownloadItemImp item, int defaultHlsAudioBitrateEstimation) {
         super(item);
+        this.defaultHlsAudioBitrateEstimation = defaultHlsAudioBitrateEstimation;
     }
 
-    private static void maybeAddTask(LinkedHashSet<DownloadTask> tasks, String relativeId, File trackTargetDir, int lineNum, String type, String url, int order) throws MalformedURLException {
+    private static void maybeAddTask(LinkedHashSet<DownloadTask> tasks, String relativeId, File trackTargetDir, int lineNum, String type, String url, int order) {
         if (url == null) {
             return;
         }
@@ -83,6 +83,7 @@ public class HlsDownloader extends AbrDownloader {
         List<BaseTrack> trackList = getSelectedTracksFlat();
 
         long totalEstimatedSize = 0;
+        long maxDuration = 0;
 
         for (BaseTrack baseTrack : trackList) {
             final HlsAsset.Track track = (HlsAsset.Track) baseTrack;
@@ -99,9 +100,11 @@ public class HlsDownloader extends AbrDownloader {
                 maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.encryptionKeyLineNum, "key", chunk.encryptionKeyUri, order);
             }
 
+            maxDuration = Math.max(maxDuration, track.durationMs);
+
             // Update size
-            long bitrate = track.getType() == DownloadItem.TrackType.VIDEO ? track.getBitrate() :
-                    track.getType() == DownloadItem.TrackType.AUDIO ? AUDIO_BITRATE_FOR_ESTIMATION : 0;
+            long bitrate = track.getBitrate() > 0 ? track.getBitrate() :
+                    track.getType() == DownloadItem.TrackType.AUDIO ? defaultHlsAudioBitrateEstimation : 0;
 
             if (bitrate > 0 && track.durationMs > 0) {
                 totalEstimatedSize += bitrate * track.durationMs / 1000 / 8;
@@ -109,6 +112,7 @@ public class HlsDownloader extends AbrDownloader {
         }
 
         setDownloadTasks(tasks);
+        setItemDurationMS(maxDuration);
         setEstimatedDownloadSize(totalEstimatedSize);
     }
 

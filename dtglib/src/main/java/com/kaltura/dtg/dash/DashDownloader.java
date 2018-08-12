@@ -24,7 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -78,7 +77,7 @@ public class DashDownloader extends AbrDownloader {
     }
 
     @Override
-    protected void createDownloadTasks() throws MalformedURLException {
+    protected void createDownloadTasks() {
 
         setDownloadTasks(new LinkedHashSet<DownloadTask>());
 
@@ -96,7 +95,7 @@ public class DashDownloader extends AbrDownloader {
         //}
     }
 
-    private void createDownloadTasks(Representation representation, @NonNull DashTrack dashTrack) throws MalformedURLException {
+    private void createDownloadTasks(Representation representation, @NonNull DashTrack dashTrack) {
         if (representation == null) {
             return;
         }
@@ -113,7 +112,7 @@ public class DashDownloader extends AbrDownloader {
         if (representation instanceof Representation.MultiSegmentRepresentation) {
             Representation.MultiSegmentRepresentation rep = (Representation.MultiSegmentRepresentation) representation;
 
-            long periodDurationUs = getItemDurationMS() * 1000;
+            long periodDurationUs = itemDurationMS * 1000;
             int lastSegmentNum = rep.getLastSegmentNum(periodDurationUs);
             for (int segmentNum = rep.getFirstSegmentNum(); segmentNum <= lastSegmentNum; segmentNum++) {
                 RangedUri url = rep.getSegmentUrl(segmentNum);
@@ -126,7 +125,7 @@ public class DashDownloader extends AbrDownloader {
             addTask(url, reprId + ext, dashTrack.getRelativeId(), 1);
         }
 
-        setEstimatedDownloadSize(getEstimatedDownloadSize() + (getItemDurationMS() * representation.format.bitrate / 8 / 1000));
+        setEstimatedDownloadSize(estimatedDownloadSize + (itemDurationMS * representation.format.bitrate / 8 / 1000));
     }
 
     @Override
@@ -153,7 +152,7 @@ public class DashDownloader extends AbrDownloader {
         DownloadTask task = new DownloadTask(url.getUri(), targetFile, order);
         task.setTrackRelativeId(trackId);
         task.setOrder(order);
-        getDownloadTasks().add(task);
+        downloadTasks.add(task);
     }
 
     @Override

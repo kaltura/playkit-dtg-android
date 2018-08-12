@@ -22,6 +22,7 @@ public class DownloadItemImp implements DownloadItem {
     private String playbackPath;
 
     private TrackSelector trackSelector;
+    private long durationMS;
 
     DownloadItemImp(String itemId, String contentURL) {
         this.itemId = itemId;
@@ -83,6 +84,15 @@ public class DownloadItemImp implements DownloadItem {
     }
 
     @Override
+    public long getDurationMS() {
+        return durationMS;
+    }
+
+    public void setDurationMS(long duration) {
+        this.durationMS = duration;
+    }
+
+    @Override
     public long getEstimatedSizeBytes() {
         return estimatedSizeBytes;
     }
@@ -138,7 +148,7 @@ public class DownloadItemImp implements DownloadItem {
 
         // If selection is in progress, return the current selector.
         if (trackSelector == null) {
-            trackSelector = AbrDownloader.newTrackUpdater(this);
+            trackSelector = AbrDownloader.newTrackUpdater(this, service.settings);
         }
 
         return trackSelector;

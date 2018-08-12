@@ -40,9 +40,10 @@ class Database {
     static final String COL_ITEM_ESTIMATED_SIZE = "ItemEstimatedSize";
     static final String COL_ITEM_DOWNLOADED_SIZE = "ItemDownloadedSize";
     static final String COL_ITEM_PLAYBACK_PATH = "ItemPlaybackPath";
+    static final String COL_ITEM_DURATION = "ItemDuration";
     private static final String[] ALL_ITEM_COLS = new String[]{COL_ITEM_ID, COL_CONTENT_URL,
             COL_ITEM_STATE, COL_ITEM_ADD_TIME, COL_ITEM_ESTIMATED_SIZE, COL_ITEM_DOWNLOADED_SIZE,
-            COL_ITEM_PLAYBACK_PATH, COL_ITEM_DATA_DIR};
+            COL_ITEM_PLAYBACK_PATH, COL_ITEM_DATA_DIR, COL_ITEM_DURATION};
     private static final String TAG = "Database";
     private static final String TBL_TRACK = "Track";
     static final String COL_TRACK_ID = "TrackId";
@@ -52,6 +53,7 @@ class Database {
     static final String COL_TRACK_LANGUAGE = "TrackLanguage";
     static final String COL_TRACK_BITRATE = "TrackBitrate";
     static final String COL_TRACK_REL_ID = "TrackRelativeId";
+    static final String COL_TRACK_CODECS = "TrackCodecs";
     private static final String COL_FILE_COMPLETE = "FileComplete";
 
     private static final String EXTFILES_SCHEME = "extfiles";
@@ -114,7 +116,8 @@ class Database {
                         COL_ITEM_DATA_DIR, "TEXT NOT NULL",
                         COL_ITEM_ESTIMATED_SIZE, "INTEGER NOT NULL DEFAULT 0",
                         COL_ITEM_DOWNLOADED_SIZE, "INTEGER NOT NULL DEFAULT 0",
-                        COL_ITEM_PLAYBACK_PATH, "TEXT"
+                        COL_ITEM_PLAYBACK_PATH, "TEXT",
+                        COL_ITEM_DURATION, "INTEGER"
                 ));
 
                 createFilesTable(db);
@@ -145,6 +148,7 @@ class Database {
                         COL_TRACK_BITRATE, "INTEGER",
                         COL_TRACK_REL_ID, "TEXT NOT NULL",
                         COL_TRACK_EXTRA, "TEXT",
+                        COL_TRACK_CODECS, "TEXT",
                         COL_ITEM_ID, "TEXT NOT NULL REFERENCES " + TBL_ITEMS + "(" + COL_ITEM_ID + ") ON DELETE CASCADE"
                 ));
                 db.execSQL(Utils.createUniqueIndex(TBL_TRACK, COL_ITEM_ID, COL_TRACK_REL_ID));
@@ -174,6 +178,12 @@ class Database {
 
                     // Add COL_FILE_ORDER to files
                     db.execSQL(Utils.format("ALTER TABLE %s ADD COLUMN %s INTEGER", TBL_DOWNLOAD_FILES, COL_FILE_ORDER));
+
+                    // Add duration to items
+                    db.execSQL(Utils.format("ALTER TABLE %s ADD COLUMN %s TEXT", TBL_ITEMS, COL_ITEM_DURATION));
+
+                    // Add codecs to tracks
+                    db.execSQL(Utils.format("ALTER TABLE %s ADD COLUMN %s TEXT", TBL_TRACK, COL_TRACK_CODECS));
 
                     changeTargetFileToRelative(db);
                 }
@@ -368,6 +378,7 @@ class Database {
                 values.put(COL_ITEM_STATE, item.getState().name());
                 values.put(COL_ITEM_DATA_DIR, itemDataDir.getAbsolutePath());
                 values.put(COL_ITEM_PLAYBACK_PATH, item.getPlaybackPath());
+                values.put(COL_ITEM_DURATION, item.getDurationMS());
                 db.insert(TBL_ITEMS, null, values);
                 return true;
             }
@@ -512,6 +523,9 @@ class Database {
                         case COL_ITEM_DATA_DIR:
                             values.put(COL_ITEM_DATA_DIR, item.getDataDir());
                             break;
+                        case COL_ITEM_DURATION:
+                            values.put(COL_ITEM_DURATION, item.getDurationMS());
+                            break;
 
                         // invalid -- can't change those. 
                         case COL_ITEM_ID:
@@ -565,6 +579,9 @@ class Database {
                     break;
                 case COL_ITEM_FINISH_TIME:
                     item.setFinishedTime(cursor.getLong(i));
+                    break;
+                case COL_ITEM_DURATION:
+                    item.setDurationMS(cursor.getLong(i));
                     break;
             }
         }
