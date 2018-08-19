@@ -39,6 +39,7 @@ import com.kaltura.playkit.providers.base.OnMediaLoadCompletion;
 import com.kaltura.playkit.providers.ovp.KalturaOvpMediaProvider;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -481,7 +482,15 @@ public class MainActivity extends ListActivity {
         if (!isNetworkAvailable()) {
             toast("NO NETWORK AVAILABLE");
         }
-        contentManager = ContentManager.getInstance(this);
+
+        try {
+            contentManager = ContentManager.getInstance(this);
+        } catch (IOException e) {
+            e.printStackTrace();
+            toast("Failed to get ContentManager");
+            return;
+        }
+
         contentManager.getSettings().defaultHlsAudioBitrateEstimation = DemoParams.defaultHlsAudioBitrateEstimation;
         contentManager.getSettings().applicationName = "MyApplication";
         contentManager.getSettings().maxConcurrentDownloads = 4;
@@ -568,12 +577,18 @@ public class MainActivity extends ListActivity {
     }
 
     void addAndLoad(Item item) {
-        DownloadItem downloadItem = contentManager.createItem(item.getId(), item.getUrl());
-        downloadItem.loadMetadata();
-        itemStateChanged(downloadItem);
+        DownloadItem downloadItem = null;
+        try {
+            downloadItem = contentManager.createItem(item.getId(), item.getUrl());
+            downloadItem.loadMetadata();
+            itemStateChanged(downloadItem);
+        } catch (IOException e) {
+            toast("Failed to add item: " + e.toString());
+            e.printStackTrace();
+        }
     }
 
-    
+
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);

@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -76,24 +77,41 @@ public class ContentManagerImp extends ContentManager {
     private String sessionId;
     private String applicationName;
     private ServiceProxy serviceProxy;
-    private final File itemsDir;
     private boolean started;
     private boolean autoResumeItemsInProgress = true;
     private DownloadRequestParams.Adapter adapter;
     private final Settings settings = new Settings();
 
-    private ContentManagerImp(Context context) {
+    private final File dataDir;
+    private File downloadsDir;
+    private final File itemsDir;
+
+    private ContentManagerImp(Context context) throws IOException {
         this.context = context.getApplicationContext();
 
         File filesDir = this.context.getFilesDir();
         itemsDir = new File(filesDir, "dtg/items");
 
-        // make sure all directories are there.
+        // Create all directories
         Utils.mkdirsOrThrow(filesDir);
         Utils.mkdirsOrThrow(itemsDir);
+
+        dataDir = new File(filesDir, "dtg/clear");
+        Utils.mkdirsOrThrow(dataDir);
+
+        File extFilesDir = context.getExternalFilesDir(null);
+        if (extFilesDir != null) {
+            downloadsDir = new File(extFilesDir, "dtg/clear");
+            Utils.mkdirsOrThrow(downloadsDir);
+            if (settings.createNoMediaFileInDownloadsDir) {
+                new File(extFilesDir, ".nomedia").createNewFile();
+            }
+        } else {
+            downloadsDir = dataDir;
+        }
     }
 
-    public static ContentManager getInstance(Context context) {
+    public static ContentManager getInstance(Context context) throws IOException {
         if (sInstance == null) {
             synchronized (ContentManager.class) {
                 if (sInstance == null) {
@@ -142,7 +160,8 @@ public class ContentManagerImp extends ContentManager {
             return;
         }
 
-        serviceProxy = new ServiceProxy(context, settings);
+        DownloadService.InitParams params = new DownloadService.InitParams(settings, downloadsDir, dataDir);
+        serviceProxy = new ServiceProxy(context, params);
         serviceProxy.setDownloadStateListener(downloadStateRelay);
         serviceProxy.start(new OnStartedListener() {
             @Override
@@ -214,7 +233,7 @@ public class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException {
+    public DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException, IOException {
         checkIfManagerStarted();
         itemId = safeItemId(itemId);
         assertProviderAndItem(itemId);

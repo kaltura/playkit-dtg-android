@@ -282,12 +282,10 @@ public class Utils {
         return dir.mkdirs() || dir.isDirectory();
     }
 
-    public static void mkdirsOrThrow(File dir) {
-        if (dir.mkdirs() || dir.isDirectory()) {
-            return;
+    public static void mkdirsOrThrow(File dir) throws DirectoryNotCreatableException {
+        if (!mkdirs(dir)) {
+            throw new DirectoryNotCreatableException(dir);
         }
-
-        throw new IllegalStateException("Can't create directory " + dir);
     }
 
     public static byte[] readFile(File file, int byteLimit) throws IOException {
@@ -297,5 +295,15 @@ public class Utils {
 
     public static long estimateTrackSize(int trackBitrate, long durationMS) {
         return trackBitrate * durationMS / 1000 / 8;    // first multiply, then divide
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static class DirectoryNotCreatableException extends IOException {
+
+        private static final long serialVersionUID = -1369279756939511377L;
+
+        private DirectoryNotCreatableException(File dir) {
+            super("Can't create directory " + dir);
+        }
     }
 }

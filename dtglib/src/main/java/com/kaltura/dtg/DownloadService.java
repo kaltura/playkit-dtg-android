@@ -34,16 +34,17 @@ import java.util.concurrent.TimeUnit;
 
 import static android.os.SystemClock.elapsedRealtime;
 
+
 public class DownloadService extends Service {
 
     private static final String TAG = "DownloadService";
-    private static final String NO_MEDIA_EMPTY_FILE = ".nomedia";
 
     private final Context context;  // allow mocking
     private final LocalBinder localBinder = new LocalBinder();
     private Database database;
     private DownloadRequestParams.Adapter adapter;
     private File downloadsDir;
+    private File dataDir;
     private boolean started;
     private boolean stopping;
     private DownloadStateListener downloadStateListener;
@@ -270,24 +271,6 @@ public class DownloadService extends Service {
 
         Log.d(TAG, "start()");
 
-        File dataDir = new File(context.getFilesDir(), "dtg/clear");
-        makeDirs(dataDir, "provider data directory");
-
-        File extFilesDir = context.getExternalFilesDir(null);
-        if (extFilesDir != null) {
-            downloadsDir = new File(extFilesDir, "dtg/clear");
-            makeDirs(downloadsDir, "provider downloads");
-            if (settings.createNoMediaFileInDownloadsDir) {
-                File noMediaFileExternal = new File(extFilesDir, NO_MEDIA_EMPTY_FILE);
-                try {
-                    noMediaFileExternal.createNewFile();
-                } catch (IOException e) {
-                    throw new IllegalStateException("Can't create .nomedia file at " + noMediaFileExternal);
-                }
-            }
-        } else {
-            downloadsDir = dataDir;
-        }
 
         File dbFile = new File(dataDir, "downloads.db");
 
@@ -330,14 +313,6 @@ public class DownloadService extends Service {
 
         started = false;
         stopping = false;
-    }
-
-    private void makeDirs(File dataDir, String name) {
-        Utils.mkdirsOrThrow(dataDir);
-        if (!dataDir.isDirectory()) {
-            Log.e(TAG, "Failed to create " + name + " -- " + dataDir);
-            throw new IllegalStateException("Can't continue without " + name + " -- " + dataDir);
-        }
     }
 
     void loadItemMetadata(final DownloadItemImp item) {
@@ -555,7 +530,7 @@ public class DownloadService extends Service {
         return 0;
     }
 
-    DownloadItemImp createItem(String itemId, String contentURL) {
+    DownloadItemImp createItem(String itemId, String contentURL) throws Utils.DirectoryNotCreatableException {
         assertStarted();
 
         // if this item was just removed, unmark it as removed.
@@ -578,7 +553,7 @@ public class DownloadService extends Service {
         item.setAddedTime(System.currentTimeMillis());
         File itemDataDir = getItemDataDir(itemId);
 
-        makeDirs(itemDataDir, "item data directory");
+        Utils.mkdirsOrThrow(itemDataDir);
 
         item.setDataDir(itemDataDir.getAbsolutePath());
 
@@ -680,13 +655,15 @@ public class DownloadService extends Service {
         };
     }
 
-    void setDownloadSettings(ContentManager.Settings downloadSettings) {
+    void setInitParams(InitParams initParams) {
         if (started) {
             throw new IllegalStateException("Can't change settings after start");
         }
 
         // Copy fields.
-        this.settings = downloadSettings.copy();
+        this.settings = initParams.settings.copy();
+        this.dataDir = initParams.dataDir;
+        this.downloadsDir = initParams.downloadsDir;
     }
 
     class LocalBinder extends Binder {
@@ -784,6 +761,18 @@ public class DownloadService extends Service {
                 }
             }
             database.updateItemInfo(item, columns);
+        }
+    }
+
+    static class InitParams {
+        ContentManager.Settings settings;
+        File downloadsDir;
+        File dataDir;
+
+        InitParams(ContentManager.Settings settings, File downloadsDir, File dataDir) {
+            this.settings = settings;
+            this.downloadsDir = downloadsDir;
+            this.dataDir = dataDir;
         }
     }
 }

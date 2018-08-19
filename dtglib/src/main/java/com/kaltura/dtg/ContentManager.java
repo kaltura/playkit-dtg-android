@@ -3,13 +3,14 @@ package com.kaltura.dtg;
 import android.content.Context;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public abstract class ContentManager {
     private static final String VERSION_STRING = BuildConfig.VERSION_NAME;
     static final String CLIENT_TAG = "playkit-dtg/android-" + VERSION_STRING;
 
-    public static ContentManager getInstance(Context context) {
+    public static ContentManager getInstance(Context context) throws IOException {
         return ContentManagerImp.getInstance(context);
     }
 
@@ -88,7 +89,7 @@ public abstract class ContentManager {
      * @param contentURL
      * @return
      */
-    public abstract DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException;
+    public abstract DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException, IOException;
 
     /**
      * Remove item entirely. Deletes all files and db records.

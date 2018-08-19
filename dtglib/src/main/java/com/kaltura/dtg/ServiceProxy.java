@@ -14,7 +14,7 @@ import java.util.List;
 class ServiceProxy {
 
     private static final String TAG = "ServiceProxy";
-    private final ContentManager.Settings settings;
+    private final DownloadService.InitParams initParams;
     private final Context context;
     private DownloadService service;
     private DownloadStateListener listener;
@@ -26,7 +26,7 @@ class ServiceProxy {
         public void onServiceConnected(ComponentName name, IBinder binder) {
             service = ((DownloadService.LocalBinder) binder).getService();
             service.setDownloadStateListener(listener);
-            service.setDownloadSettings(settings);
+            service.setInitParams(initParams);
             service.start();
             onStartedListener.onStarted();
         }
@@ -38,9 +38,9 @@ class ServiceProxy {
         }
     };
 
-    ServiceProxy(Context context, ContentManager.Settings settings) {
+    ServiceProxy(Context context, DownloadService.InitParams initParams) {
         this.context = context.getApplicationContext();
-        this.settings = settings;
+        this.initParams = initParams;
     }
 
     public void start(ContentManager.OnStartedListener startedListener) {
@@ -94,7 +94,7 @@ class ServiceProxy {
         return service.getDownloadedItemSize(itemId);
     }
 
-    public DownloadItem createItem(String itemId, String contentURL) {
+    public DownloadItem createItem(String itemId, String contentURL) throws Utils.DirectoryNotCreatableException {
         return service.createItem(itemId, contentURL);
     }
 
