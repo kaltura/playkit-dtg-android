@@ -16,6 +16,7 @@ import com.kaltura.dtg.AbrDownloader;
 import com.kaltura.dtg.AssetFormat;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.BuildConfig;
+import com.kaltura.dtg.CodecSupport;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadItemImp;
 import com.kaltura.dtg.DownloadTask;
@@ -191,10 +192,15 @@ public class DashDownloader extends AbrDownloader {
                 }
 
                 Format format = representation.format;
+
+                if (!CodecSupport.isFormatSupported(format, type)) {
+                    continue;
+                }
+
                 DashTrack track = new DashTrack(type, format, adaptationIndex, representationIndex);
                 track.setHeight(format.height);
                 track.setWidth(format.width);
-                getAvailableTracksMap().get(type).add(track);
+                availableTracks.get(type).add(track);
             }
         }
     }
