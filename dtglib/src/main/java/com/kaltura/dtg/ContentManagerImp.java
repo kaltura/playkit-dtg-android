@@ -82,14 +82,16 @@ public class ContentManagerImp extends ContentManager {
     private DownloadRequestParams.Adapter adapter;
     private final Settings settings = new Settings();
 
-    private final File dataDir;
+    private File dataDir;
     private File downloadsDir;
-    private final File itemsDir;
+    private File itemsDir;
 
-    private ContentManagerImp(Context context) throws IOException {
+    private ContentManagerImp(Context context) {
         this.context = context.getApplicationContext();
+    }
 
-        File filesDir = this.context.getFilesDir();
+    private void prepareStorage() throws IOException {
+        File filesDir = context.getFilesDir();
         itemsDir = new File(filesDir, "dtg/items");
 
         // Create all directories
@@ -104,6 +106,7 @@ public class ContentManagerImp extends ContentManager {
             downloadsDir = new File(extFilesDir, "dtg/clear");
             Utils.mkdirsOrThrow(downloadsDir);
             if (settings.createNoMediaFileInDownloadsDir) {
+                //noinspection ResultOfMethodCallIgnored
                 new File(extFilesDir, ".nomedia").createNewFile();
             }
         } else {
@@ -111,7 +114,7 @@ public class ContentManagerImp extends ContentManager {
         }
     }
 
-    public static ContentManager getInstance(Context context) throws IOException {
+    public static ContentManager getInstance(Context context) {
         if (sInstance == null) {
             synchronized (ContentManager.class) {
                 if (sInstance == null) {
@@ -147,8 +150,11 @@ public class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public void start(final OnStartedListener onStartedListener) {
+    public void start(final OnStartedListener onStartedListener) throws IOException {
         Log.d(TAG, "start Content Manager");
+
+        prepareStorage();
+
         this.sessionId = UUID.randomUUID().toString();
         this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
         this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);

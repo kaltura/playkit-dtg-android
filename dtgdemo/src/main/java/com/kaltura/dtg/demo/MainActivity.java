@@ -483,30 +483,31 @@ public class MainActivity extends ListActivity {
             toast("NO NETWORK AVAILABLE");
         }
 
-        try {
-            contentManager = ContentManager.getInstance(this);
-        } catch (IOException e) {
-            e.printStackTrace();
-            toast("Failed to get ContentManager");
-            return;
-        }
+        contentManager = ContentManager.getInstance(this);
 
         contentManager.getSettings().defaultHlsAudioBitrateEstimation = DemoParams.defaultHlsAudioBitrateEstimation;
         contentManager.getSettings().applicationName = "MyApplication";
         contentManager.getSettings().maxConcurrentDownloads = 4;
         contentManager.getSettings().createNoMediaFileInDownloadsDir = true;
         contentManager.addDownloadStateListener(cmListener);
-        contentManager.start(new ContentManager.OnStartedListener() {
-            @Override
-            public void onStarted() {
-                for (DownloadItem item : contentManager.getDownloads(DownloadState.values())) {
-                    itemStateChanged(item);
-                }
 
-                setListAdapter(itemArrayAdapter);
-            }
-        });
-        
+        try {
+            contentManager.start(new ContentManager.OnStartedListener() {
+                @Override
+                public void onStarted() {
+                    for (DownloadItem item : contentManager.getDownloads(DownloadState.values())) {
+                        itemStateChanged(item);
+                    }
+
+                    setListAdapter(itemArrayAdapter);
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+            toast("Failed to get ContentManager");
+            return;
+        }
+
         localAssetsManager = new LocalAssetsManager(context);
         
         findViewById(R.id.download_control).setOnClickListener(new View.OnClickListener() {
@@ -520,12 +521,16 @@ public class MainActivity extends ListActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 switch (which) {
                                     case 0:
-                                        contentManager.start(new ContentManager.OnStartedListener() {
-                                            @Override
-                                            public void onStarted() {
-                                                toast("Service started");
-                                            }
-                                        });
+                                        try {
+                                            contentManager.start(new ContentManager.OnStartedListener() {
+                                                @Override
+                                                public void onStarted() {
+                                                    toast("Service started");
+                                                }
+                                            });
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
                                         break;
                                     case 1:
                                         contentManager.stop();

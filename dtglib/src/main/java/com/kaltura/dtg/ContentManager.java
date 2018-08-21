@@ -10,7 +10,7 @@ public abstract class ContentManager {
     private static final String VERSION_STRING = BuildConfig.VERSION_NAME;
     static final String CLIENT_TAG = "playkit-dtg/android-" + VERSION_STRING;
 
-    public static ContentManager getInstance(Context context) throws IOException {
+    public static ContentManager getInstance(Context context) {
         return ContentManagerImp.getInstance(context);
     }
 
@@ -39,8 +39,9 @@ public abstract class ContentManager {
     /**
      * Start the download manager. Starts all downloads that were in IN_PROGRESS state when the
      * manager was stopped. Add listeners before calling this method.
+     * @throws IOException if an error has occurred when trying to prepare the storage.
      */
-    public abstract void start(OnStartedListener onStartedListener);
+    public abstract void start(OnStartedListener onStartedListener) throws IOException;
 
     /**
      * Stop the downloader. Stops all running downloads, but keep them in IN_PROGRESS state.
