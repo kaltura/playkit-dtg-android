@@ -33,10 +33,10 @@ import com.kaltura.playkit.PKMediaFormat;
 import com.kaltura.playkit.PKMediaSource;
 import com.kaltura.playkit.PlayKitManager;
 import com.kaltura.playkit.Player;
+import com.kaltura.playkit.api.ovp.SimpleOvpSessionProvider;
+import com.kaltura.playkit.mediaproviders.base.OnMediaLoadCompletion;
+import com.kaltura.playkit.mediaproviders.ovp.KalturaOvpMediaProvider;
 import com.kaltura.playkit.player.MediaSupport;
-import com.kaltura.playkit.providers.api.ovp.SimpleOvpSessionProvider;
-import com.kaltura.playkit.providers.base.OnMediaLoadCompletion;
-import com.kaltura.playkit.providers.ovp.KalturaOvpMediaProvider;
 
 import java.io.File;
 import java.io.IOException;

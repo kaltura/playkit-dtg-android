@@ -26,9 +26,7 @@ repositories {
 dependencies {
     implementation project(':dtglib')
 
-//    implementation 'com.kaltura.playkit:playkit:3.5.0'
-    implementation 'com.kaltura:playkit-android:2d970f2'
-    implementation 'com.kaltura:playkit-android-providers:997877b'
+    implementation 'com.kaltura.playkit:playkit:3.5.0'
 
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:support-v4:27.1.1'
