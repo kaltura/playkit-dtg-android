@@ -8,6 +8,7 @@ import com.kaltura.android.exoplayer.hls.HlsPlaylist;
 import com.kaltura.android.exoplayer.hls.HlsPlaylistParser;
 import com.kaltura.android.exoplayer.hls.Variant;
 import com.kaltura.dtg.BaseTrack;
+import com.kaltura.dtg.CodecSupport;
 import com.kaltura.dtg.DownloadItem.TrackType;
 import com.kaltura.dtg.Utils;
 
@@ -55,9 +56,11 @@ public class HlsAsset {
 
     private void parseVariants(List<Variant> variants, List<Track> trackList, TrackType trackType) {
         for (Variant variant : variants) {
-
-            final Track track = new Track(variant, trackType, masterUrl);
-            trackList.add(track);
+            // TODO: is this assumption (that VIDEO means the main content) correct?
+            if (CodecSupport.isFormatSupported(variant.format, trackType == TrackType.VIDEO ? null : trackType)) {
+                final Track track = new Track(variant, trackType, masterUrl);
+                trackList.add(track);
+            }
         }
     }
 
