@@ -82,36 +82,8 @@ public class ContentManagerImp extends ContentManager {
     private DownloadRequestParams.Adapter adapter;
     private final Settings settings = new Settings();
 
-    private File dataDir;
-    private File downloadsDir;
-    private File itemsDir;
-
     private ContentManagerImp(Context context) {
         this.context = context.getApplicationContext();
-    }
-
-    private void prepareStorage() throws IOException {
-        File filesDir = context.getFilesDir();
-        itemsDir = new File(filesDir, "dtg/items");
-
-        // Create all directories
-        Utils.mkdirsOrThrow(filesDir);
-        Utils.mkdirsOrThrow(itemsDir);
-
-        dataDir = new File(filesDir, "dtg/clear");
-        Utils.mkdirsOrThrow(dataDir);
-
-        File extFilesDir = context.getExternalFilesDir(null);
-        if (extFilesDir != null) {
-            downloadsDir = new File(extFilesDir, "dtg/clear");
-            Utils.mkdirsOrThrow(downloadsDir);
-            if (settings.createNoMediaFileInDownloadsDir) {
-                //noinspection ResultOfMethodCallIgnored
-                new File(extFilesDir, ".nomedia").createNewFile();
-            }
-        } else {
-            downloadsDir = dataDir;
-        }
     }
 
     public static ContentManager getInstance(Context context) {
@@ -153,7 +125,7 @@ public class ContentManagerImp extends ContentManager {
     public void start(final OnStartedListener onStartedListener) throws IOException {
         Log.d(TAG, "start Content Manager");
 
-        prepareStorage();
+        Storage.setup(context, settings);
 
         this.sessionId = UUID.randomUUID().toString();
         this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
@@ -166,8 +138,7 @@ public class ContentManagerImp extends ContentManager {
             return;
         }
 
-        DownloadService.InitParams params = new DownloadService.InitParams(settings, downloadsDir, dataDir);
-        serviceProxy = new ServiceProxy(context, params);
+        serviceProxy = new ServiceProxy(context, settings.copy());
         serviceProxy.setDownloadStateListener(downloadStateRelay);
         serviceProxy.start(new OnStartedListener() {
             @Override
@@ -266,7 +237,7 @@ public class ContentManagerImp extends ContentManager {
     }
 
     private File getItemDir(String itemId) {
-        return new File(itemsDir, itemId);
+        return new File(Storage.getItemsDir(), itemId);
     }
 
     @Override

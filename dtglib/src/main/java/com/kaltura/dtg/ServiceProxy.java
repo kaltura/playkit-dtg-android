@@ -14,7 +14,7 @@ import java.util.List;
 class ServiceProxy {
 
     private static final String TAG = "ServiceProxy";
-    private final DownloadService.InitParams initParams;
+    private final ContentManager.Settings settings;
     private final Context context;
     private DownloadService service;
     private DownloadStateListener listener;
@@ -26,7 +26,7 @@ class ServiceProxy {
         public void onServiceConnected(ComponentName name, IBinder binder) {
             service = ((DownloadService.LocalBinder) binder).getService();
             service.setDownloadStateListener(listener);
-            service.setInitParams(initParams);
+            service.setSettings(settings);
             service.start();
             onStartedListener.onStarted();
         }
@@ -38,9 +38,9 @@ class ServiceProxy {
         }
     };
 
-    ServiceProxy(Context context, DownloadService.InitParams initParams) {
+    ServiceProxy(Context context, ContentManager.Settings settings) {
         this.context = context.getApplicationContext();
-        this.initParams = initParams;
+        this.settings = settings;
     }
 
     public void start(ContentManager.OnStartedListener startedListener) {

@@ -43,8 +43,6 @@ public class DownloadService extends Service {
     private final LocalBinder localBinder = new LocalBinder();
     private Database database;
     private DownloadRequestParams.Adapter adapter;
-    private File downloadsDir;
-    private File dataDir;
     private boolean started;
     private boolean stopping;
     private DownloadStateListener downloadStateListener;
@@ -272,7 +270,7 @@ public class DownloadService extends Service {
         Log.d(TAG, "start()");
 
 
-        File dbFile = new File(dataDir, "downloads.db");
+        File dbFile = new File(Storage.getDataDir(), "downloads.db");
 
         database = new Database(dbFile, context);
 
@@ -340,7 +338,7 @@ public class DownloadService extends Service {
     private File getItemDataDir(String itemId) {
         assertStarted();
 
-        return new File(downloadsDir, "items/" + itemId + "/data");
+        return new File(Storage.getDownloadsDir(), "items/" + itemId + "/data");
     }
 
     private boolean isServiceStopped() {
@@ -503,11 +501,10 @@ public class DownloadService extends Service {
         itemCache.remove(itemId);
     }
 
-    private void deleteItemFiles(String item) {
-        String path = downloadsDir + "/items/" + item;
-        File file = new File(path);
+    private void deleteItemFiles(String itemId) {
+        File itemDir = new File(Storage.getDownloadsDir(), "items/" + itemId);
 
-        Utils.deleteRecursive(file);
+        Utils.deleteRecursive(itemDir);
     }
 
     /**
@@ -655,15 +652,12 @@ public class DownloadService extends Service {
         };
     }
 
-    void setInitParams(InitParams initParams) {
+    void setSettings(ContentManager.Settings settings) {
         if (started) {
             throw new IllegalStateException("Can't change settings after start");
         }
 
-        // Copy fields.
-        this.settings = initParams.settings.copy();
-        this.dataDir = initParams.dataDir;
-        this.downloadsDir = initParams.downloadsDir;
+        this.settings = settings;
     }
 
     class LocalBinder extends Binder {
@@ -761,18 +755,6 @@ public class DownloadService extends Service {
                 }
             }
             database.updateItemInfo(item, columns);
-        }
-    }
-
-    static class InitParams {
-        ContentManager.Settings settings;
-        File downloadsDir;
-        File dataDir;
-
-        InitParams(ContentManager.Settings settings, File downloadsDir, File dataDir) {
-            this.settings = settings;
-            this.downloadsDir = downloadsDir;
-            this.dataDir = dataDir;
         }
     }
 }
