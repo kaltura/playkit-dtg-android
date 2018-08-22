@@ -3,6 +3,7 @@ package com.kaltura.dtg;
 import android.content.Context;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public abstract class ContentManager {
@@ -38,8 +39,9 @@ public abstract class ContentManager {
     /**
      * Start the download manager. Starts all downloads that were in IN_PROGRESS state when the
      * manager was stopped. Add listeners before calling this method.
+     * @throws IOException if an error has occurred when trying to prepare the storage.
      */
-    public abstract void start(OnStartedListener onStartedListener);
+    public abstract void start(OnStartedListener onStartedListener) throws IOException;
 
     /**
      * Stop the downloader. Stops all running downloads, but keep them in IN_PROGRESS state.
@@ -88,7 +90,7 @@ public abstract class ContentManager {
      * @param contentURL
      * @return
      */
-    public abstract DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException;
+    public abstract DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException, IOException;
 
     /**
      * Remove item entirely. Deletes all files and db records.

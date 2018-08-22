@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -76,7 +77,6 @@ public class ContentManagerImp extends ContentManager {
     private String sessionId;
     private String applicationName;
     private ServiceProxy serviceProxy;
-    private final File itemsDir;
     private boolean started;
     private boolean autoResumeItemsInProgress = true;
     private DownloadRequestParams.Adapter adapter;
@@ -84,13 +84,6 @@ public class ContentManagerImp extends ContentManager {
 
     private ContentManagerImp(Context context) {
         this.context = context.getApplicationContext();
-
-        File filesDir = this.context.getFilesDir();
-        itemsDir = new File(filesDir, "dtg/items");
-
-        // make sure all directories are there.
-        Utils.mkdirsOrThrow(filesDir);
-        Utils.mkdirsOrThrow(itemsDir);
     }
 
     public static ContentManager getInstance(Context context) {
@@ -129,8 +122,11 @@ public class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public void start(final OnStartedListener onStartedListener) {
+    public void start(final OnStartedListener onStartedListener) throws IOException {
         Log.d(TAG, "start Content Manager");
+
+        Storage.setup(context, settings);
+
         this.sessionId = UUID.randomUUID().toString();
         this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
         this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
@@ -142,7 +138,7 @@ public class ContentManagerImp extends ContentManager {
             return;
         }
 
-        serviceProxy = new ServiceProxy(context, settings);
+        serviceProxy = new ServiceProxy(context, settings.copy());
         serviceProxy.setDownloadStateListener(downloadStateRelay);
         serviceProxy.start(new OnStartedListener() {
             @Override
@@ -214,7 +210,7 @@ public class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException {
+    public DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException, IOException {
         checkIfManagerStarted();
         itemId = safeItemId(itemId);
         assertProviderAndItem(itemId);
@@ -241,7 +237,7 @@ public class ContentManagerImp extends ContentManager {
     }
 
     private File getItemDir(String itemId) {
-        return new File(itemsDir, itemId);
+        return new File(Storage.getItemsDir(), itemId);
     }
 
     @Override

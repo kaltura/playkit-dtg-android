@@ -33,12 +33,13 @@ import com.kaltura.playkit.PKMediaFormat;
 import com.kaltura.playkit.PKMediaSource;
 import com.kaltura.playkit.PlayKitManager;
 import com.kaltura.playkit.Player;
+import com.kaltura.playkit.api.ovp.SimpleOvpSessionProvider;
+import com.kaltura.playkit.mediaproviders.base.OnMediaLoadCompletion;
+import com.kaltura.playkit.mediaproviders.ovp.KalturaOvpMediaProvider;
 import com.kaltura.playkit.player.MediaSupport;
-import com.kaltura.playkit.providers.api.ovp.SimpleOvpSessionProvider;
-import com.kaltura.playkit.providers.base.OnMediaLoadCompletion;
-import com.kaltura.playkit.providers.ovp.KalturaOvpMediaProvider;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -481,23 +482,32 @@ public class MainActivity extends ListActivity {
         if (!isNetworkAvailable()) {
             toast("NO NETWORK AVAILABLE");
         }
+
         contentManager = ContentManager.getInstance(this);
+
         contentManager.getSettings().defaultHlsAudioBitrateEstimation = DemoParams.defaultHlsAudioBitrateEstimation;
         contentManager.getSettings().applicationName = "MyApplication";
         contentManager.getSettings().maxConcurrentDownloads = 4;
         contentManager.getSettings().createNoMediaFileInDownloadsDir = true;
         contentManager.addDownloadStateListener(cmListener);
-        contentManager.start(new ContentManager.OnStartedListener() {
-            @Override
-            public void onStarted() {
-                for (DownloadItem item : contentManager.getDownloads(DownloadState.values())) {
-                    itemStateChanged(item);
-                }
 
-                setListAdapter(itemArrayAdapter);
-            }
-        });
-        
+        try {
+            contentManager.start(new ContentManager.OnStartedListener() {
+                @Override
+                public void onStarted() {
+                    for (DownloadItem item : contentManager.getDownloads(DownloadState.values())) {
+                        itemStateChanged(item);
+                    }
+
+                    setListAdapter(itemArrayAdapter);
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+            toast("Failed to get ContentManager");
+            return;
+        }
+
         localAssetsManager = new LocalAssetsManager(context);
         
         findViewById(R.id.download_control).setOnClickListener(new View.OnClickListener() {
@@ -511,12 +521,16 @@ public class MainActivity extends ListActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 switch (which) {
                                     case 0:
-                                        contentManager.start(new ContentManager.OnStartedListener() {
-                                            @Override
-                                            public void onStarted() {
-                                                toast("Service started");
-                                            }
-                                        });
+                                        try {
+                                            contentManager.start(new ContentManager.OnStartedListener() {
+                                                @Override
+                                                public void onStarted() {
+                                                    toast("Service started");
+                                                }
+                                            });
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
                                         break;
                                     case 1:
                                         contentManager.stop();
@@ -568,12 +582,18 @@ public class MainActivity extends ListActivity {
     }
 
     void addAndLoad(Item item) {
-        DownloadItem downloadItem = contentManager.createItem(item.getId(), item.getUrl());
-        downloadItem.loadMetadata();
-        itemStateChanged(downloadItem);
+        DownloadItem downloadItem = null;
+        try {
+            downloadItem = contentManager.createItem(item.getId(), item.getUrl());
+            downloadItem.loadMetadata();
+            itemStateChanged(downloadItem);
+        } catch (IOException e) {
+            toast("Failed to add item: " + e.toString());
+            e.printStackTrace();
+        }
     }
 
-    
+
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);

@@ -34,16 +34,15 @@ import java.util.concurrent.TimeUnit;
 
 import static android.os.SystemClock.elapsedRealtime;
 
+
 public class DownloadService extends Service {
 
     private static final String TAG = "DownloadService";
-    private static final String NO_MEDIA_EMPTY_FILE = ".nomedia";
 
     private final Context context;  // allow mocking
     private final LocalBinder localBinder = new LocalBinder();
     private Database database;
     private DownloadRequestParams.Adapter adapter;
-    private File downloadsDir;
     private boolean started;
     private boolean stopping;
     private DownloadStateListener downloadStateListener;
@@ -270,26 +269,8 @@ public class DownloadService extends Service {
 
         Log.d(TAG, "start()");
 
-        File dataDir = new File(context.getFilesDir(), "dtg/clear");
-        makeDirs(dataDir, "provider data directory");
 
-        File extFilesDir = context.getExternalFilesDir(null);
-        if (extFilesDir != null) {
-            downloadsDir = new File(extFilesDir, "dtg/clear");
-            makeDirs(downloadsDir, "provider downloads");
-            if (settings.createNoMediaFileInDownloadsDir) {
-                File noMediaFileExternal = new File(extFilesDir, NO_MEDIA_EMPTY_FILE);
-                try {
-                    noMediaFileExternal.createNewFile();
-                } catch (IOException e) {
-                    throw new IllegalStateException("Can't create .nomedia file at " + noMediaFileExternal);
-                }
-            }
-        } else {
-            downloadsDir = dataDir;
-        }
-
-        File dbFile = new File(dataDir, "downloads.db");
+        File dbFile = new File(Storage.getDataDir(), "downloads.db");
 
         database = new Database(dbFile, context);
 
@@ -332,14 +313,6 @@ public class DownloadService extends Service {
         stopping = false;
     }
 
-    private void makeDirs(File dataDir, String name) {
-        Utils.mkdirsOrThrow(dataDir);
-        if (!dataDir.isDirectory()) {
-            Log.e(TAG, "Failed to create " + name + " -- " + dataDir);
-            throw new IllegalStateException("Can't continue without " + name + " -- " + dataDir);
-        }
-    }
-
     void loadItemMetadata(final DownloadItemImp item) {
         assertStarted();
 
@@ -365,7 +338,7 @@ public class DownloadService extends Service {
     private File getItemDataDir(String itemId) {
         assertStarted();
 
-        return new File(downloadsDir, "items/" + itemId + "/data");
+        return new File(Storage.getDownloadsDir(), "items/" + itemId + "/data");
     }
 
     private boolean isServiceStopped() {
@@ -528,11 +501,10 @@ public class DownloadService extends Service {
         itemCache.remove(itemId);
     }
 
-    private void deleteItemFiles(String item) {
-        String path = downloadsDir + "/items/" + item;
-        File file = new File(path);
+    private void deleteItemFiles(String itemId) {
+        File itemDir = new File(Storage.getDownloadsDir(), "items/" + itemId);
 
-        Utils.deleteRecursive(file);
+        Utils.deleteRecursive(itemDir);
     }
 
     /**
@@ -555,7 +527,7 @@ public class DownloadService extends Service {
         return 0;
     }
 
-    DownloadItemImp createItem(String itemId, String contentURL) {
+    DownloadItemImp createItem(String itemId, String contentURL) throws Utils.DirectoryNotCreatableException {
         assertStarted();
 
         // if this item was just removed, unmark it as removed.
@@ -578,7 +550,7 @@ public class DownloadService extends Service {
         item.setAddedTime(System.currentTimeMillis());
         File itemDataDir = getItemDataDir(itemId);
 
-        makeDirs(itemDataDir, "item data directory");
+        Utils.mkdirsOrThrow(itemDataDir);
 
         item.setDataDir(itemDataDir.getAbsolutePath());
 
@@ -680,13 +652,12 @@ public class DownloadService extends Service {
         };
     }
 
-    void setDownloadSettings(ContentManager.Settings downloadSettings) {
+    void setSettings(ContentManager.Settings settings) {
         if (started) {
             throw new IllegalStateException("Can't change settings after start");
         }
 
-        // Copy fields.
-        this.settings = downloadSettings.copy();
+        this.settings = settings;
     }
 
     class LocalBinder extends Binder {

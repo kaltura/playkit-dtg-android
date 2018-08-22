@@ -93,8 +93,7 @@ class Database {
 
     Database(File dbFile, final Context context) {
 
-        final File externalFilesDir = context.getExternalFilesDir(null);
-        this.externalFilesDir = externalFilesDir != null ? externalFilesDir.getAbsolutePath() + "/" : null;
+        this.externalFilesDir = Storage.getExtFilesDir().getAbsolutePath();
 
         try {
             traceWriter = new BufferedWriter(new FileWriter(dbFile.getParent() + "/dbtrace.txt"));

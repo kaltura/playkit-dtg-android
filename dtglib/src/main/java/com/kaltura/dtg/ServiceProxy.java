@@ -26,7 +26,7 @@ class ServiceProxy {
         public void onServiceConnected(ComponentName name, IBinder binder) {
             service = ((DownloadService.LocalBinder) binder).getService();
             service.setDownloadStateListener(listener);
-            service.setDownloadSettings(settings);
+            service.setSettings(settings);
             service.start();
             onStartedListener.onStarted();
         }
@@ -94,7 +94,7 @@ class ServiceProxy {
         return service.getDownloadedItemSize(itemId);
     }
 
-    public DownloadItem createItem(String itemId, String contentURL) {
+    public DownloadItem createItem(String itemId, String contentURL) throws Utils.DirectoryNotCreatableException {
         return service.createItem(itemId, contentURL);
     }
 
