@@ -652,7 +652,9 @@ public class MainActivity extends ListActivity {
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        player.changeTrack(trackIds.get(selected[0]));
+                        if (selected[0] >= 0) {
+                            player.changeTrack(trackIds.get(selected[0]));
+                        }
                     }
                 }).show();
     }
