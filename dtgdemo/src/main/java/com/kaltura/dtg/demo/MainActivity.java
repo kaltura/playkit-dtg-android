@@ -27,16 +27,22 @@ import com.kaltura.dtg.DownloadStateListener;
 import com.kaltura.netkit.connect.response.ResultElement;
 import com.kaltura.playkit.LocalAssetsManager;
 import com.kaltura.playkit.PKDrmParams;
+import com.kaltura.playkit.PKEvent;
 import com.kaltura.playkit.PKMediaConfig;
 import com.kaltura.playkit.PKMediaEntry;
 import com.kaltura.playkit.PKMediaFormat;
 import com.kaltura.playkit.PKMediaSource;
 import com.kaltura.playkit.PlayKitManager;
 import com.kaltura.playkit.Player;
+import com.kaltura.playkit.PlayerEvent;
 import com.kaltura.playkit.api.ovp.SimpleOvpSessionProvider;
 import com.kaltura.playkit.mediaproviders.base.OnMediaLoadCompletion;
 import com.kaltura.playkit.mediaproviders.ovp.KalturaOvpMediaProvider;
+import com.kaltura.playkit.player.AudioTrack;
+import com.kaltura.playkit.player.BaseTrack;
 import com.kaltura.playkit.player.MediaSupport;
+import com.kaltura.playkit.player.PKTracks;
+import com.kaltura.playkit.player.TextTrack;
 
 import java.io.File;
 import java.io.IOException;
@@ -248,6 +254,9 @@ public class MainActivity extends ListActivity {
     private ArrayAdapter<Item> itemArrayAdapter;
     private Map<String, Item> itemMap = new HashMap<>();
 
+    private TextTrack currentTextTrack;
+    private AudioTrack currentAudioTrack;
+
     private DownloadStateListener cmListener = new DownloadStateListener() {
 
         long start;
@@ -384,6 +393,8 @@ public class MainActivity extends ListActivity {
             trackSelector.setSelectedTracks(DownloadItem.TrackType.TEXT, trackSelector.getAvailableTracks(DownloadItem.TrackType.TEXT));
         }
     };
+    private List<AudioTrack> audioTracks;
+    private List<TextTrack> textTracks;
 
     private static void saveSelection(List<DownloadItem.Track> tracks, boolean[] selected, DownloadItem.TrackSelector trackSelector) {
         for (DownloadItem.TrackType trackType : DownloadItem.TrackType.values()) {
@@ -545,7 +556,7 @@ public class MainActivity extends ListActivity {
         findViewById(R.id.player_control).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String[] actions = {"Play", "Pause", "Seek -60", "Seek -15", "Seek +15", "Seek +60"};
+                String[] actions = {"Play", "Pause", "Seek -60", "Seek -15", "Seek +15", "Seek +60", "Select audio", "Select text"};
                 new AlertDialog.Builder(MainActivity.this)
                         .setTitle("Player Action")
                         .setItems(actions, new DialogInterface.OnClickListener() {
@@ -573,12 +584,63 @@ public class MainActivity extends ListActivity {
                                     case 5:
                                         player.seekTo(player.getCurrentPosition() + 60000);
                                         break;
+                                    case 6:
+                                        selectPlayerTrack(true);
+                                        break;
+                                    case 7:
+                                        selectPlayerTrack(false);
+                                        break;
+
                                 }
                             }
                         }).show();
                         
             }
         });
+    }
+
+    private void selectPlayerTrack(boolean audio) {
+
+        final List<? extends BaseTrack> tracks = audio ? audioTracks : textTracks;
+
+        if (tracks == null) {
+            return;
+        }
+
+        List<String> trackTitles = new ArrayList<>();
+        final List<String> trackIds = new ArrayList<>();
+
+        for (BaseTrack track : tracks) {
+            String language = audio ? ((AudioTrack) track).getLanguage() : ((TextTrack) track).getLanguage();
+            if (language != null) {
+                trackIds.add(track.getUniqueId());
+                trackTitles.add(language);
+            }
+        }
+
+        if (trackIds.size() < 2) {
+            return;
+        }
+
+        BaseTrack currentTrack = audio ? currentAudioTrack : currentTextTrack;
+
+        int currentIndex = currentTrack != null ? trackIds.indexOf(currentTrack.getUniqueId()) : -1;
+        final int[] selected = {currentIndex};
+
+        new AlertDialog.Builder(context)
+                .setTitle("Select track")
+                .setSingleChoiceItems(trackTitles.toArray(new String[trackTitles.size()]), selected[0], new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        selected[0] = i;
+                    }
+                })
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        player.changeTrack(trackIds.get(selected[0]));
+                    }
+                }).show();
     }
 
     void addAndLoad(Item item) {
@@ -752,6 +814,7 @@ public class MainActivity extends ListActivity {
     private void setupPlayer() {
         if (player == null) {
             player = PlayKitManager.loadPlayer(this, null);
+            addPlayerEventListeners();
             ViewGroup playerRoot = findViewById(R.id.player_root);
             playerRoot.addView(player.getView());
         } else {
@@ -759,18 +822,58 @@ public class MainActivity extends ListActivity {
         }
     }
 
+    private void addPlayerEventListeners() {
+
+        player.addEventListener(new PKEvent.Listener() {
+            @Override
+            public void onEvent(PKEvent event) {
+
+                PlayerEvent pe = (PlayerEvent) event;
+
+                switch (pe.type) {
+                    case TRACKS_AVAILABLE:
+                        PKTracks tracksInfo = ((PlayerEvent.TracksAvailable) pe).tracksInfo;
+                        audioTracks = tracksInfo.getAudioTracks();
+                        textTracks = tracksInfo.getTextTracks();
+
+                        if (currentAudioTrack == null && !audioTracks.isEmpty()) {
+                            currentAudioTrack = audioTracks.get(tracksInfo.getDefaultAudioTrackIndex());
+                        }
+                        if (currentTextTrack != null && !textTracks.isEmpty()) {
+                            currentTextTrack = textTracks.get(tracksInfo.getDefaultTextTrackIndex());
+                        }
+                        break;
+                    case AUDIO_TRACK_CHANGED:
+                        currentAudioTrack = ((PlayerEvent.AudioTrackChanged) pe).newTrack;
+                        Log.d(TAG, "currentAudioTrack: " + currentAudioTrack.getUniqueId() + " " + currentAudioTrack.getLanguage());
+                        break;
+                    case TEXT_TRACK_CHANGED:
+                        currentTextTrack = ((PlayerEvent.TextTrackChanged) pe).newTrack;
+                        Log.d(TAG, "currentTextTrack: " + currentTextTrack);
+                        break;
+                }
+            }
+        }, PlayerEvent.Type.TRACKS_AVAILABLE, PlayerEvent.Type.AUDIO_TRACK_CHANGED, PlayerEvent.Type.TEXT_TRACK_CHANGED);
+    }
+
     private void loadTestItems(final ArrayAdapter<Item> itemAdapter) {
 
         MediaSupport.initializeDrm(this, new MediaSupport.DrmInitCallback() {
             @Override
             public void onDrmInitComplete(Set<PKDrmParams.Scheme> supportedDrmSchemes, boolean provisionPerformed, Exception provisionError) {
-                List<Item> items = ItemLoader.loadItems();
-                itemAdapter.addAll(items);
-                for (final Item item : items) {
-                    if (item != null) {
-                        itemMap.put(item.getId(), item);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        List<Item> items = ItemLoader.loadItems();
+                        itemAdapter.addAll(items);
+                        for (final Item item : items) {
+                            if (item != null) {
+                                itemMap.put(item.getId(), item);
+                            }
+                        }
                     }
-                }
+                });
             }
         });
     }
