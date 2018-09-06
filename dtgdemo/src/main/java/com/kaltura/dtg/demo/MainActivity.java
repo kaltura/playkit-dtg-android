@@ -3,6 +3,7 @@ package com.kaltura.dtg.demo;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -20,6 +21,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.gms.security.ProviderInstaller;
 import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadState;
@@ -487,6 +489,18 @@ public class MainActivity extends ListActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
         }
+
+        ProviderInstaller.installIfNeededAsync(this, new ProviderInstaller.ProviderInstallListener() {
+            @Override
+            public void onProviderInstalled() {
+
+            }
+
+            @Override
+            public void onProviderInstallFailed(int i, Intent intent) {
+                Toast.makeText(context, "ProviderInstallFailed", Toast.LENGTH_LONG).show();
+            }
+        });
 
         itemArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         loadTestItems(itemArrayAdapter);
