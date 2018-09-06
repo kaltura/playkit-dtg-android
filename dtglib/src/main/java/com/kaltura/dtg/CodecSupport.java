@@ -59,12 +59,13 @@ public class CodecSupport {
             return true;    // always supported
         }
 
+        if (format.codecs == null) {
+            Log.w(TAG, "isFormatSupported: codecs==null, assuming supported");
+            return true;
+        }
+
         if (type == null) {
             // type==null: HLS muxed track with a <video,audio> tuple
-            if (format.codecs == null) {
-                Log.w(TAG, "isFormatSupported: codecs==null, assuming supported");
-                return true;
-            }
             final String[] split = TextUtils.split(format.codecs, ",");
             boolean result = true;
             switch (split.length) {
