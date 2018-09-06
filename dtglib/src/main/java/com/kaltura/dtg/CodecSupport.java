@@ -5,6 +5,7 @@ import android.media.MediaCodecList;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.kaltura.android.exoplayer.chunk.Format;
 import com.kaltura.android.exoplayer.util.MimeTypes;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 
 public class CodecSupport {
 
+    private static final String TAG = "CodecSupport";
     private static HashMap<TrackType, HashMap<String, Boolean>> cache = new HashMap<>();
 
     static {
@@ -59,6 +61,10 @@ public class CodecSupport {
 
         if (type == null) {
             // type==null: HLS muxed track with a <video,audio> tuple
+            if (format.codecs == null) {
+                Log.w(TAG, "isFormatSupported: codecs==null, assuming supported");
+                return true;
+            }
             final String[] split = TextUtils.split(format.codecs, ",");
             boolean result = true;
             switch (split.length) {
