@@ -50,6 +50,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -151,6 +152,8 @@ class ItemLoader {
         }
     }
 
+
+
     static List<Item>  loadItems() {
         List<Item> items = new ArrayList<>();
 
@@ -159,11 +162,14 @@ class ItemLoader {
 //        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx"));
 
         // For simple cases (no DRM), no need for MediaSource.
-        items.add(new Item("sintel-short-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_9bwuo813/format/mpegdash/protocol/http/a.mpd"));
-        items.add(new Item("sintel-full-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_w9zx2eti/format/mpegdash/protocol/http/a.mpd"));
-        items.add(new Item("kaltura-hls", "http://cdnapi.kaltura.com/p/243342/sp/24334200/playManifest/entryId/1_sf5ovm7u/flavorIds/1_d2uwy7vv,1_jl7y56al/format/applehttp/protocol/http/a.m3u8"));
-        items.add(new Item("qa-multi-hls", "http://cdntesting.qa.mkaltura.com/p/1091/sp/109100/playManifest/entryId/0_df8g87v8/protocol/http/format/applehttp/flavorIds/0_tidbxf22,0_no2vm0z5,0_3s3crq4v,0_unnvmi49/a.m3u8"));
-        items.add(new Item("aes-hls", "https://noamtamim.github.io/random/hls/test-enc-aes/multi.m3u8"));
+        //noinspection CollectionAddAllCanBeReplacedWithConstructor
+        items.addAll(Arrays.asList(
+                item("sintel-short-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_9bwuo813/format/mpegdash/protocol/http/a.mpd"),
+                item("sintel-full-dash", "http://cdnapi.kaltura.com/p/2215841/playManifest/entryId/1_w9zx2eti/format/mpegdash/protocol/http/a.mpd"),
+                item("kaltura-hls", "http://cdnapi.kaltura.com/p/243342/sp/24334200/playManifest/entryId/1_sf5ovm7u/flavorIds/1_d2uwy7vv,1_jl7y56al/format/applehttp/protocol/http/a.m3u8"),
+                item("qa-multi-hls", "http://cdntesting.qa.mkaltura.com/p/1091/sp/109100/playManifest/entryId/0_df8g87v8/protocol/http/format/applehttp/flavorIds/0_tidbxf22,0_no2vm0z5,0_3s3crq4v,0_unnvmi49/a.m3u8"),
+                item("aes-hls", "https://noamtamim.github.io/random/hls/test-enc-aes/multi.m3u8")
+        ));
 
         // An item with given URL and License URL.
 //        items.add(new Item(
@@ -173,6 +179,11 @@ class ItemLoader {
 //        ));
         
         return items;
+    }
+
+    @NonNull
+    private static Item item(String id, String url) {
+        return new Item(id, url);
     }
 }
 
