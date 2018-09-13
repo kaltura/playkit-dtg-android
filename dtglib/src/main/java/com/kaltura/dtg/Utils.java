@@ -19,9 +19,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class Utils {
     private static final String TAG = "DTGUtils";
@@ -295,6 +298,17 @@ public class Utils {
 
     public static long estimateTrackSize(int trackBitrate, long durationMS) {
         return trackBitrate * durationMS / 1000 / 8;    // first multiply, then divide
+    }
+
+    public static Set<Integer> makeRange(int first, int last) {
+        if (last < first) {
+            return Collections.singleton(first);
+        }
+        Set<Integer> range = new HashSet<>();
+        for (int i = first; i <= last; i++) {
+            range.add(i);
+        }
+        return range;
     }
 
     @SuppressWarnings("WeakerAccess")

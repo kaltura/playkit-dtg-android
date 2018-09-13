@@ -23,7 +23,6 @@ import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -58,17 +57,6 @@ public class HlsDownloader extends AbrDownloader {
 
     private static String getLocalMediaFilename(int lineNum, String type) {
         return String.format(Locale.US, "%06d.%s", lineNum, type);
-    }
-
-    private static Set<Integer> makeRange(int first, int last) {
-        if (last < first) {
-            return Collections.singleton(first);
-        }
-        Set<Integer> range = new HashSet<>();
-        for (int i = first; i <= last; i++) {
-            range.add(i);
-        }
-        return range;
     }
 
     @Override
@@ -183,13 +171,15 @@ public class HlsDownloader extends AbrDownloader {
 
         for (BaseTrack baseTrack : getAvailableTracksFlat()) {
             final HlsAsset.Track track = (HlsAsset.Track) baseTrack;
-            linesToDelete.addAll(makeRange(track.firstMasterLine, track.lastMasterLine));
+            linesToDelete.addAll(Utils.makeRange(track.firstMasterLine, track.lastMasterLine));
         }
 
         for (BaseTrack baseTrack : getSelectedTracksFlat()) {
             final HlsAsset.Track track = (HlsAsset.Track) baseTrack;
-            linesToDelete.removeAll(makeRange(track.firstMasterLine, track.lastMasterLine));
+            linesToDelete.removeAll(Utils.makeRange(track.firstMasterLine, track.lastMasterLine));
         }
+
+        linesToDelete.addAll(hlsAsset.unsupportedTrackLines);
 
         // Now linesToDelete is a set of lines that should be DELETED from the master
         LineNumberReader reader = null;
@@ -210,6 +200,9 @@ public class HlsDownloader extends AbrDownloader {
                         if (line.startsWith("#EXT-X-STREAM-INF:")) {
                             writer.println(line);
                             trackLineNumber = lineNumber;
+                        } else if (line.startsWith("#EXT-X-I-FRAME-STREAM-INF:")) {
+                            // skip
+                            trackLineNumber = 0;
                         } else {
                             writer.println(maybeReplaceTrackUri(line, lineNumber));
                             trackLineNumber = 0;

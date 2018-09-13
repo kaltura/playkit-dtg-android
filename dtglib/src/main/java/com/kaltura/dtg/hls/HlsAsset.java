@@ -18,7 +18,9 @@ import org.json.JSONObject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class HlsAsset {
 
@@ -30,6 +32,7 @@ public class HlsAsset {
     final List<Track> videoTracks = new ArrayList<>();
     final List<Track> audioTracks = new ArrayList<>();
     final List<Track> textTracks = new ArrayList<>();
+    final Set<Integer> unsupportedTrackLines = new HashSet<>();
 
     HlsAsset() {
     }
@@ -60,6 +63,8 @@ public class HlsAsset {
             if (CodecSupport.isFormatSupported(variant.format, trackType == TrackType.VIDEO ? null : trackType)) {
                 final Track track = new Track(variant, trackType, masterUrl);
                 trackList.add(track);
+            } else {
+                unsupportedTrackLines.addAll(Utils.makeRange(variant.firstLineNum, variant.lastLineNum));
             }
         }
     }
