@@ -36,7 +36,6 @@ import android.view.WindowManager;
 import com.kaltura.android.exoplayer2.C;
 import com.kaltura.android.exoplayer2.Format;
 import com.kaltura.android.exoplayer2.ParserException;
-import com.kaltura.android.exoplayer2.upstream.DataSource;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -250,21 +249,6 @@ public final class Util {
         return new Thread(r, threadName);
       }
     });
-  }
-
-  /**
-   * Closes a {@link DataSource}, suppressing any {@link IOException} that may occur.
-   *
-   * @param dataSource The {@link DataSource} to close.
-   */
-  public static void closeQuietly(DataSource dataSource) {
-    try {
-      if (dataSource != null) {
-        dataSource.close();
-      }
-    } catch (IOException e) {
-      // Ignore.
-    }
   }
 
   /**
