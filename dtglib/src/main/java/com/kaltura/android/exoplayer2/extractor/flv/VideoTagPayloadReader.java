@@ -58,12 +58,7 @@ import com.kaltura.android.exoplayer2.video.AvcConfig;
     nalLength = new ParsableByteArray(4);
   }
 
-  @Override
-  public void seek() {
-    // Do nothing.
-  }
-
-  @Override
+    @Override
   protected boolean parseHeader(ParsableByteArray data) throws UnsupportedFormatException {
     int header = data.readUnsignedByte();
     int frameType = (header >> 4) & 0x0F;

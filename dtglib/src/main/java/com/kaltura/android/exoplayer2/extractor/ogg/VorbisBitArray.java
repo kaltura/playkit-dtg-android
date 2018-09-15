@@ -31,25 +31,7 @@ import com.kaltura.android.exoplayer2.util.Assertions;
   private int byteOffset;
   private int bitOffset;
 
-  /**
-   * Creates a new instance that wraps an existing array.
-   *
-   * @param data the array to wrap.
-   */
-  public VorbisBitArray(byte[] data) {
-    this.data = data;
-    byteLimit = data.length;
-  }
-
-  /**
-   * Resets the reading position to zero.
-   */
-  public void reset() {
-    byteOffset = 0;
-    bitOffset = 0;
-  }
-
-  /**
+    /**
    * Reads a single bit.
    *
    * @return {@code true} if the bit is set, {@code false} otherwise.
@@ -102,25 +84,7 @@ import com.kaltura.android.exoplayer2.util.Assertions;
     return byteOffset * 8 + bitOffset;
   }
 
-  /**
-   * Sets the reading position in bits.
-   *
-   * @param position The new reading position in bits.
-   */
-  public void setPosition(int position) {
-    byteOffset = position / 8;
-    bitOffset = position - (byteOffset * 8);
-    assertValidOffset();
-  }
-
-  /**
-   * Returns the number of remaining bits.
-   */
-  public int bitsLeft() {
-    return (byteLimit - byteOffset) * 8 - bitOffset;
-  }
-
-  private void assertValidOffset() {
+    private void assertValidOffset() {
     // It is fine for position to be at the end of the array, but no further.
     Assertions.checkState(byteOffset >= 0
         && (byteOffset < byteLimit || (byteOffset == byteLimit && bitOffset == 0)));

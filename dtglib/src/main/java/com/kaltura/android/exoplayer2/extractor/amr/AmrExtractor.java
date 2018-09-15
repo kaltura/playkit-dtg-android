@@ -40,16 +40,6 @@ import java.util.Arrays;
  */
 public final class AmrExtractor implements Extractor {
 
-  /** Factory for {@link AmrExtractor} instances. */
-  public static final ExtractorsFactory FACTORY =
-      new ExtractorsFactory() {
-
-        @Override
-        public Extractor[] createExtractors() {
-          return new Extractor[] {new AmrExtractor()};
-        }
-      };
-
   /**
    * The frame size in bytes, including header (1 byte), for each of the 16 frame types for AMR
    * narrow band.
@@ -156,22 +146,6 @@ public final class AmrExtractor implements Extractor {
   @Override
   public void release() {
     // Do nothing
-  }
-
-  /* package */ static int frameSizeBytesByTypeNb(int frameType) {
-    return frameSizeBytesByTypeNb[frameType];
-  }
-
-  /* package */ static int frameSizeBytesByTypeWb(int frameType) {
-    return frameSizeBytesByTypeWb[frameType];
-  }
-
-  /* package */ static byte[] amrSignatureNb() {
-    return Arrays.copyOf(amrSignatureNb, amrSignatureNb.length);
-  }
-
-  /* package */ static byte[] amrSignatureWb() {
-    return Arrays.copyOf(amrSignatureWb, amrSignatureWb.length);
   }
 
   // Internal methods.

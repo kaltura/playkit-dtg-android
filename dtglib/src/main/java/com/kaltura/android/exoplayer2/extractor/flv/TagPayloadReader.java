@@ -38,22 +38,6 @@ import com.kaltura.android.exoplayer2.util.ParsableByteArray;
   final TrackOutput output;
 
   /**
-   * @param output A {@link TrackOutput} to which samples should be written.
-   */
-  TagPayloadReader(TrackOutput output) {
-    this.output = output;
-  }
-
-  /**
-   * Notifies the reader that a seek has occurred.
-   * <p>
-   * Following a call to this method, the data passed to the next invocation of
-   * {@link #consume(ParsableByteArray, long)} will not be a continuation of the data that
-   * was previously passed. Hence the reader should reset any internal state.
-   */
-  public abstract void seek();
-
-  /**
    * Consumes payload data.
    *
    * @param data The payload data to consume.

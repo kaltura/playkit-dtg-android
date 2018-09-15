@@ -53,12 +53,7 @@ import java.util.Map;
     return durationUs;
   }
 
-  @Override
-  public void seek() {
-    // Do nothing.
-  }
-
-  @Override
+    @Override
   protected boolean parseHeader(ParsableByteArray data) {
     return true;
   }
