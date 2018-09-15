@@ -28,36 +28,36 @@ public final class CryptoInfo {
   /**
    * @see android.media.MediaCodec.CryptoInfo#iv
    */
-  public byte[] iv;
+  private byte[] iv;
   /**
    * @see android.media.MediaCodec.CryptoInfo#key
    */
-  public byte[] key;
+  private byte[] key;
   /**
    * @see android.media.MediaCodec.CryptoInfo#mode
    */
   @C.CryptoMode
-  public int mode;
+  private int mode;
   /**
    * @see android.media.MediaCodec.CryptoInfo#numBytesOfClearData
    */
-  public int[] numBytesOfClearData;
+  private int[] numBytesOfClearData;
   /**
    * @see android.media.MediaCodec.CryptoInfo#numBytesOfEncryptedData
    */
-  public int[] numBytesOfEncryptedData;
+  private int[] numBytesOfEncryptedData;
   /**
    * @see android.media.MediaCodec.CryptoInfo#numSubSamples
    */
-  public int numSubSamples;
+  private int numSubSamples;
   /**
    * @see android.media.MediaCodec.CryptoInfo.Pattern
    */
-  public int encryptedBlocks;
+  private int encryptedBlocks;
   /**
    * @see android.media.MediaCodec.CryptoInfo.Pattern
    */
-  public int clearBlocks;
+  private int clearBlocks;
 
   private final android.media.MediaCodec.CryptoInfo frameworkCryptoInfo;
   private final PatternHolderV24 patternHolder;

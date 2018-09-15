@@ -44,16 +44,16 @@ public final class AdPlaybackState {
   public static final class AdGroup {
 
     /** The number of ads in the ad group, or {@link C#LENGTH_UNSET} if unknown. */
-    public final int count;
+    final int count;
     /** The URI of each ad in the ad group. */
-    public final Uri[] uris;
+    final Uri[] uris;
     /** The state of each ad in the ad group. */
-    public final @AdState int[] states;
+    final @AdState int[] states;
     /** The durations of each ad in the ad group, in microseconds. */
-    public final long[] durationsUs;
+    final long[] durationsUs;
 
     /** Creates a new ad group with an unspecified number of ads. */
-    public AdGroup() {
+    AdGroup() {
       this(
           /* count= */ C.LENGTH_UNSET,
           /* states= */ new int[0],
@@ -73,7 +73,7 @@ public final class AdPlaybackState {
      * Returns the index of the first ad in the ad group that should be played, or {@link #count} if
      * no ads should be played.
      */
-    public int getFirstAdIndexToPlay() {
+    int getFirstAdIndexToPlay() {
       return getNextAdIndexToPlay(-1);
     }
 
@@ -81,7 +81,7 @@ public final class AdPlaybackState {
      * Returns the index of the next ad in the ad group that should be played after playing {@code
      * lastPlayedAdIndex}, or {@link #count} if no later ads should be played.
      */
-    public int getNextAdIndexToPlay(int lastPlayedAdIndex) {
+    int getNextAdIndexToPlay(int lastPlayedAdIndex) {
       int nextAdIndexToPlay = lastPlayedAdIndex + 1;
       while (nextAdIndexToPlay < states.length) {
         if (states[nextAdIndexToPlay] == AD_STATE_UNAVAILABLE
@@ -94,7 +94,7 @@ public final class AdPlaybackState {
     }
 
     /** Returns whether the ad group has at least one ad that still needs to be played. */
-    public boolean hasUnplayedAds() {
+    boolean hasUnplayedAds() {
       return count == C.LENGTH_UNSET || getFirstAdIndexToPlay() < count;
     }
 
@@ -103,7 +103,7 @@ public final class AdPlaybackState {
      * if this instance's ad count has not yet been specified.
      */
     @CheckResult
-    public AdGroup withAdCount(int count) {
+    AdGroup withAdCount(int count) {
       Assertions.checkArgument(this.count == C.LENGTH_UNSET && states.length <= count);
       @AdState int[] states = copyStatesWithSpaceForAdCount(this.states, count);
       long[] durationsUs = copyDurationsUsWithSpaceForAdCount(this.durationsUs, count);
@@ -120,7 +120,7 @@ public final class AdPlaybackState {
      * ad count specified later. Otherwise, {@code index} must be less than the current ad count.
      */
     @CheckResult
-    public AdGroup withAdUri(Uri uri, int index) {
+    AdGroup withAdUri(Uri uri, int index) {
       Assertions.checkArgument(count == C.LENGTH_UNSET || index < count);
       @AdState int[] states = copyStatesWithSpaceForAdCount(this.states, index + 1);
       Assertions.checkArgument(states[index] == AD_STATE_UNAVAILABLE);
@@ -143,7 +143,7 @@ public final class AdPlaybackState {
      * ad count specified later. Otherwise, {@code index} must be less than the current ad count.
      */
     @CheckResult
-    public AdGroup withAdState(@AdState int state, int index) {
+    AdGroup withAdState(@AdState int state, int index) {
       Assertions.checkArgument(count == C.LENGTH_UNSET || index < count);
       @AdState int[] states = copyStatesWithSpaceForAdCount(this.states, index + 1);
       Assertions.checkArgument(
@@ -162,7 +162,7 @@ public final class AdPlaybackState {
 
     /** Returns a new instance with the specified ad durations, in microseconds. */
     @CheckResult
-    public AdGroup withAdDurationsUs(long[] durationsUs) {
+    AdGroup withAdDurationsUs(long[] durationsUs) {
       Assertions.checkArgument(count == C.LENGTH_UNSET || durationsUs.length <= this.uris.length);
       if (durationsUs.length < this.uris.length) {
         durationsUs = copyDurationsUsWithSpaceForAdCount(durationsUs, uris.length);
@@ -175,7 +175,7 @@ public final class AdPlaybackState {
      * hasn't been set, it will be set to zero.
      */
     @CheckResult
-    public AdGroup withAllAdsSkipped() {
+    AdGroup withAllAdsSkipped() {
       if (count == C.LENGTH_UNSET) {
         return new AdGroup(
             /* count= */ 0,
@@ -223,32 +223,32 @@ public final class AdPlaybackState {
   })
   public @interface AdState {}
   /** State for an ad that does not yet have a URL. */
-  public static final int AD_STATE_UNAVAILABLE = 0;
+  private static final int AD_STATE_UNAVAILABLE = 0;
   /** State for an ad that has a URL but has not yet been played. */
-  public static final int AD_STATE_AVAILABLE = 1;
+  private static final int AD_STATE_AVAILABLE = 1;
   /** State for an ad that was skipped. */
-  public static final int AD_STATE_SKIPPED = 2;
+  private static final int AD_STATE_SKIPPED = 2;
   /** State for an ad that was played in full. */
-  public static final int AD_STATE_PLAYED = 3;
+  private static final int AD_STATE_PLAYED = 3;
   /** State for an ad that could not be loaded. */
-  public static final int AD_STATE_ERROR = 4;
+  private static final int AD_STATE_ERROR = 4;
 
   /** Ad playback state with no ads. */
   public static final AdPlaybackState NONE = new AdPlaybackState();
 
   /** The number of ad groups. */
-  public final int adGroupCount;
+  private final int adGroupCount;
   /**
    * The times of ad groups, in microseconds. A final element with the value {@link
    * C#TIME_END_OF_SOURCE} indicates a postroll ad.
    */
-  public final long[] adGroupTimesUs;
+  private final long[] adGroupTimesUs;
   /** The ad groups. */
-  public final AdGroup[] adGroups;
+  private final AdGroup[] adGroups;
   /** The position offset in the first unplayed ad at which to begin playback, in microseconds. */
-  public final long adResumePositionUs;
+  private final long adResumePositionUs;
   /** The content duration in microseconds, if known. {@link C#TIME_UNSET} otherwise. */
-  public final long contentDurationUs;
+  private final long contentDurationUs;
 
   /**
    * Creates a new ad playback state with the specified ad group times.
@@ -256,7 +256,7 @@ public final class AdPlaybackState {
    * @param adGroupTimesUs The times of ad groups in microseconds. A final element with the value
    *     {@link C#TIME_END_OF_SOURCE} indicates that there is a postroll ad.
    */
-  public AdPlaybackState(long... adGroupTimesUs) {
+  private AdPlaybackState(long... adGroupTimesUs) {
     int count = adGroupTimesUs.length;
     adGroupCount = count;
     this.adGroupTimesUs = Arrays.copyOf(adGroupTimesUs, count);

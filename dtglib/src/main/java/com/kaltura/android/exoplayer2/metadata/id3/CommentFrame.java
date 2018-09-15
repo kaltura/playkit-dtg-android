@@ -26,9 +26,9 @@ import com.kaltura.android.exoplayer2.util.Util;
  */
 public final class CommentFrame extends Id3Frame {
 
-  public static final String ID = "COMM";
+  private static final String ID = "COMM";
 
-  public final String language;
+  private final String language;
   public final String description;
   public final String text;
 
@@ -39,7 +39,8 @@ public final class CommentFrame extends Id3Frame {
     this.text = text;
   }
 
-  /* package */ CommentFrame(Parcel in) {
+  /* package */
+  private CommentFrame(Parcel in) {
     super(ID);
     language = in.readString();
     description = in.readString();

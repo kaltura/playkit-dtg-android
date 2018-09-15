@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  * @see <a href="https://w3c.github.io/webvtt/#styling">WebVTT CSS Styling</a>
  * @see <a href="https://www.w3.org/TR/ttml2/">Timed Text Markup Language 2 (TTML2) - 10.3.5</a>
  */
-public final class ColorParser {
+final class ColorParser {
 
   private static final String RGB = "rgb";
   private static final String RGBA = "rgba";

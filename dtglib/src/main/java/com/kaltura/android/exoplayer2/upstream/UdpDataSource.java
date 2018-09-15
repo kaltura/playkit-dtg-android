@@ -35,9 +35,9 @@ public final class UdpDataSource implements DataSource {
   /**
    * Thrown when an error is encountered when trying to read from a {@link UdpDataSource}.
    */
-  public static final class UdpDataSourceException extends IOException {
+  static final class UdpDataSourceException extends IOException {
 
-    public UdpDataSourceException(IOException cause) {
+    UdpDataSourceException(IOException cause) {
       super(cause);
     }
 
@@ -46,12 +46,12 @@ public final class UdpDataSource implements DataSource {
   /**
    * The default maximum datagram packet size, in bytes.
    */
-  public static final int DEFAULT_MAX_PACKET_SIZE = 2000;
+  private static final int DEFAULT_MAX_PACKET_SIZE = 2000;
 
   /**
    * The default socket timeout, in milliseconds.
    */
-  public static final int DEAFULT_SOCKET_TIMEOUT_MILLIS = 8 * 1000;
+  private static final int DEAFULT_SOCKET_TIMEOUT_MILLIS = 8 * 1000;
 
   private final TransferListener<? super UdpDataSource> listener;
   private final int socketTimeoutMillis;
@@ -78,7 +78,7 @@ public final class UdpDataSource implements DataSource {
    * @param listener An optional listener.
    * @param maxPacketSize The maximum datagram packet size, in bytes.
    */
-  public UdpDataSource(TransferListener<? super UdpDataSource> listener, int maxPacketSize) {
+  private UdpDataSource(TransferListener<? super UdpDataSource> listener, int maxPacketSize) {
     this(listener, maxPacketSize, DEAFULT_SOCKET_TIMEOUT_MILLIS);
   }
 
@@ -88,8 +88,8 @@ public final class UdpDataSource implements DataSource {
    * @param socketTimeoutMillis The socket timeout in milliseconds. A timeout of zero is interpreted
    *     as an infinite timeout.
    */
-  public UdpDataSource(TransferListener<? super UdpDataSource> listener, int maxPacketSize,
-      int socketTimeoutMillis) {
+  private UdpDataSource(TransferListener<? super UdpDataSource> listener, int maxPacketSize,
+                        int socketTimeoutMillis) {
     this.listener = listener;
     this.socketTimeoutMillis = socketTimeoutMillis;
     packetBuffer = new byte[maxPacketSize];

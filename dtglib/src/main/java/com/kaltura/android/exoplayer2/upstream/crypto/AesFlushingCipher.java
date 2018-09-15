@@ -35,7 +35,7 @@ import javax.crypto.spec.SecretKeySpec;
  * Unlike a regular {@link Cipher}, the update methods of this class are guaranteed to process all
  * of the bytes input (and hence output the same number of bytes).
  */
-public final class AesFlushingCipher {
+final class AesFlushingCipher {
 
   private final Cipher cipher;
   private final int blockSize;

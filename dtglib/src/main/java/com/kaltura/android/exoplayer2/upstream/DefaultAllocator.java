@@ -58,8 +58,8 @@ public final class DefaultAllocator implements Allocator {
    * @param individualAllocationSize The length of each individual {@link Allocation}.
    * @param initialAllocationCount The number of allocations to create up front.
    */
-  public DefaultAllocator(boolean trimOnReset, int individualAllocationSize,
-      int initialAllocationCount) {
+  private DefaultAllocator(boolean trimOnReset, int individualAllocationSize,
+                           int initialAllocationCount) {
     Assertions.checkArgument(individualAllocationSize > 0);
     Assertions.checkArgument(initialAllocationCount >= 0);
     this.trimOnReset = trimOnReset;
@@ -84,7 +84,7 @@ public final class DefaultAllocator implements Allocator {
     }
   }
 
-  public synchronized void setTargetBufferSize(int targetBufferSize) {
+  private synchronized void setTargetBufferSize(int targetBufferSize) {
     boolean targetBufferSizeReduced = targetBufferSize < this.targetBufferSize;
     this.targetBufferSize = targetBufferSize;
     if (targetBufferSizeReduced) {

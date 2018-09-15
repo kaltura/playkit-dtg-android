@@ -223,18 +223,18 @@ public final class H262Reader implements ElementaryStreamReader {
 
     private boolean isFilling;
 
-    public int length;
-    public int sequenceExtensionPosition;
-    public byte[] data;
+    int length;
+    int sequenceExtensionPosition;
+    byte[] data;
 
-    public CsdBuffer(int initialCapacity) {
+    CsdBuffer(int initialCapacity) {
       data = new byte[initialCapacity];
     }
 
     /**
      * Resets the buffer, clearing any data that it holds.
      */
-    public void reset() {
+    void reset() {
       isFilling = false;
       length = 0;
       sequenceExtensionPosition = 0;
@@ -250,7 +250,7 @@ public final class H262Reader implements ElementaryStreamReader {
      *     this method nor {@link #onData(byte[], int, int)} should be called again without an
      *     interleaving call to {@link #reset()}.
      */
-    public boolean onStartCode(int startCodeValue, int bytesAlreadyPassed) {
+    boolean onStartCode(int startCodeValue, int bytesAlreadyPassed) {
       if (isFilling) {
         length -= bytesAlreadyPassed;
         if (sequenceExtensionPosition == 0 && startCodeValue == START_EXTENSION) {
@@ -273,7 +273,7 @@ public final class H262Reader implements ElementaryStreamReader {
      * @param offset The offset of the data in {@code data}.
      * @param limit The limit (exclusive) of the data in {@code data}.
      */
-    public void onData(byte[] newData, int offset, int limit) {
+    void onData(byte[] newData, int offset, int limit) {
       if (!isFilling) {
         return;
       }

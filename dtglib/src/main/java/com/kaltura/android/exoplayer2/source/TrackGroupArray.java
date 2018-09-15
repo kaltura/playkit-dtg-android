@@ -34,7 +34,7 @@ public final class TrackGroupArray implements Parcelable {
   /**
    * The number of groups in the array. Greater than or equal to zero.
    */
-  public final int length;
+  private final int length;
 
   private final TrackGroup[] trackGroups;
 
@@ -44,12 +44,13 @@ public final class TrackGroupArray implements Parcelable {
   /**
    * @param trackGroups The groups. Must not be null or contain null elements, but may be empty.
    */
-  public TrackGroupArray(TrackGroup... trackGroups) {
+  private TrackGroupArray(TrackGroup... trackGroups) {
     this.trackGroups = trackGroups;
     this.length = trackGroups.length;
   }
 
-  /* package */ TrackGroupArray(Parcel in) {
+  /* package */
+  private TrackGroupArray(Parcel in) {
     length = in.readInt();
     trackGroups = new TrackGroup[length];
     for (int i = 0; i < length; i++) {

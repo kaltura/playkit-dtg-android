@@ -103,8 +103,8 @@ public class DefaultHttpDataSource implements HttpDataSource {
    *     {@link #open(DataSpec)}.
    * @param listener An optional listener.
    */
-  public DefaultHttpDataSource(String userAgent, Predicate<String> contentTypePredicate,
-      TransferListener<? super DefaultHttpDataSource> listener) {
+  private DefaultHttpDataSource(String userAgent, Predicate<String> contentTypePredicate,
+                                TransferListener<? super DefaultHttpDataSource> listener) {
     this(userAgent, contentTypePredicate, listener, DEFAULT_CONNECT_TIMEOUT_MILLIS,
         DEFAULT_READ_TIMEOUT_MILLIS);
   }
@@ -120,9 +120,9 @@ public class DefaultHttpDataSource implements HttpDataSource {
    * @param readTimeoutMillis The read timeout, in milliseconds. A timeout of zero is interpreted
    *     as an infinite timeout.
    */
-  public DefaultHttpDataSource(String userAgent, Predicate<String> contentTypePredicate,
-      TransferListener<? super DefaultHttpDataSource> listener, int connectTimeoutMillis,
-      int readTimeoutMillis) {
+  private DefaultHttpDataSource(String userAgent, Predicate<String> contentTypePredicate,
+                                TransferListener<? super DefaultHttpDataSource> listener, int connectTimeoutMillis,
+                                int readTimeoutMillis) {
     this(userAgent, contentTypePredicate, listener, connectTimeoutMillis, readTimeoutMillis, false,
         null);
   }
@@ -332,7 +332,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
    *
    * @return The remaining length, or {@link C#LENGTH_UNSET}.
    */
-  protected final long bytesRemaining() {
+  private long bytesRemaining() {
     return bytesToRead == C.LENGTH_UNSET ? bytesToRead : bytesToRead - bytesRead;
   }
 

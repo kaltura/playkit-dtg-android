@@ -27,20 +27,20 @@ import com.kaltura.android.exoplayer2.util.ParsableByteArray;
   /**
    * Thrown when the format is not supported.
    */
-  public static final class UnsupportedFormatException extends ParserException {
+  static final class UnsupportedFormatException extends ParserException {
 
-    public UnsupportedFormatException(String msg) {
+    UnsupportedFormatException(String msg) {
       super(msg);
     }
 
   }
 
-  protected final TrackOutput output;
+  final TrackOutput output;
 
   /**
    * @param output A {@link TrackOutput} to which samples should be written.
    */
-  protected TagPayloadReader(TrackOutput output) {
+  TagPayloadReader(TrackOutput output) {
     this.output = output;
   }
 

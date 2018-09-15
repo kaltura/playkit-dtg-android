@@ -43,17 +43,18 @@ public final class HlsMediaPlaylist extends HlsPlaylist {
      * the media playlist does not define a media section for this segment. The same instance is
      * used for all segments that share an EXT-X-MAP tag.
      */
-    @Nullable public final Segment initializationSegment;
+    @Nullable
+    final Segment initializationSegment;
     /** The duration of the segment in microseconds, as defined by #EXTINF. */
-    public final long durationUs;
+    final long durationUs;
     /**
      * The number of #EXT-X-DISCONTINUITY tags in the playlist before the segment.
      */
-    public final int relativeDiscontinuitySequence;
+    final int relativeDiscontinuitySequence;
     /**
      * The start time of the segment in microseconds, relative to the start of the playlist.
      */
-    public final long relativeStartTimeUs;
+    final long relativeStartTimeUs;
     /**
      * The encryption identity key uri as defined by #EXT-X-KEY, or null if the segment does not use
      * full segment encryption with identity key.
@@ -63,21 +64,21 @@ public final class HlsMediaPlaylist extends HlsPlaylist {
      * The encryption initialization vector as defined by #EXT-X-KEY, or null if the segment is not
      * encrypted.
      */
-    public final String encryptionIV;
+    final String encryptionIV;
     /**
      * The segment's byte range offset, as defined by #EXT-X-BYTERANGE.
      */
-    public final long byterangeOffset;
+    final long byterangeOffset;
     /**
      * The segment's byte range length, as defined by #EXT-X-BYTERANGE, or {@link C#LENGTH_UNSET} if
      * no byte range is specified.
      */
-    public final long byterangeLength;
+    final long byterangeLength;
 
     /** Whether the segment is tagged with #EXT-X-GAP. */
-    public final boolean hasGapTag;
-    public int lineNum;
-    public int encryptionKeyLineNum;
+    final boolean hasGapTag;
+    public final int lineNum;
+    public final int encryptionKeyLineNum;
 
     /**
      * @param uri See {@link #url}.
@@ -151,56 +152,57 @@ public final class HlsMediaPlaylist extends HlsPlaylist {
   /**
    * The type of the playlist. See {@link PlaylistType}.
    */
-  @PlaylistType public final int playlistType;
+  @PlaylistType
+  private final int playlistType;
   /**
    * The start offset in microseconds, as defined by #EXT-X-START.
    */
-  public final long startOffsetUs;
+  private final long startOffsetUs;
   /**
    * If {@link #hasProgramDateTime} is true, contains the datetime as microseconds since epoch.
    * Otherwise, contains the aggregated duration of removed segments up to this snapshot of the
    * playlist.
    */
-  public final long startTimeUs;
+  private final long startTimeUs;
   /**
    * Whether the playlist contains the #EXT-X-DISCONTINUITY-SEQUENCE tag.
    */
-  public final boolean hasDiscontinuitySequence;
+  private final boolean hasDiscontinuitySequence;
   /**
    * The discontinuity sequence number of the first media segment in the playlist, as defined by
    * #EXT-X-DISCONTINUITY-SEQUENCE.
    */
-  public final int discontinuitySequence;
+  private final int discontinuitySequence;
   /**
    * The media sequence number of the first media segment in the playlist, as defined by
    * #EXT-X-MEDIA-SEQUENCE.
    */
-  public final long mediaSequence;
+  private final long mediaSequence;
   /**
    * The compatibility version, as defined by #EXT-X-VERSION.
    */
-  public final int version;
+  private final int version;
   /**
    * The target duration in microseconds, as defined by #EXT-X-TARGETDURATION.
    */
-  public final long targetDurationUs;
+  private final long targetDurationUs;
   /**
    * Whether the playlist contains the #EXT-X-INDEPENDENT-SEGMENTS tag.
    */
-  public final boolean hasIndependentSegmentsTag;
+  private final boolean hasIndependentSegmentsTag;
   /**
    * Whether the playlist contains the #EXT-X-ENDLIST tag.
    */
-  public final boolean hasEndTag;
+  private final boolean hasEndTag;
   /**
    * Whether the playlist contains a #EXT-X-PROGRAM-DATE-TIME tag.
    */
-  public final boolean hasProgramDateTime;
+  private final boolean hasProgramDateTime;
   /**
    * DRM initialization data for sample decryption, or null if none of the segment uses sample
    * encryption.
    */
-  public final DrmInitData drmInitData;
+  private final DrmInitData drmInitData;
   /**
    * The list of segments in the playlist.
    */

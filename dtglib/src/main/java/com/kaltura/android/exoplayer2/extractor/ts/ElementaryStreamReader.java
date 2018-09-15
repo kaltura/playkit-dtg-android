@@ -23,7 +23,7 @@ import com.kaltura.android.exoplayer2.util.ParsableByteArray;
 /**
  * Extracts individual samples from an elementary media stream, preserving original order.
  */
-public interface ElementaryStreamReader {
+interface ElementaryStreamReader {
 
   /**
    * Notifies the reader that a seek has occurred.

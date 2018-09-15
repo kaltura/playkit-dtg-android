@@ -18,7 +18,7 @@ package com.kaltura.android.exoplayer2.upstream;
 /**
  * A source of allocations.
  */
-public interface Allocator {
+interface Allocator {
 
   /**
    * Obtain an {@link Allocation}.

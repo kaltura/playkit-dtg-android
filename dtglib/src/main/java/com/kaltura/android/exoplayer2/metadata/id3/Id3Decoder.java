@@ -781,7 +781,7 @@ public final class Id3Decoder implements MetadataDecoder {
     private final boolean isUnsynchronized;
     private final int framesSize;
 
-    public Id3Header(int majorVersion, boolean isUnsynchronized, int framesSize) {
+    Id3Header(int majorVersion, boolean isUnsynchronized, int framesSize) {
       this.majorVersion = majorVersion;
       this.isUnsynchronized = isUnsynchronized;
       this.framesSize = framesSize;

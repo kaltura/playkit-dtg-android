@@ -20,7 +20,7 @@ import java.util.Arrays;
 /**
  * An append-only, auto-growing {@code long[]}.
  */
-public final class LongArray {
+final class LongArray {
 
   private static final int DEFAULT_INITIAL_CAPACITY = 32;
 
@@ -34,7 +34,7 @@ public final class LongArray {
   /**
    * @param initialCapacity The initial capacity of the array.
    */
-  public LongArray(int initialCapacity) {
+  private LongArray(int initialCapacity) {
     values = new long[initialCapacity];
   }
 

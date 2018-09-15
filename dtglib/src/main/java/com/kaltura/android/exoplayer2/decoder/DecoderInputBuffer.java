@@ -38,7 +38,7 @@ public class DecoderInputBuffer extends Buffer {
   /**
    * Disallows buffer replacement.
    */
-  public static final int BUFFER_REPLACEMENT_MODE_DISABLED = 0;
+  private static final int BUFFER_REPLACEMENT_MODE_DISABLED = 0;
   /**
    * Allows buffer replacement using {@link ByteBuffer#allocate(int)}.
    */
@@ -46,12 +46,12 @@ public class DecoderInputBuffer extends Buffer {
   /**
    * Allows buffer replacement using {@link ByteBuffer#allocateDirect(int)}.
    */
-  public static final int BUFFER_REPLACEMENT_MODE_DIRECT = 2;
+  private static final int BUFFER_REPLACEMENT_MODE_DIRECT = 2;
 
   /**
    * {@link CryptoInfo} for encrypted data.
    */
-  public final CryptoInfo cryptoInfo;
+  private final CryptoInfo cryptoInfo;
 
   /**
    * The buffer's data, or {@code null} if no data has been set.
@@ -79,7 +79,7 @@ public class DecoderInputBuffer extends Buffer {
    *     of {@link #BUFFER_REPLACEMENT_MODE_DISABLED}, {@link #BUFFER_REPLACEMENT_MODE_NORMAL} and
    *     {@link #BUFFER_REPLACEMENT_MODE_DIRECT}.
    */
-  public DecoderInputBuffer(@BufferReplacementMode int bufferReplacementMode) {
+  protected DecoderInputBuffer(@BufferReplacementMode int bufferReplacementMode) {
     this.cryptoInfo = new CryptoInfo();
     this.bufferReplacementMode = bufferReplacementMode;
   }

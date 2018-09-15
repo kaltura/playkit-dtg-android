@@ -56,7 +56,7 @@ public final class TimestampAdjuster {
    * @param firstSampleTimestampUs The first adjusted sample timestamp in microseconds, or
    *     {@link #DO_NOT_OFFSET} if presentation timestamps should not be offset.
    */
-  public synchronized void setFirstSampleTimestampUs(long firstSampleTimestampUs) {
+  private synchronized void setFirstSampleTimestampUs(long firstSampleTimestampUs) {
     Assertions.checkState(lastSampleTimestampUs == C.TIME_UNSET);
     this.firstSampleTimestampUs = firstSampleTimestampUs;
   }
@@ -169,7 +169,7 @@ public final class TimestampAdjuster {
    * @param pts A 90 kHz clock timestamp.
    * @return The corresponding value in microseconds.
    */
-  public static long ptsToUs(long pts) {
+  private static long ptsToUs(long pts) {
     return (pts * C.MICROS_PER_SECOND) / 90000;
   }
 
@@ -179,7 +179,7 @@ public final class TimestampAdjuster {
    * @param us A value in microseconds.
    * @return The corresponding value as a 90 kHz clock timestamp.
    */
-  public static long usToPts(long us) {
+  private static long usToPts(long us) {
     return (us * 90000) / C.MICROS_PER_SECOND;
   }
 

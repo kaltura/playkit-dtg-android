@@ -449,7 +449,7 @@ public final class ParsableByteArray {
    * @param charset The character set of the encoded characters.
    * @return The string encoded by the bytes in the specified character set.
    */
-  public String readString(int length, Charset charset) {
+  private String readString(int length, Charset charset) {
     String result = new String(data, position, length, charset);
     position += length;
     return result;

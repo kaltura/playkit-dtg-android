@@ -27,7 +27,7 @@ public final class SeekPoint {
   public final long timeUs;
 
   /** The byte offset of the seek point. */
-  public final long position;
+  private final long position;
 
   /**
    * @param timeUs The time of the seek point, in microseconds.

@@ -272,7 +272,7 @@ import java.lang.annotation.RetentionPolicy;
      *
      * @param audioTrack The audio track that will provide timestamps.
      */
-    public AudioTimestampV19(AudioTrack audioTrack) {
+    AudioTimestampV19(AudioTrack audioTrack) {
       this.audioTrack = audioTrack;
       audioTimestamp = new AudioTimestamp();
     }
@@ -283,7 +283,7 @@ import java.lang.annotation.RetentionPolicy;
      * {@link #getTimestampSystemTimeUs()} and {@link #getTimestampPositionFrames()}. Returns {@code
      * false} if no timestamp is available, in which case those methods should not be called.
      */
-    public boolean maybeUpdateTimestamp() {
+    boolean maybeUpdateTimestamp() {
       boolean updated = audioTrack.getTimestamp(audioTimestamp);
       if (updated) {
         long rawPositionFrames = audioTimestamp.framePosition;
@@ -298,11 +298,11 @@ import java.lang.annotation.RetentionPolicy;
       return updated;
     }
 
-    public long getTimestampSystemTimeUs() {
+    long getTimestampSystemTimeUs() {
       return audioTimestamp.nanoTime / 1000;
     }
 
-    public long getTimestampPositionFrames() {
+    long getTimestampPositionFrames() {
       return lastTimestampPositionFrames;
     }
   }

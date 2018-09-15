@@ -39,24 +39,24 @@ public interface TrackOutput {
      * The encryption mode used for the sample.
      */
     @C.CryptoMode
-    public final int cryptoMode;
+    final int cryptoMode;
 
     /**
      * The encryption key associated with the sample. Its contents must not be modified.
      */
-    public final byte[] encryptionKey;
+    final byte[] encryptionKey;
 
     /**
      * The number of encrypted blocks in the encryption pattern, 0 if pattern encryption does not
      * apply.
      */
-    public final int encryptedBlocks;
+    final int encryptedBlocks;
 
     /**
      * The number of clear blocks in the encryption pattern, 0 if pattern encryption does not
      * apply.
      */
-    public final int clearBlocks;
+    final int clearBlocks;
 
     /**
      * @param cryptoMode See {@link #cryptoMode}.

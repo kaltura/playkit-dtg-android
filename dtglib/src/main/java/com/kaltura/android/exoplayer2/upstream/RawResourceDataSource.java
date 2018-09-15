@@ -40,12 +40,12 @@ public final class RawResourceDataSource implements DataSource {
   /**
    * Thrown when an {@link IOException} is encountered reading from a raw resource.
    */
-  public static class RawResourceDataSourceException extends IOException {
-    public RawResourceDataSourceException(String message) {
+  static class RawResourceDataSourceException extends IOException {
+    RawResourceDataSourceException(String message) {
       super(message);
     }
 
-    public RawResourceDataSourceException(IOException e) {
+    RawResourceDataSourceException(IOException e) {
       super(e);
     }
   }

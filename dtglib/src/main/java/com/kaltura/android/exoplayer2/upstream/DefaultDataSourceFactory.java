@@ -40,8 +40,8 @@ public final class DefaultDataSourceFactory implements DataSource.Factory {
    * @param userAgent The User-Agent string that should be used.
    * @param listener An optional listener.
    */
-  public DefaultDataSourceFactory(Context context, String userAgent,
-      TransferListener<? super DataSource> listener) {
+  private DefaultDataSourceFactory(Context context, String userAgent,
+                                   TransferListener<? super DataSource> listener) {
     this(context, listener, new DefaultHttpDataSourceFactory(userAgent, listener));
   }
 
@@ -52,8 +52,8 @@ public final class DefaultDataSourceFactory implements DataSource.Factory {
    *     for {@link DefaultDataSource}.
    * @see DefaultDataSource#DefaultDataSource(Context, TransferListener, DataSource)
    */
-  public DefaultDataSourceFactory(Context context, TransferListener<? super DataSource> listener,
-      DataSource.Factory baseDataSourceFactory) {
+  private DefaultDataSourceFactory(Context context, TransferListener<? super DataSource> listener,
+                                   DataSource.Factory baseDataSourceFactory) {
     this.context = context.getApplicationContext();
     this.listener = listener;
     this.baseDataSourceFactory = baseDataSourceFactory;

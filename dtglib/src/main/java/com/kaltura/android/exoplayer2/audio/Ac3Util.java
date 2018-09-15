@@ -40,13 +40,13 @@ public final class Ac3Util {
     @IntDef({STREAM_TYPE_UNDEFINED, STREAM_TYPE_TYPE0, STREAM_TYPE_TYPE1, STREAM_TYPE_TYPE2})
     public @interface StreamType {}
     /** Undefined AC3 stream type. */
-    public static final int STREAM_TYPE_UNDEFINED = -1;
+    static final int STREAM_TYPE_UNDEFINED = -1;
     /** Type 0 AC3 stream type. */
-    public static final int STREAM_TYPE_TYPE0 = 0;
+    static final int STREAM_TYPE_TYPE0 = 0;
     /** Type 1 AC3 stream type. */
-    public static final int STREAM_TYPE_TYPE1 = 1;
+    static final int STREAM_TYPE_TYPE1 = 1;
     /** Type 2 AC3 stream type. */
-    public static final int STREAM_TYPE_TYPE2 = 2;
+    static final int STREAM_TYPE_TYPE2 = 2;
 
     /**
      * The sample mime type of the bitstream. One of {@link MimeTypes#AUDIO_AC3} and
@@ -57,7 +57,7 @@ public final class Ac3Util {
      * The type of the stream if {@link #mimeType} is {@link MimeTypes#AUDIO_E_AC3}, or {@link
      * #STREAM_TYPE_UNDEFINED} otherwise.
      */
-    public final @StreamType int streamType;
+    final @StreamType int streamType;
     /**
      * The audio sampling rate in Hz.
      */
@@ -101,7 +101,7 @@ public final class Ac3Util {
   /**
    * The number of bytes that must be parsed from a TrueHD syncframe to calculate the sample count.
    */
-  public static final int TRUEHD_SYNCFRAME_PREFIX_LENGTH = 10;
+  private static final int TRUEHD_SYNCFRAME_PREFIX_LENGTH = 10;
 
   /**
    * The number of new samples per (E-)AC-3 audio block.

@@ -29,9 +29,9 @@ public final class RenditionKey implements Comparable<RenditionKey> {
   @IntDef({TYPE_VARIANT, TYPE_AUDIO, TYPE_SUBTITLE})
   public @interface Type {}
 
-  public static final int TYPE_VARIANT = 0;
-  public static final int TYPE_AUDIO = 1;
-  public static final int TYPE_SUBTITLE = 2;
+  private static final int TYPE_VARIANT = 0;
+  private static final int TYPE_AUDIO = 1;
+  private static final int TYPE_SUBTITLE = 2;
 
   public final @Type int type;
   public final int trackIndex;

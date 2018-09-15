@@ -33,8 +33,8 @@ public final class CachedRegionTracker implements Cache.Listener {
 
   private static final String TAG = "CachedRegionTracker";
 
-  public static final int NOT_CACHED = -1;
-  public static final int CACHED_TO_END = -2;
+  private static final int NOT_CACHED = -1;
+  private static final int CACHED_TO_END = -2;
 
   private final Cache cache;
   private final String cacheKey;
@@ -178,19 +178,19 @@ public final class CachedRegionTracker implements Cache.Listener {
     /**
      * The first byte of the region (inclusive).
      */
-    public long startOffset;
+    long startOffset;
     /**
      * End offset of the region (exclusive).
      */
-    public long endOffset;
+    long endOffset;
     /**
      * The index in chunkIndex that contains the end offset. May be -1 if the end offset comes
      * before the start of the first media chunk (i.e. if the end offset is within the stream
      * header).
      */
-    public int endOffsetIndex;
+    int endOffsetIndex;
 
-    public Region(long position, long endOffset) {
+    Region(long position, long endOffset) {
       this.startOffset = position;
       this.endOffset = endOffset;
     }

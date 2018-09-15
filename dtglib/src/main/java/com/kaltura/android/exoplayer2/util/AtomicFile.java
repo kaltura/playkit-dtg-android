@@ -155,7 +155,7 @@ public final class AtomicFile {
     private final FileOutputStream fileOutputStream;
     private boolean closed = false;
 
-    public AtomicFileOutputStream(File file) throws FileNotFoundException {
+    AtomicFileOutputStream(File file) throws FileNotFoundException {
       fileOutputStream = new FileOutputStream(file);
     }
 

@@ -34,7 +34,7 @@ public final class AudioCapabilities {
   /**
    * The minimum audio capabilities supported by all devices.
    */
-  public static final AudioCapabilities DEFAULT_AUDIO_CAPABILITIES =
+  private static final AudioCapabilities DEFAULT_AUDIO_CAPABILITIES =
       new AudioCapabilities(new int[] {AudioFormat.ENCODING_PCM_16BIT}, 2);
 
   /**
@@ -69,7 +69,8 @@ public final class AudioCapabilities {
    *     {@code ENCODING_*} constants.
    * @param maxChannelCount The maximum number of audio channels that can be played simultaneously.
    */
-  /* package */ AudioCapabilities(int[] supportedEncodings, int maxChannelCount) {
+  /* package */
+  private AudioCapabilities(int[] supportedEncodings, int maxChannelCount) {
     if (supportedEncodings != null) {
       this.supportedEncodings = Arrays.copyOf(supportedEncodings, supportedEncodings.length);
       Arrays.sort(this.supportedEncodings);

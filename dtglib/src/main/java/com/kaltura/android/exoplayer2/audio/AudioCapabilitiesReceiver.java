@@ -28,12 +28,12 @@ import com.kaltura.android.exoplayer2.util.Util;
  * Receives broadcast events indicating changes to the device's audio capabilities, notifying a
  * {@link Listener} when audio capability changes occur.
  */
-public final class AudioCapabilitiesReceiver {
+final class AudioCapabilitiesReceiver {
 
   /**
    * Listener notified when audio capabilities change.
    */
-  public interface Listener {
+  interface Listener {
 
     /**
      * Called when the audio capabilities change.
@@ -48,7 +48,7 @@ public final class AudioCapabilitiesReceiver {
   private final Listener listener;
   private final BroadcastReceiver receiver;
 
-  /* package */ AudioCapabilities audioCapabilities;
+  /* package */ private AudioCapabilities audioCapabilities;
 
   /**
    * @param context A context for registering the receiver.

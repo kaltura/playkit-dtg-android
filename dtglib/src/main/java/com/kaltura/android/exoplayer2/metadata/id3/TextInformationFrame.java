@@ -26,8 +26,8 @@ import com.kaltura.android.exoplayer2.util.Util;
  */
 public final class TextInformationFrame extends Id3Frame {
 
-  public final String description;
-  public final String value;
+  private final String description;
+  private final String value;
 
   public TextInformationFrame(String id, String description, String value) {
     super(id);
@@ -35,7 +35,8 @@ public final class TextInformationFrame extends Id3Frame {
     this.value = value;
   }
 
-  /* package */ TextInformationFrame(Parcel in) {
+  /* package */
+  private TextInformationFrame(Parcel in) {
     super(in.readString());
     description = in.readString();
     value = in.readString();

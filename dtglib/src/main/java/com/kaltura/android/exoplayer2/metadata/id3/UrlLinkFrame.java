@@ -26,8 +26,8 @@ import com.kaltura.android.exoplayer2.util.Util;
  */
 public final class UrlLinkFrame extends Id3Frame {
 
-  public final String description;
-  public final String url;
+  private final String description;
+  private final String url;
 
   public UrlLinkFrame(String id, String description, String url) {
     super(id);
@@ -35,7 +35,8 @@ public final class UrlLinkFrame extends Id3Frame {
     this.url = url;
   }
 
-  /* package */ UrlLinkFrame(Parcel in) {
+  /* package */
+  private UrlLinkFrame(Parcel in) {
     super(in.readString());
     description = in.readString();
     url = in.readString();

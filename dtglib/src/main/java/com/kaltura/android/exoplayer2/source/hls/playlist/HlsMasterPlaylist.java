@@ -37,8 +37,8 @@ public final class HlsMasterPlaylist extends HlsPlaylist {
      * Format information associated with the HLS url.
      */
     public final Format format;
-    public int firstLineNum;
-    public int lastLineNum;
+    public final int firstLineNum;
+    public final int lastLineNum;
 
     /**
      * @param url See {@link #url}.
@@ -69,13 +69,13 @@ public final class HlsMasterPlaylist extends HlsPlaylist {
    * The format of the audio muxed in the variants. May be null if the playlist does not declare any
    * muxed audio.
    */
-  public final Format muxedAudioFormat;
+  private final Format muxedAudioFormat;
   /**
    * The format of the closed captions declared by the playlist. May be empty if the playlist
    * explicitly declares no captions are available, or null if the playlist does not declare any
    * captions information.
    */
-  public final List<Format> muxedCaptionFormats;
+  private final List<Format> muxedCaptionFormats;
 
   /**
    * @param baseUri See {@link #baseUri}.

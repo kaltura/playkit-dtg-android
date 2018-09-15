@@ -92,7 +92,7 @@ public interface TsPayloadReader {
   final class DvbSubtitleInfo {
 
     public final String language;
-    public final int type;
+    final int type;
     public final byte[] initializationData;
 
     /**

@@ -34,57 +34,57 @@ public class DashManifest {
    * The {@code availabilityStartTime} value in milliseconds since epoch, or {@link C#TIME_UNSET} if
    * not present.
    */
-  public final long availabilityStartTimeMs;
+  private final long availabilityStartTimeMs;
 
   /**
    * The duration of the presentation in milliseconds, or {@link C#TIME_UNSET} if not applicable.
    */
-  public final long durationMs;
+  private final long durationMs;
 
   /**
    * The {@code minBufferTime} value in milliseconds, or {@link C#TIME_UNSET} if not present.
    */
-  public final long minBufferTimeMs;
+  private final long minBufferTimeMs;
 
   /**
    * Whether the manifest has value "dynamic" for the {@code type} attribute.
    */
-  public final boolean dynamic;
+  private final boolean dynamic;
 
   /**
    * The {@code minimumUpdatePeriod} value in milliseconds, or {@link C#TIME_UNSET} if not
    * applicable.
    */
-  public final long minUpdatePeriodMs;
+  private final long minUpdatePeriodMs;
 
   /**
    * The {@code timeShiftBufferDepth} value in milliseconds, or {@link C#TIME_UNSET} if not
    * present.
    */
-  public final long timeShiftBufferDepthMs;
+  private final long timeShiftBufferDepthMs;
 
   /**
    * The {@code suggestedPresentationDelay} value in milliseconds, or {@link C#TIME_UNSET} if not
    * present.
    */
-  public final long suggestedPresentationDelayMs;
+  private final long suggestedPresentationDelayMs;
 
   /**
    * The {@code publishTime} value in milliseconds since epoch, or {@link C#TIME_UNSET} if
    * not present.
    */
-  public final long publishTimeMs;
+  private final long publishTimeMs;
 
   /**
    * The {@link UtcTimingElement}, or null if not present. Defined in DVB A168:7/2016, Section
    * 4.7.2.
    */
-  public final UtcTimingElement utcTiming;
+  private final UtcTimingElement utcTiming;
 
   /**
    * The location of this manifest.
    */
-  public final Uri location;
+  private final Uri location;
 
   private final List<Period> periods;
 

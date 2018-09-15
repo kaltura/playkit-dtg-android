@@ -18,12 +18,12 @@ package com.kaltura.android.exoplayer2.decoder;
 /**
  * Output buffer decoded by a {@link Decoder}.
  */
-public abstract class OutputBuffer extends Buffer {
+abstract class OutputBuffer extends Buffer {
 
   /**
    * The presentation timestamp for the buffer, in microseconds.
    */
-  public long timeUs;
+  long timeUs;
 
   /**
    * The number of buffers immediately prior to this one that were skipped in the {@link Decoder}.

@@ -89,12 +89,13 @@ public final class DrmInitData implements Comparator<DrmInitData.SchemeData>, Pa
   /**
    * The protection scheme type, or null if not applicable or unknown.
    */
-  @Nullable public final String schemeType;
+  @Nullable
+  private final String schemeType;
 
   /**
    * Number of {@link SchemeData}s.
    */
-  public final int schemeDataCount;
+  private final int schemeDataCount;
 
   /**
    * @param schemeDatas Scheme initialization data for possibly multiple DRM schemes.
@@ -268,17 +269,17 @@ public final class DrmInitData implements Comparator<DrmInitData.SchemeData>, Pa
      */
     private final UUID uuid;
     /** The URL of the server to which license requests should be made. May be null if unknown. */
-    public final @Nullable String licenseServerUrl;
+    final @Nullable String licenseServerUrl;
     /** The mimeType of {@link #data}. */
-    public final String mimeType;
+    final String mimeType;
     /**
      * The initialization data. May be null for scheme support checks only.
      */
-    public final byte[] data;
+    final byte[] data;
     /**
      * Whether secure decryption is required.
      */
-    public final boolean requiresSecureDecryption;
+    final boolean requiresSecureDecryption;
 
     /**
      * @param uuid The {@link UUID} of the DRM scheme, or {@link C#UUID_NIL} if the data is
@@ -297,7 +298,7 @@ public final class DrmInitData implements Comparator<DrmInitData.SchemeData>, Pa
      * @param data See {@link #data}.
      * @param requiresSecureDecryption See {@link #requiresSecureDecryption}.
      */
-    public SchemeData(UUID uuid, String mimeType, byte[] data, boolean requiresSecureDecryption) {
+    SchemeData(UUID uuid, String mimeType, byte[] data, boolean requiresSecureDecryption) {
       this(uuid, /* licenseServerUrl= */ null, mimeType, data, requiresSecureDecryption);
     }
 
@@ -336,7 +337,7 @@ public final class DrmInitData implements Comparator<DrmInitData.SchemeData>, Pa
      * @param schemeUuid The scheme {@link UUID}.
      * @return Whether this initialization data applies to the specified scheme.
      */
-    public boolean matches(UUID schemeUuid) {
+    boolean matches(UUID schemeUuid) {
       return C.UUID_NIL.equals(uuid) || schemeUuid.equals(uuid);
     }
 

@@ -25,27 +25,27 @@ public final class EventStream {
   /**
    * {@link EventMessage}s in the event stream.
    */
-  public final EventMessage[] events;
+  private final EventMessage[] events;
 
   /**
    * Presentation time of the events in microsecond, sorted in ascending order.
    */
-  public final long[] presentationTimesUs;
+  private final long[] presentationTimesUs;
 
   /**
    * The scheme URI.
    */
-  public final String schemeIdUri;
+  private final String schemeIdUri;
 
   /**
    * The value of the event stream. Use empty string if not defined in manifest.
    */
-  public final String value;
+  private final String value;
 
   /**
    * The timescale in units per seconds, as defined in the manifest.
    */
-  public final long timescale;
+  private final long timescale;
 
   public EventStream(String schemeIdUri, String value, long timescale, long[] presentationTimesUs,
       EventMessage[] events) {

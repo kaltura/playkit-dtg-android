@@ -33,7 +33,7 @@ public final class TrackEncryptionBox {
   /**
    * Indicates the encryption state of the samples in the sample group.
    */
-  public final boolean isEncrypted;
+  private final boolean isEncrypted;
 
   /**
    * The protection scheme type, as defined by the 'schm' box, or null if unknown.

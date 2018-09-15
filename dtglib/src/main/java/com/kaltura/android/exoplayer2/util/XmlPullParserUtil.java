@@ -44,7 +44,7 @@ public final class XmlPullParserUtil {
    * @return Whether the current event is an end tag.
    * @throws XmlPullParserException If an error occurs querying the parser.
    */
-  public static boolean isEndTag(XmlPullParser xpp) throws XmlPullParserException {
+  private static boolean isEndTag(XmlPullParser xpp) throws XmlPullParserException {
     return xpp.getEventType() == XmlPullParser.END_TAG;
   }
 

@@ -34,64 +34,64 @@ public final class SpliceInsertCommand extends SpliceCommand {
   /**
    * The splice event id.
    */
-  public final long spliceEventId;
+  private final long spliceEventId;
   /**
    * True if the event with id {@link #spliceEventId} has been canceled.
    */
-  public final boolean spliceEventCancelIndicator;
+  private final boolean spliceEventCancelIndicator;
   /**
    * If true, the splice event is an opportunity to exit from the network feed. If false, indicates
    * an opportunity to return to the network feed.
    */
-  public final boolean outOfNetworkIndicator;
+  private final boolean outOfNetworkIndicator;
   /**
    * Whether the splice mode is program splice mode, whereby all PIDs/components are to be spliced.
    * If false, splicing is done per PID/component.
    */
-  public final boolean programSpliceFlag;
+  private final boolean programSpliceFlag;
   /**
    * Whether splicing should be done at the nearest opportunity. If false, splicing should be done
    * at the moment indicated by {@link #programSplicePlaybackPositionUs} or
    * {@link ComponentSplice#componentSplicePlaybackPositionUs}, depending on
    * {@link #programSpliceFlag}.
    */
-  public final boolean spliceImmediateFlag;
+  private final boolean spliceImmediateFlag;
   /**
    * If {@link #programSpliceFlag} is true, the PTS at which the program splice should occur.
    * {@link C#TIME_UNSET} otherwise.
    */
-  public final long programSplicePts;
+  private final long programSplicePts;
   /**
    * Equivalent to {@link #programSplicePts} but in the playback timebase.
    */
-  public final long programSplicePlaybackPositionUs;
+  private final long programSplicePlaybackPositionUs;
   /**
    * If {@link #programSpliceFlag} is false, a non-empty list containing the
    * {@link ComponentSplice}s. Otherwise, an empty list.
    */
-  public final List<ComponentSplice> componentSpliceList;
+  private final List<ComponentSplice> componentSpliceList;
   /**
    * If {@link #breakDurationUs} is not {@link C#TIME_UNSET}, defines whether
    * {@link #breakDurationUs} should be used to know when to return to the network feed. If
    * {@link #breakDurationUs} is {@link C#TIME_UNSET}, the value is undefined.
    */
-  public final boolean autoReturn;
+  private final boolean autoReturn;
   /**
    * The duration of the splice in microseconds, or {@link C#TIME_UNSET} if no duration is present.
    */
-  public final long breakDurationUs;
+  private final long breakDurationUs;
   /**
    * The unique program id as defined in SCTE35, Section 9.3.3.
    */
-  public final int uniqueProgramId;
+  private final int uniqueProgramId;
   /**
    * Holds the value of {@code avail_num} as defined in SCTE35, Section 9.3.3.
    */
-  public final int availNum;
+  private final int availNum;
   /**
    * Holds the value of {@code avails_expected} as defined in SCTE35, Section 9.3.3.
    */
-  public final int availsExpected;
+  private final int availsExpected;
 
   private SpliceInsertCommand(long spliceEventId, boolean spliceEventCancelIndicator,
       boolean outOfNetworkIndicator, boolean programSpliceFlag, boolean spliceImmediateFlag,
@@ -192,9 +192,9 @@ public final class SpliceInsertCommand extends SpliceCommand {
    */
   public static final class ComponentSplice {
 
-    public final int componentTag;
-    public final long componentSplicePts;
-    public final long componentSplicePlaybackPositionUs;
+    final int componentTag;
+    final long componentSplicePts;
+    final long componentSplicePlaybackPositionUs;
 
     private ComponentSplice(int componentTag, long componentSplicePts,
         long componentSplicePlaybackPositionUs) {
@@ -203,13 +203,13 @@ public final class SpliceInsertCommand extends SpliceCommand {
       this.componentSplicePlaybackPositionUs = componentSplicePlaybackPositionUs;
     }
 
-    public void writeToParcel(Parcel dest) {
+    void writeToParcel(Parcel dest) {
       dest.writeInt(componentTag);
       dest.writeLong(componentSplicePts);
       dest.writeLong(componentSplicePlaybackPositionUs);
     }
 
-    public static ComponentSplice createFromParcel(Parcel in) {
+    static ComponentSplice createFromParcel(Parcel in) {
       return new ComponentSplice(in.readInt(), in.readLong(), in.readLong());
     }
 

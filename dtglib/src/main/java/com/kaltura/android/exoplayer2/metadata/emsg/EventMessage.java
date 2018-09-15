@@ -82,7 +82,8 @@ public final class EventMessage implements Metadata.Entry {
     this.presentationTimeUs = presentationTimeUs;
   }
 
-  /* package */ EventMessage(Parcel in) {
+  /* package */
+  private EventMessage(Parcel in) {
     schemeIdUri = in.readString();
     value = in.readString();
     presentationTimeUs = in.readLong();

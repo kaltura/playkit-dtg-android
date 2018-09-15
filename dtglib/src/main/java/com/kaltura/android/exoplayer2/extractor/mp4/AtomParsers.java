@@ -1086,8 +1086,8 @@ import java.util.List;
     return null;
   }
 
-  /* package */ static Pair<Integer, TrackEncryptionBox> parseCommonEncryptionSinfFromParent(
-      ParsableByteArray parent, int position, int size) {
+  /* package */ private static Pair<Integer, TrackEncryptionBox> parseCommonEncryptionSinfFromParent(
+          ParsableByteArray parent, int position, int size) {
     int childPosition = position + Atom.HEADER_SIZE;
     int schemeInformationBoxPosition = C.POSITION_UNSET;
     int schemeInformationBoxSize = 0;
@@ -1211,11 +1211,11 @@ import java.util.List;
 
   private static final class ChunkIterator {
 
-    public final int length;
+    final int length;
 
-    public int index;
-    public int numSamples;
-    public long offset;
+    int index;
+    int numSamples;
+    long offset;
 
     private final boolean chunkOffsetsAreLongs;
     private final ParsableByteArray chunkOffsets;
@@ -1224,8 +1224,8 @@ import java.util.List;
     private int nextSamplesPerChunkChangeIndex;
     private int remainingSamplesPerChunkChanges;
 
-    public ChunkIterator(ParsableByteArray stsc, ParsableByteArray chunkOffsets,
-        boolean chunkOffsetsAreLongs) {
+    ChunkIterator(ParsableByteArray stsc, ParsableByteArray chunkOffsets,
+                  boolean chunkOffsetsAreLongs) {
       this.stsc = stsc;
       this.chunkOffsets = chunkOffsets;
       this.chunkOffsetsAreLongs = chunkOffsetsAreLongs;
@@ -1237,7 +1237,7 @@ import java.util.List;
       index = -1;
     }
 
-    public boolean moveNext() {
+    boolean moveNext() {
       if (++index == length) {
         return false;
       }
@@ -1263,7 +1263,7 @@ import java.util.List;
     private final long duration;
     private final int rotationDegrees;
 
-    public TkhdData(int id, long duration, int rotationDegrees) {
+    TkhdData(int id, long duration, int rotationDegrees) {
       this.id = id;
       this.duration = duration;
       this.rotationDegrees = rotationDegrees;
@@ -1276,16 +1276,16 @@ import java.util.List;
    */
   private static final class StsdData {
 
-    public static final int STSD_HEADER_SIZE = 8;
+    static final int STSD_HEADER_SIZE = 8;
 
-    public final TrackEncryptionBox[] trackEncryptionBoxes;
+    final TrackEncryptionBox[] trackEncryptionBoxes;
 
-    public Format format;
-    public int nalUnitLengthFieldLength;
+    Format format;
+    int nalUnitLengthFieldLength;
     @Track.Transformation
-    public int requiredSampleTransformation;
+    int requiredSampleTransformation;
 
-    public StsdData(int numberOfEntries) {
+    StsdData(int numberOfEntries) {
       trackEncryptionBoxes = new TrackEncryptionBox[numberOfEntries];
       requiredSampleTransformation = Track.TRANSFORMATION_NONE;
     }
@@ -1323,7 +1323,7 @@ import java.util.List;
     private final int sampleCount;
     private final ParsableByteArray data;
 
-    public StszSampleSizeBox(Atom.LeafAtom stszAtom) {
+    StszSampleSizeBox(Atom.LeafAtom stszAtom) {
       data = stszAtom.data;
       data.setPosition(Atom.FULL_HEADER_SIZE);
       fixedSampleSize = data.readUnsignedIntToInt();
@@ -1360,7 +1360,7 @@ import java.util.List;
     private int sampleIndex;
     private int currentByte;
 
-    public Stz2SampleSizeBox(Atom.LeafAtom stz2Atom) {
+    Stz2SampleSizeBox(Atom.LeafAtom stz2Atom) {
       data = stz2Atom.data;
       data.setPosition(Atom.FULL_HEADER_SIZE);
       fieldSize = data.readUnsignedIntToInt() & 0x000000FF;

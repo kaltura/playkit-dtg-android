@@ -18,7 +18,7 @@ package com.kaltura.android.exoplayer2.upstream;
 /**
  * A listener of data transfer events.
  */
-public interface TransferListener<S> {
+interface TransferListener<S> {
 
   /**
    * Called when a transfer starts.

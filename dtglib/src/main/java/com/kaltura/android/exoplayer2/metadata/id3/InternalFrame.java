@@ -24,7 +24,7 @@ import com.kaltura.android.exoplayer2.util.Util;
 /** Internal ID3 frame that is intended for use by the player. */
 public final class InternalFrame extends Id3Frame {
 
-  public static final String ID = "----";
+  private static final String ID = "----";
 
   public final String domain;
   public final String description;
@@ -37,7 +37,8 @@ public final class InternalFrame extends Id3Frame {
     this.text = text;
   }
 
-  /* package */ InternalFrame(Parcel in) {
+  /* package */
+  private InternalFrame(Parcel in) {
     super(ID);
     domain = Assertions.checkNotNull(in.readString());
     description = Assertions.checkNotNull(in.readString());

@@ -62,9 +62,9 @@ public final class DefaultHttpDataSourceFactory extends HttpDataSource.BaseFacto
    * @param allowCrossProtocolRedirects Whether cross-protocol redirects (i.e. redirects from HTTP
    *     to HTTPS and vice versa) are enabled.
    */
-  public DefaultHttpDataSourceFactory(String userAgent,
-      TransferListener<? super DataSource> listener, int connectTimeoutMillis,
-      int readTimeoutMillis, boolean allowCrossProtocolRedirects) {
+  private DefaultHttpDataSourceFactory(String userAgent,
+                                       TransferListener<? super DataSource> listener, int connectTimeoutMillis,
+                                       int readTimeoutMillis, boolean allowCrossProtocolRedirects) {
     this.userAgent = userAgent;
     this.listener = listener;
     this.connectTimeoutMillis = connectTimeoutMillis;

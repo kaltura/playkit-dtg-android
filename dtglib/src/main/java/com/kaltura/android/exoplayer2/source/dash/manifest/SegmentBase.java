@@ -37,7 +37,7 @@ public abstract class SegmentBase {
    * @param presentationTimeOffset The presentation time offset. The value in seconds is the
    *     division of this value and {@code timescale}.
    */
-  public SegmentBase(RangedUri initialization, long timescale, long presentationTimeOffset) {
+  SegmentBase(RangedUri initialization, long timescale, long presentationTimeOffset) {
     this.initialization = initialization;
     this.timescale = timescale;
     this.presentationTimeOffset = presentationTimeOffset;
@@ -118,13 +118,13 @@ public abstract class SegmentBase {
      *     segments are assumed to be of fixed duration as specified by the {@code duration}
      *     parameter.
      */
-    public MultiSegmentBase(
-        RangedUri initialization,
-        long timescale,
-        long presentationTimeOffset,
-        long startNumber,
-        long duration,
-        List<SegmentTimelineElement> segmentTimeline) {
+    MultiSegmentBase(
+            RangedUri initialization,
+            long timescale,
+            long presentationTimeOffset,
+            long startNumber,
+            long duration,
+            List<SegmentTimelineElement> segmentTimeline) {
       super(initialization, timescale, presentationTimeOffset);
       this.startNumber = startNumber;
       this.duration = duration;

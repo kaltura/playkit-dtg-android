@@ -28,12 +28,12 @@ import java.util.Arrays;
  */
 public final class ApicFrame extends Id3Frame {
 
-  public static final String ID = "APIC";
+  private static final String ID = "APIC";
 
-  public final String mimeType;
-  public final String description;
-  public final int pictureType;
-  public final byte[] pictureData;
+  private final String mimeType;
+  private final String description;
+  private final int pictureType;
+  private final byte[] pictureData;
 
   public ApicFrame(String mimeType, String description, int pictureType, byte[] pictureData) {
     super(ID);
@@ -43,7 +43,8 @@ public final class ApicFrame extends Id3Frame {
     this.pictureData = pictureData;
   }
 
-  /* package */ ApicFrame(Parcel in) {
+  /* package */
+  private ApicFrame(Parcel in) {
     super(ID);
     mimeType = in.readString();
     description = in.readString();

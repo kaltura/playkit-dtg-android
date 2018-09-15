@@ -20,7 +20,7 @@ import com.kaltura.android.exoplayer2.C;
 /**
  * Base class for buffers with flags.
  */
-public abstract class Buffer {
+abstract class Buffer {
 
   @C.BufferFlags
   private int flags;
@@ -88,7 +88,7 @@ public abstract class Buffer {
    * @param flag The flag to check.
    * @return Whether the flag is set.
    */
-  protected final boolean getFlag(@C.BufferFlags int flag) {
+  final boolean getFlag(@C.BufferFlags int flag) {
     return (flags & flag) == flag;
   }
 

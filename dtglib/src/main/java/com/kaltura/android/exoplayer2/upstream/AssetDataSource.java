@@ -33,9 +33,9 @@ public final class AssetDataSource implements DataSource {
   /**
    * Thrown when an {@link IOException} is encountered reading a local asset.
    */
-  public static final class AssetDataSourceException extends IOException {
+  static final class AssetDataSourceException extends IOException {
 
-    public AssetDataSourceException(IOException cause) {
+    AssetDataSourceException(IOException cause) {
       super(cause);
     }
 

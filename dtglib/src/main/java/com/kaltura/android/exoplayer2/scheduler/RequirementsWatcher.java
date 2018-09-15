@@ -36,13 +36,13 @@ import com.kaltura.android.exoplayer2.util.Util;
 /**
  * Watches whether the {@link Requirements} are met and notifies the {@link Listener} on changes.
  */
-public final class RequirementsWatcher {
+final class RequirementsWatcher {
 
   /**
    * Notified when RequirementsWatcher instance first created and on changes whether the {@link
    * Requirements} are met.
    */
-  public interface Listener {
+  interface Listener {
 
     /**
      * Called when the requirements are met.

@@ -34,23 +34,23 @@ public final class SonicAudioProcessor implements AudioProcessor {
   /**
    * The maximum allowed playback speed in {@link #setSpeed(float)}.
    */
-  public static final float MAXIMUM_SPEED = 8.0f;
+  private static final float MAXIMUM_SPEED = 8.0f;
   /**
    * The minimum allowed playback speed in {@link #setSpeed(float)}.
    */
-  public static final float MINIMUM_SPEED = 0.1f;
+  private static final float MINIMUM_SPEED = 0.1f;
   /**
    * The maximum allowed pitch in {@link #setPitch(float)}.
    */
-  public static final float MAXIMUM_PITCH = 8.0f;
+  private static final float MAXIMUM_PITCH = 8.0f;
   /**
    * The minimum allowed pitch in {@link #setPitch(float)}.
    */
-  public static final float MINIMUM_PITCH = 0.1f;
+  private static final float MINIMUM_PITCH = 0.1f;
   /**
    * Indicates that the output sample rate should be the same as the input.
    */
-  public static final int SAMPLE_RATE_NO_CHANGE = -1;
+  private static final int SAMPLE_RATE_NO_CHANGE = -1;
 
   /**
    * The threshold below which the difference between two pitch/speed factors is negligible.

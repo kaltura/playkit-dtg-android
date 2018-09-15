@@ -18,7 +18,7 @@ package com.kaltura.android.exoplayer2.upstream;
 /**
  * Provides estimates of the currently available bandwidth.
  */
-public interface BandwidthMeter {
+interface BandwidthMeter {
 
   /**
    * A listener of {@link BandwidthMeter} events.

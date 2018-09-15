@@ -61,11 +61,11 @@ public final class AdtsExtractor implements Extractor {
 
   private boolean startedPacket;
 
-  public AdtsExtractor() {
+  private AdtsExtractor() {
     this(0);
   }
 
-  public AdtsExtractor(long firstSampleTimestampUs) {
+  private AdtsExtractor(long firstSampleTimestampUs) {
     this.firstSampleTimestampUs = firstSampleTimestampUs;
     reader = new AdtsReader(true);
     packetBuffer = new ParsableByteArray(MAX_PACKET_SIZE);

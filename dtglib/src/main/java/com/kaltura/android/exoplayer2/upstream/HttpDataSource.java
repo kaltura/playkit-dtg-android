@@ -91,7 +91,7 @@ public interface HttpDataSource extends DataSource {
     private final Map<String, String> requestProperties;
     private Map<String, String> requestPropertiesSnapshot;
 
-    public RequestProperties() {
+    RequestProperties() {
       requestProperties = new HashMap<>();
     }
 
@@ -102,7 +102,7 @@ public interface HttpDataSource extends DataSource {
      * @param name The name of the request property.
      * @param value The value of the request property.
      */
-    public synchronized void set(String name, String value) {
+    synchronized void set(String name, String value) {
       requestPropertiesSnapshot = null;
       requestProperties.put(name, value);
     }
@@ -135,7 +135,7 @@ public interface HttpDataSource extends DataSource {
      *
      * @param name The name of the request property to remove.
      */
-    public synchronized void remove(String name) {
+    synchronized void remove(String name) {
       requestPropertiesSnapshot = null;
       requestProperties.remove(name);
     }
@@ -143,7 +143,7 @@ public interface HttpDataSource extends DataSource {
     /**
      * Clears all request properties.
      */
-    public synchronized void clear() {
+    synchronized void clear() {
       requestPropertiesSnapshot = null;
       requestProperties.clear();
     }
@@ -153,7 +153,7 @@ public interface HttpDataSource extends DataSource {
      *
      * @return A snapshot of the request properties.
      */
-    public synchronized Map<String, String> getSnapshot() {
+    synchronized Map<String, String> getSnapshot() {
       if (requestPropertiesSnapshot == null) {
         requestPropertiesSnapshot = Collections.unmodifiableMap(new HashMap<>(requestProperties));
       }
@@ -169,7 +169,7 @@ public interface HttpDataSource extends DataSource {
 
     private final RequestProperties defaultRequestProperties;
 
-    public BaseFactory() {
+    BaseFactory() {
       defaultRequestProperties = new RequestProperties();
     }
 
@@ -236,16 +236,17 @@ public interface HttpDataSource extends DataSource {
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({TYPE_OPEN, TYPE_READ, TYPE_CLOSE})
     public @interface Type {}
-    public static final int TYPE_OPEN = 1;
-    public static final int TYPE_READ = 2;
-    public static final int TYPE_CLOSE = 3;
+    static final int TYPE_OPEN = 1;
+    static final int TYPE_READ = 2;
+    static final int TYPE_CLOSE = 3;
 
-    @Type public final int type;
+    @Type
+    final int type;
 
     /**
      * The {@link DataSpec} associated with the current connection.
      */
-    public final DataSpec dataSpec;
+    final DataSpec dataSpec;
 
     public HttpDataSourceException(DataSpec dataSpec, @Type int type) {
       super();
@@ -253,20 +254,20 @@ public interface HttpDataSource extends DataSource {
       this.type = type;
     }
 
-    public HttpDataSourceException(String message, DataSpec dataSpec, @Type int type) {
+    HttpDataSourceException(String message, DataSpec dataSpec, @Type int type) {
       super(message);
       this.dataSpec = dataSpec;
       this.type = type;
     }
 
-    public HttpDataSourceException(IOException cause, DataSpec dataSpec, @Type int type) {
+    HttpDataSourceException(IOException cause, DataSpec dataSpec, @Type int type) {
       super(cause);
       this.dataSpec = dataSpec;
       this.type = type;
     }
 
-    public HttpDataSourceException(String message, IOException cause, DataSpec dataSpec,
-        @Type int type) {
+    HttpDataSourceException(String message, IOException cause, DataSpec dataSpec,
+                            @Type int type) {
       super(message, cause);
       this.dataSpec = dataSpec;
       this.type = type;
@@ -279,9 +280,9 @@ public interface HttpDataSource extends DataSource {
    */
   final class InvalidContentTypeException extends HttpDataSourceException {
 
-    public final String contentType;
+    final String contentType;
 
-    public InvalidContentTypeException(String contentType, DataSpec dataSpec) {
+    InvalidContentTypeException(String contentType, DataSpec dataSpec) {
       super("Invalid content type: " + contentType, dataSpec, TYPE_OPEN);
       this.contentType = contentType;
     }
@@ -296,15 +297,15 @@ public interface HttpDataSource extends DataSource {
     /**
      * The response code that was outside of the 2xx range.
      */
-    public final int responseCode;
+    final int responseCode;
 
     /**
      * An unmodifiable map of the response header fields and values.
      */
-    public final Map<String, List<String>> headerFields;
+    final Map<String, List<String>> headerFields;
 
-    public InvalidResponseCodeException(int responseCode, Map<String, List<String>> headerFields,
-        DataSpec dataSpec) {
+    InvalidResponseCodeException(int responseCode, Map<String, List<String>> headerFields,
+                                 DataSpec dataSpec) {
       super("Response code: " + responseCode, dataSpec, TYPE_OPEN);
       this.responseCode = responseCode;
       this.headerFields = headerFields;

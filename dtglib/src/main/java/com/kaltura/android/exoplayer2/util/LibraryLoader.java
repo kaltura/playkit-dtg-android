@@ -18,7 +18,7 @@ package com.kaltura.android.exoplayer2.util;
 /**
  * Configurable loader for native libraries.
  */
-public final class LibraryLoader {
+final class LibraryLoader {
 
   private String[] nativeLibraries;
   private boolean loadAttempted;

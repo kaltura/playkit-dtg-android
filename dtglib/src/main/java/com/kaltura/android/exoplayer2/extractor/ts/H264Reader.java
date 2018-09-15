@@ -244,8 +244,8 @@ public final class H264Reader implements ElementaryStreamReader {
     private long sampleTimeUs;
     private boolean sampleIsKeyframe;
 
-    public SampleReader(TrackOutput output, boolean allowNonIdrKeyframes,
-        boolean detectAccessUnits) {
+    SampleReader(TrackOutput output, boolean allowNonIdrKeyframes,
+                 boolean detectAccessUnits) {
       this.output = output;
       this.allowNonIdrKeyframes = allowNonIdrKeyframes;
       this.detectAccessUnits = detectAccessUnits;
@@ -258,25 +258,25 @@ public final class H264Reader implements ElementaryStreamReader {
       reset();
     }
 
-    public boolean needsSpsPps() {
+    boolean needsSpsPps() {
       return detectAccessUnits;
     }
 
-    public void putSps(NalUnitUtil.SpsData spsData) {
+    void putSps(NalUnitUtil.SpsData spsData) {
       sps.append(spsData.seqParameterSetId, spsData);
     }
 
-    public void putPps(NalUnitUtil.PpsData ppsData) {
+    void putPps(NalUnitUtil.PpsData ppsData) {
       pps.append(ppsData.picParameterSetId, ppsData);
     }
 
-    public void reset() {
+    void reset() {
       isFilling = false;
       readingSample = false;
       sliceHeader.clear();
     }
 
-    public void startNalUnit(long position, int type, long pesTimeUs) {
+    void startNalUnit(long position, int type, long pesTimeUs) {
       nalUnitType = type;
       nalUnitTimeUs = pesTimeUs;
       nalUnitStartPosition = position;
@@ -301,7 +301,7 @@ public final class H264Reader implements ElementaryStreamReader {
      * @param offset The offset of the data in {@code data}.
      * @param limit The limit (exclusive) of the data in {@code data}.
      */
-    public void appendToNalUnit(byte[] data, int offset, int limit) {
+    void appendToNalUnit(byte[] data, int offset, int limit) {
       if (!isFilling) {
         return;
       }
@@ -415,7 +415,7 @@ public final class H264Reader implements ElementaryStreamReader {
       isFilling = false;
     }
 
-    public void endNalUnit(long position, int offset) {
+    void endNalUnit(long position, int offset) {
       if (nalUnitType == NAL_UNIT_TYPE_AUD
           || (detectAccessUnits && sliceHeader.isFirstVclNalUnitOfPicture(previousSliceHeader))) {
         // If the NAL unit ending is the start of a new sample, output the previous one.
@@ -461,20 +461,20 @@ public final class H264Reader implements ElementaryStreamReader {
       private int deltaPicOrderCnt0;
       private int deltaPicOrderCnt1;
 
-      public void clear() {
+      void clear() {
         hasSliceType = false;
         isComplete = false;
       }
 
-      public void setSliceType(int sliceType) {
+      void setSliceType(int sliceType) {
         this.sliceType = sliceType;
         hasSliceType = true;
       }
 
-      public void setAll(NalUnitUtil.SpsData spsData, int nalRefIdc, int sliceType, int frameNum,
-                         int picParameterSetId, boolean fieldPicFlag, boolean bottomFieldFlagPresent,
-                         boolean bottomFieldFlag, boolean idrPicFlag, int idrPicId, int picOrderCntLsb,
-                         int deltaPicOrderCntBottom, int deltaPicOrderCnt0, int deltaPicOrderCnt1) {
+      void setAll(NalUnitUtil.SpsData spsData, int nalRefIdc, int sliceType, int frameNum,
+                  int picParameterSetId, boolean fieldPicFlag, boolean bottomFieldFlagPresent,
+                  boolean bottomFieldFlag, boolean idrPicFlag, int idrPicId, int picOrderCntLsb,
+                  int deltaPicOrderCntBottom, int deltaPicOrderCnt0, int deltaPicOrderCnt1) {
         this.spsData = spsData;
         this.nalRefIdc = nalRefIdc;
         this.sliceType = sliceType;
@@ -493,7 +493,7 @@ public final class H264Reader implements ElementaryStreamReader {
         hasSliceType = true;
       }
 
-      public boolean isISlice() {
+      boolean isISlice() {
         return hasSliceType && (sliceType == SLICE_TYPE_ALL_I || sliceType == SLICE_TYPE_I);
       }
 

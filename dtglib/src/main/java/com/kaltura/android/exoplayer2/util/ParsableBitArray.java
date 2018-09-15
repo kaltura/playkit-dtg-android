@@ -48,7 +48,7 @@ public final class ParsableBitArray {
    * @param data The data to wrap.
    * @param limit The limit in bytes.
    */
-  public ParsableBitArray(byte[] data, int limit) {
+  private ParsableBitArray(byte[] data, int limit) {
     this.data = data;
     byteLimit = limit;
   }

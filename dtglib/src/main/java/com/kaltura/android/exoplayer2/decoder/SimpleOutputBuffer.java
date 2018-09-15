@@ -25,7 +25,7 @@ public class SimpleOutputBuffer extends OutputBuffer {
 
   private final SimpleDecoder<?, SimpleOutputBuffer, ?> owner;
 
-  public ByteBuffer data;
+  private ByteBuffer data;
 
   public SimpleOutputBuffer(SimpleDecoder<?, SimpleOutputBuffer, ?> owner) {
     this.owner = owner;

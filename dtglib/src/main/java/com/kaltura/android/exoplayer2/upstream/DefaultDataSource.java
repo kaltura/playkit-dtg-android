@@ -97,9 +97,9 @@ public final class DefaultDataSource implements DataSource {
    * @param allowCrossProtocolRedirects Whether cross-protocol redirects (i.e. redirects from HTTP
    *     to HTTPS and vice versa) are enabled when fetching remote data.
    */
-  public DefaultDataSource(Context context, TransferListener<? super DataSource> listener,
-      String userAgent, int connectTimeoutMillis, int readTimeoutMillis,
-      boolean allowCrossProtocolRedirects) {
+  private DefaultDataSource(Context context, TransferListener<? super DataSource> listener,
+                            String userAgent, int connectTimeoutMillis, int readTimeoutMillis,
+                            boolean allowCrossProtocolRedirects) {
     this(context, listener,
         new DefaultHttpDataSource(userAgent, null, listener, connectTimeoutMillis,
             readTimeoutMillis, allowCrossProtocolRedirects, null));

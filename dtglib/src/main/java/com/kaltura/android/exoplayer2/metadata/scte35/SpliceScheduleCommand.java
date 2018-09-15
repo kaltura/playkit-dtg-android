@@ -33,59 +33,59 @@ public final class SpliceScheduleCommand extends SpliceCommand {
   /**
    * Represents a splice event as contained in a {@link SpliceScheduleCommand}.
    */
-  public static final class Event {
+  static final class Event {
 
     /**
      * The splice event id.
      */
-    public final long spliceEventId;
+    final long spliceEventId;
     /**
      * True if the event with id {@link #spliceEventId} has been canceled.
      */
-    public final boolean spliceEventCancelIndicator;
+    final boolean spliceEventCancelIndicator;
     /**
      * If true, the splice event is an opportunity to exit from the network feed. If false,
      * indicates an opportunity to return to the network feed.
      */
-    public final boolean outOfNetworkIndicator;
+    final boolean outOfNetworkIndicator;
     /**
      * Whether the splice mode is program splice mode, whereby all PIDs/components are to be
      * spliced. If false, splicing is done per PID/component.
      */
-    public final boolean programSpliceFlag;
+    final boolean programSpliceFlag;
     /**
      * Represents the time of the signaled splice event as the number of seconds since 00 hours UTC,
      * January 6th, 1980, with the count of intervening leap seconds included.
      */
-    public final long utcSpliceTime;
+    final long utcSpliceTime;
     /**
      * If {@link #programSpliceFlag} is false, a non-empty list containing the
      * {@link ComponentSplice}s. Otherwise, an empty list.
      */
-    public final List<ComponentSplice> componentSpliceList;
+    final List<ComponentSplice> componentSpliceList;
     /**
      * If {@link #breakDurationUs} is not {@link C#TIME_UNSET}, defines whether
      * {@link #breakDurationUs} should be used to know when to return to the network feed. If
      * {@link #breakDurationUs} is {@link C#TIME_UNSET}, the value is undefined.
      */
-    public final boolean autoReturn;
+    final boolean autoReturn;
     /**
      * The duration of the splice in microseconds, or {@link C#TIME_UNSET} if no duration is
      * present.
      */
-    public final long breakDurationUs;
+    final long breakDurationUs;
     /**
      * The unique program id as defined in SCTE35, Section 9.3.2.
      */
-    public final int uniqueProgramId;
+    final int uniqueProgramId;
     /**
      * Holds the value of {@code avail_num} as defined in SCTE35, Section 9.3.2.
      */
-    public final int availNum;
+    final int availNum;
     /**
      * Holds the value of {@code avails_expected} as defined in SCTE35, Section 9.3.2.
      */
-    public final int availsExpected;
+    final int availsExpected;
 
     private Event(long spliceEventId, boolean spliceEventCancelIndicator,
         boolean outOfNetworkIndicator, boolean programSpliceFlag,
@@ -195,10 +195,10 @@ public final class SpliceScheduleCommand extends SpliceCommand {
   /**
    * Holds splicing information for specific splice schedule command components.
    */
-  public static final class ComponentSplice {
+  static final class ComponentSplice {
 
-    public final int componentTag;
-    public final long utcSpliceTime;
+    final int componentTag;
+    final long utcSpliceTime;
 
     private ComponentSplice(int componentTag, long utcSpliceTime) {
       this.componentTag = componentTag;
@@ -219,7 +219,7 @@ public final class SpliceScheduleCommand extends SpliceCommand {
   /**
    * The list of scheduled events.
    */
-  public final List<Event> events;
+  private final List<Event> events;
 
   private SpliceScheduleCommand(List<Event> events) {
     this.events = Collections.unmodifiableList(events);

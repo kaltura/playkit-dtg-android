@@ -71,12 +71,12 @@ public class Cue {
   /**
    * Value for {@link #lineType} when {@link #line} is a fractional position.
    */
-  public static final int LINE_TYPE_FRACTION = 0;
+  private static final int LINE_TYPE_FRACTION = 0;
 
   /**
    * Value for {@link #lineType} when {@link #line} is a line number.
    */
-  public static final int LINE_TYPE_NUMBER = 1;
+  private static final int LINE_TYPE_NUMBER = 1;
 
   /** The type of default text size for this cue, which may be unset. */
   @Retention(RetentionPolicy.SOURCE)
@@ -89,29 +89,29 @@ public class Cue {
   public @interface TextSizeType {}
 
   /** Text size is measured as a fraction of the viewport size minus the view padding. */
-  public static final int TEXT_SIZE_TYPE_FRACTIONAL = 0;
+  private static final int TEXT_SIZE_TYPE_FRACTIONAL = 0;
 
   /** Text size is measured as a fraction of the viewport size, ignoring the view padding */
-  public static final int TEXT_SIZE_TYPE_FRACTIONAL_IGNORE_PADDING = 1;
+  private static final int TEXT_SIZE_TYPE_FRACTIONAL_IGNORE_PADDING = 1;
 
   /** Text size is measured in number of pixels. */
-  public static final int TEXT_SIZE_TYPE_ABSOLUTE = 2;
+  private static final int TEXT_SIZE_TYPE_ABSOLUTE = 2;
 
   /**
    * The cue text, or null if this is an image cue. Note the {@link CharSequence} may be decorated
    * with styling spans.
    */
-  public final CharSequence text;
+  private final CharSequence text;
 
   /**
    * The alignment of the cue text within the cue box, or null if the alignment is undefined.
    */
-  public final Alignment textAlignment;
+  private final Alignment textAlignment;
 
   /**
    * The cue image, or null if this is a text cue.
    */
-  public final Bitmap bitmap;
+  private final Bitmap bitmap;
 
   /**
    * The position of the {@link #lineAnchor} of the cue box within the viewport in the direction
@@ -121,7 +121,7 @@ public class Cue {
    * For horizontal text and {@link #lineType} equal to {@link #LINE_TYPE_FRACTION}, this is the
    * fractional vertical position relative to the top of the viewport.
    */
-  public final float line;
+  protected final float line;
 
   /**
    * The type of the {@link #line} value.
@@ -147,7 +147,7 @@ public class Cue {
    * at the top of the viewport. {@code (line == -2 && lineAnchor == ANCHOR_TYPE_START)} position a
    * cue so that only its first line is visible at the bottom of the viewport.
    */
-  public final @LineType int lineType;
+  private final @LineType int lineType;
 
   /**
    * The cue box anchor positioned by {@link #line}. One of {@link #ANCHOR_TYPE_START}, {@link
@@ -157,7 +157,7 @@ public class Cue {
    * #ANCHOR_TYPE_MIDDLE} and {@link #ANCHOR_TYPE_END} correspond to the top, middle and bottom of
    * the cue box respectively.
    */
-  public final @AnchorType int lineAnchor;
+  private final @AnchorType int lineAnchor;
 
   /**
    * The fractional position of the {@link #positionAnchor} of the cue box within the viewport in
@@ -167,7 +167,7 @@ public class Cue {
    * that positioning is relative to the left of the viewport even in the case of right-to-left
    * text.
    */
-  public final float position;
+  protected final float position;
 
   /**
    * The cue box anchor positioned by {@link #position}. One of {@link #ANCHOR_TYPE_START}, {@link
@@ -177,42 +177,42 @@ public class Cue {
    * #ANCHOR_TYPE_MIDDLE} and {@link #ANCHOR_TYPE_END} correspond to the left, middle and right of
    * the cue box respectively.
    */
-  public final @AnchorType int positionAnchor;
+  private final @AnchorType int positionAnchor;
 
   /**
    * The size of the cue box in the writing direction specified as a fraction of the viewport size
    * in that direction, or {@link #DIMEN_UNSET}.
    */
-  public final float size;
+  private final float size;
 
   /**
    * The bitmap height as a fraction of the of the viewport size, or {@link #DIMEN_UNSET} if the
    * bitmap should be displayed at its natural height given the bitmap dimensions and the specified
    * {@link #size}.
    */
-  public final float bitmapHeight;
+  private final float bitmapHeight;
 
   /**
    * Specifies whether or not the {@link #windowColor} property is set.
    */
-  public final boolean windowColorSet;
+  private final boolean windowColorSet;
 
   /**
    * The fill color of the window.
    */
-  public final int windowColor;
+  private final int windowColor;
 
   /**
    * The default text size type for this cue's text, or {@link #TYPE_UNSET} if this cue has no
    * default text size.
    */
-  public final @TextSizeType int textSizeType;
+  private final @TextSizeType int textSizeType;
 
   /**
    * The default text size for this cue's text, or {@link #DIMEN_UNSET} if this cue has no default
    * text size.
    */
-  public final float textSize;
+  private final float textSize;
 
   /**
    * Creates an image cue.
@@ -286,15 +286,15 @@ public class Cue {
    * @param positionAnchor See {@link #positionAnchor}.
    * @param size See {@link #size}.
    */
-  public Cue(
-      CharSequence text,
-      Alignment textAlignment,
-      float line,
-      @LineType int lineType,
-      @AnchorType int lineAnchor,
-      float position,
-      @AnchorType int positionAnchor,
-      float size) {
+  protected Cue(
+          CharSequence text,
+          Alignment textAlignment,
+          float line,
+          @LineType int lineType,
+          @AnchorType int lineAnchor,
+          float position,
+          @AnchorType int positionAnchor,
+          float size) {
     this(
         text,
         textAlignment,
@@ -364,17 +364,17 @@ public class Cue {
    * @param windowColorSet See {@link #windowColorSet}.
    * @param windowColor See {@link #windowColor}.
    */
-  public Cue(
-      CharSequence text,
-      Alignment textAlignment,
-      float line,
-      @LineType int lineType,
-      @AnchorType int lineAnchor,
-      float position,
-      @AnchorType int positionAnchor,
-      float size,
-      boolean windowColorSet,
-      int windowColor) {
+  protected Cue(
+          CharSequence text,
+          Alignment textAlignment,
+          float line,
+          @LineType int lineType,
+          @AnchorType int lineAnchor,
+          float position,
+          @AnchorType int positionAnchor,
+          float size,
+          boolean windowColorSet,
+          int windowColor) {
     this(
         text,
         textAlignment,

@@ -53,7 +53,7 @@ public final class AudioAttributes {
      * By default the content type is {@link C#CONTENT_TYPE_UNKNOWN}, usage is
      * {@link C#USAGE_MEDIA}, and no flags are set.
      */
-    public Builder() {
+    Builder() {
       contentType = C.CONTENT_TYPE_UNKNOWN;
       flags = 0;
       usage = C.USAGE_MEDIA;
@@ -86,18 +86,18 @@ public final class AudioAttributes {
     /**
      * Creates an {@link AudioAttributes} instance from this builder.
      */
-    public AudioAttributes build() {
+    AudioAttributes build() {
       return new AudioAttributes(contentType, flags, usage);
     }
 
   }
 
   @C.AudioContentType
-  public final int contentType;
+  private final int contentType;
   @C.AudioFlags
-  public final int flags;
+  private final int flags;
   @C.AudioUsage
-  public final int usage;
+  private final int usage;
 
   private android.media.AudioAttributes audioAttributesV21;
 

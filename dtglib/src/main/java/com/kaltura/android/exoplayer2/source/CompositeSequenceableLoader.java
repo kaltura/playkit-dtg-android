@@ -22,7 +22,7 @@ import com.kaltura.android.exoplayer2.C;
  */
 public class CompositeSequenceableLoader implements SequenceableLoader {
 
-  protected final SequenceableLoader[] loaders;
+  private final SequenceableLoader[] loaders;
 
   public CompositeSequenceableLoader(SequenceableLoader[] loaders) {
     this.loaders = loaders;

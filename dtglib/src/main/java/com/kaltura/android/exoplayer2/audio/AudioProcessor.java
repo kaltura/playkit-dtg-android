@@ -34,12 +34,12 @@ import java.nio.ByteOrder;
  * <p>In addition to being able to modify the format of audio, implementations may allow parameters
  * to be set that affect the output audio and whether the processor is active/inactive.
  */
-public interface AudioProcessor {
+interface AudioProcessor {
 
   /** Exception thrown when a processor can't be configured for a given input audio format. */
   final class UnhandledFormatException extends Exception {
 
-    public UnhandledFormatException(int sampleRateHz, int channelCount, @C.Encoding int encoding) {
+    UnhandledFormatException(int sampleRateHz, int channelCount, @C.Encoding int encoding) {
       super("Unhandled format: " + sampleRateHz + " Hz, " + channelCount + " channels in encoding "
           + encoding);
     }

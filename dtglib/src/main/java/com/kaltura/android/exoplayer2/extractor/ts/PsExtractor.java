@@ -60,11 +60,11 @@ public final class PsExtractor implements Extractor {
   // and video track has been found.
   private static final long MAX_SEARCH_LENGTH_AFTER_AUDIO_AND_VIDEO_FOUND = 8 * 1024;
 
-  public static final int PRIVATE_STREAM_1 = 0xBD;
-  public static final int AUDIO_STREAM = 0xC0;
-  public static final int AUDIO_STREAM_MASK = 0xE0;
-  public static final int VIDEO_STREAM = 0xE0;
-  public static final int VIDEO_STREAM_MASK = 0xF0;
+  private static final int PRIVATE_STREAM_1 = 0xBD;
+  private static final int AUDIO_STREAM = 0xC0;
+  private static final int AUDIO_STREAM_MASK = 0xE0;
+  private static final int VIDEO_STREAM = 0xE0;
+  private static final int VIDEO_STREAM_MASK = 0xF0;
 
   private final TimestampAdjuster timestampAdjuster;
   private final SparseArray<PesReader> psPayloadReaders; // Indexed by pid
@@ -77,11 +77,11 @@ public final class PsExtractor implements Extractor {
   // Accessed only by the loading thread.
   private ExtractorOutput output;
 
-  public PsExtractor() {
+  private PsExtractor() {
     this(new TimestampAdjuster(0));
   }
 
-  public PsExtractor(TimestampAdjuster timestampAdjuster) {
+  private PsExtractor(TimestampAdjuster timestampAdjuster) {
     this.timestampAdjuster = timestampAdjuster;
     psPacketBuffer = new ParsableByteArray(4096);
     psPayloadReaders = new SparseArray<>();
@@ -268,7 +268,7 @@ public final class PsExtractor implements Extractor {
     private int extendedHeaderLength;
     private long timeUs;
 
-    public PesReader(ElementaryStreamReader pesPayloadReader, TimestampAdjuster timestampAdjuster) {
+    PesReader(ElementaryStreamReader pesPayloadReader, TimestampAdjuster timestampAdjuster) {
       this.pesPayloadReader = pesPayloadReader;
       this.timestampAdjuster = timestampAdjuster;
       pesScratch = new ParsableBitArray(new byte[PES_SCRATCH_SIZE]);
@@ -281,7 +281,7 @@ public final class PsExtractor implements Extractor {
      * {@link #consume(ParsableByteArray)} will not be a continuation of the data that was
      * previously passed. Hence the reader should reset any internal state.
      */
-    public void seek() {
+    void seek() {
       seenFirstDts = false;
       pesPayloadReader.seek();
     }
@@ -292,7 +292,7 @@ public final class PsExtractor implements Extractor {
      * @param data The PES packet. The position will be set to the start of the payload.
      * @throws ParserException If the payload could not be parsed.
      */
-    public void consume(ParsableByteArray data) throws ParserException {
+    void consume(ParsableByteArray data) throws ParserException {
       data.readBytes(pesScratch.data, 0, 3);
       pesScratch.setPosition(0);
       parseHeader();

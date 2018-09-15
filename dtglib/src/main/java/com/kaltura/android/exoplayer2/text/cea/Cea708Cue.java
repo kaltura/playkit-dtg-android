@@ -33,7 +33,7 @@ import com.kaltura.android.exoplayer2.text.Cue;
   /**
    * The priority of the cue box.
    */
-  public final int priority;
+  private final int priority;
 
   /**
    * @param text See {@link #text}.
