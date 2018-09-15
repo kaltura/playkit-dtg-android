@@ -1,12 +1,13 @@
 package com.kaltura.dtg.hls;
 
 import android.database.Cursor;
+import android.net.Uri;
 
-import com.kaltura.android.exoplayer.hls.HlsMasterPlaylist;
-import com.kaltura.android.exoplayer.hls.HlsMediaPlaylist;
-import com.kaltura.android.exoplayer.hls.HlsPlaylist;
-import com.kaltura.android.exoplayer.hls.HlsPlaylistParser;
-import com.kaltura.android.exoplayer.hls.Variant;
+import com.kaltura.android.exoplayer2.source.hls.playlist.HlsMasterPlaylist;
+import com.kaltura.android.exoplayer2.source.hls.playlist.HlsMasterPlaylist.HlsUrl;
+import com.kaltura.android.exoplayer2.source.hls.playlist.HlsMediaPlaylist;
+import com.kaltura.android.exoplayer2.source.hls.playlist.HlsPlaylist;
+import com.kaltura.android.exoplayer2.source.hls.playlist.HlsPlaylistParser;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.CodecSupport;
 import com.kaltura.dtg.DownloadItem.TrackType;
@@ -39,7 +40,7 @@ public class HlsAsset {
 
     private static HlsPlaylist exoParse(final String url, final byte[] bytes) {
         try {
-            return parser.parse(url, new ByteArrayInputStream(bytes));
+            return parser.parse(Uri.parse(url), new ByteArrayInputStream(bytes));
         } catch (IOException e) {
             throw new IllegalStateException("Not possible");
         }
@@ -57,8 +58,8 @@ public class HlsAsset {
         return this;
     }
 
-    private void parseVariants(List<Variant> variants, List<Track> trackList, TrackType trackType) {
-        for (Variant variant : variants) {
+    private void parseVariants(List<HlsUrl> variants, List<Track> trackList, TrackType trackType) {
+        for (HlsUrl variant : variants) {
             // TODO: is this assumption (that VIDEO means the main content) correct?
             if (CodecSupport.isFormatSupported(variant.format, trackType == TrackType.VIDEO ? null : trackType)) {
                 final Track track = new Track(variant, trackType, masterUrl);
@@ -81,7 +82,7 @@ public class HlsAsset {
         int firstMasterLine;
         int lastMasterLine;
 
-        private Track(Variant variant, TrackType trackType, String masterUrl) {
+        private Track(HlsUrl variant, TrackType trackType, String masterUrl) {
             super(trackType, variant.format);
             this.url = Utils.resolveUrl(masterUrl, variant.url);
             this.firstMasterLine = variant.firstLineNum;
@@ -153,7 +154,7 @@ public class HlsAsset {
         Chunk(HlsMediaPlaylist.Segment segment, String trackUrl) {
             this.lineNum = segment.lineNum;
             this.url = Utils.resolveUrl(trackUrl, segment.url);
-            this.encryptionKeyUri = Utils.resolveUrl(trackUrl, segment.encryptionKeyUri);
+            this.encryptionKeyUri = Utils.resolveUrl(trackUrl, segment.fullSegmentEncryptionKeyUri);
             this.encryptionKeyLineNum = segment.encryptionKeyLineNum;
         }
     }
