@@ -20,14 +20,14 @@ import com.kaltura.android.exoplayer2.C;
 /**
  * Holder for FLAC stream info.
  */
-public final class FlacStreamInfo {
+final class FlacStreamInfo {
 
   private final int minBlockSize;
   private final int maxBlockSize;
   private final int minFrameSize;
   private final int maxFrameSize;
-  public final int sampleRate;
-  public final int channels;
+  private final int sampleRate;
+  private final int channels;
   private final int bitsPerSample;
   private final long totalSamples;
 

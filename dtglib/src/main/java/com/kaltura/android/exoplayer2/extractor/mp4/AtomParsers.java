@@ -44,7 +44,7 @@ import java.util.List;
 /* package */ final class AtomParsers {
 
   /** Thrown if an edit list couldn't be applied. */
-  public static final class UnhandledEditListException extends ParserException {}
+  static final class UnhandledEditListException extends ParserException {}
 
   private static final String TAG = "AtomParsers";
 

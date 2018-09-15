@@ -20,7 +20,7 @@ import com.kaltura.android.exoplayer2.metadata.emsg.EventMessage;
 /**
  * A DASH in-MPD EventStream element, as defined by ISO/IEC 23009-1, 2nd edition, section 5.10.
  */
-public final class EventStream {
+final class EventStream {
 
   /**
    * {@link EventMessage}s in the event stream.

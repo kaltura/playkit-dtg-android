@@ -18,7 +18,7 @@ package com.kaltura.android.exoplayer2.source.dash.manifest;
 /**
  * Represents a UTCTiming element.
  */
-public final class UtcTimingElement {
+final class UtcTimingElement {
 
   private final String schemeIdUri;
   private final String value;

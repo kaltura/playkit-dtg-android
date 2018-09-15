@@ -41,7 +41,7 @@ public final class AdPlaybackState {
    * <p>Instances are immutable. Call the {@code with*} methods to get new instances that have the
    * required changes.
    */
-  public static final class AdGroup {
+  static final class AdGroup {
 
     /** The number of ads in the ad group, or {@link C#LENGTH_UNSET} if unknown. */
     final int count;

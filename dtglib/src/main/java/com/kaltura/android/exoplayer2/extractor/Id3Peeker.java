@@ -28,7 +28,7 @@ import java.io.IOException;
 /**
  * Peeks data from the beginning of an {@link ExtractorInput} to determine if there is any ID3 tag.
  */
-public final class Id3Peeker {
+final class Id3Peeker {
 
   private final ParsableByteArray scratch;
 

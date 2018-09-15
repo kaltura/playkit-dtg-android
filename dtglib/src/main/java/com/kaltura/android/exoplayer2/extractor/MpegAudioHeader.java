@@ -182,7 +182,7 @@ public final class MpegAudioHeader {
   }
 
   /** MPEG audio header version. */
-  public int version;
+  private int version;
   /** The mime type. */
   public String mimeType;
   /** Size of the frame associated with this header, in bytes. */
@@ -192,7 +192,7 @@ public final class MpegAudioHeader {
   /** Number of audio channels in the frame. */
   public int channels;
   /** Bitrate of the frame in bit/s. */
-  public int bitrate;
+  private int bitrate;
   /** Number of samples stored in the frame. */
   public int samplesPerFrame;
 

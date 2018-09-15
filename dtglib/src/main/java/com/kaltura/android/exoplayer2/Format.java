@@ -298,22 +298,22 @@ public final class Format implements Parcelable {
         selectionFlags, language, null);
   }
 
-  public static Format createAudioSampleFormat(
-      @Nullable String id,
-      @Nullable String sampleMimeType,
-      @Nullable String codecs,
-      int bitrate,
-      int maxInputSize,
-      int channelCount,
-      int sampleRate,
-      @C.PcmEncoding int pcmEncoding,
-      int encoderDelay,
-      int encoderPadding,
-      List<byte[]> initializationData,
-      @Nullable DrmInitData drmInitData,
-      @C.SelectionFlags int selectionFlags,
-      @Nullable String language,
-      @Nullable Metadata metadata) {
+  private static Format createAudioSampleFormat(
+          @Nullable String id,
+          @Nullable String sampleMimeType,
+          @Nullable String codecs,
+          int bitrate,
+          int maxInputSize,
+          int channelCount,
+          int sampleRate,
+          @C.PcmEncoding int pcmEncoding,
+          int encoderDelay,
+          int encoderPadding,
+          List<byte[]> initializationData,
+          @Nullable DrmInitData drmInitData,
+          @C.SelectionFlags int selectionFlags,
+          @Nullable String language,
+          @Nullable Metadata metadata) {
     return new Format(id, null, sampleMimeType, codecs, bitrate, maxInputSize, NO_VALUE, NO_VALUE,
         NO_VALUE, NO_VALUE, NO_VALUE, null, NO_VALUE, null, channelCount, sampleRate, pcmEncoding,
         encoderDelay, encoderPadding, selectionFlags, language, NO_VALUE, OFFSET_SAMPLE_RELATIVE,
