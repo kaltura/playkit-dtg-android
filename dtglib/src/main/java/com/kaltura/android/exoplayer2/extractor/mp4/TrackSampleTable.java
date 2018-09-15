@@ -24,46 +24,24 @@ import com.kaltura.android.exoplayer2.util.Util;
  */
 /* package */ final class TrackSampleTable {
 
-  /** The track corresponding to this sample table. */
-  private final Track track;
-  /** Number of samples. */
-  private final int sampleCount;
-  /** Sample offsets in bytes. */
-  private final long[] offsets;
-  /** Sample sizes in bytes. */
-  private final int[] sizes;
-  /** Maximum sample size in {@link #sizes}. */
-  private final int maximumSize;
   /** Sample timestamps in microseconds. */
   private final long[] timestampsUs;
   /** Sample flags. */
   private final int[] flags;
-  /**
-   * The duration of the track sample table in microseconds, or {@link C#TIME_UNSET} if the sample
-   * table is empty.
-   */
-  private final long durationUs;
 
   public TrackSampleTable(
-      Track track,
-      long[] offsets,
-      int[] sizes,
-      int maximumSize,
-      long[] timestampsUs,
-      int[] flags,
-      long durationUs) {
+          Track track,
+          long[] offsets,
+          int[] sizes,
+          int maximumSize,
+          long[] timestampsUs,
+          int[] flags) {
     Assertions.checkArgument(sizes.length == timestampsUs.length);
     Assertions.checkArgument(offsets.length == timestampsUs.length);
     Assertions.checkArgument(flags.length == timestampsUs.length);
 
-    this.track = track;
-    this.offsets = offsets;
-    this.sizes = sizes;
-    this.maximumSize = maximumSize;
     this.timestampsUs = timestampsUs;
     this.flags = flags;
-    this.durationUs = durationUs;
-    sampleCount = offsets.length;
   }
 
   /**

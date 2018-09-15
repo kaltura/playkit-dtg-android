@@ -23,16 +23,6 @@ import com.kaltura.android.exoplayer2.metadata.emsg.EventMessage;
 final class EventStream {
 
   /**
-   * {@link EventMessage}s in the event stream.
-   */
-  private final EventMessage[] events;
-
-  /**
-   * Presentation time of the events in microsecond, sorted in ascending order.
-   */
-  private final long[] presentationTimesUs;
-
-  /**
    * The scheme URI.
    */
   private final String schemeIdUri;
@@ -42,18 +32,10 @@ final class EventStream {
    */
   private final String value;
 
-  /**
-   * The timescale in units per seconds, as defined in the manifest.
-   */
-  private final long timescale;
-
-  public EventStream(String schemeIdUri, String value, long timescale, long[] presentationTimesUs,
-      EventMessage[] events) {
+  public EventStream(String schemeIdUri, String value, long[] presentationTimesUs,
+                     EventMessage[] events) {
     this.schemeIdUri = schemeIdUri;
     this.value = value;
-    this.timescale = timescale;
-    this.presentationTimesUs = presentationTimesUs;
-    this.events = events;
   }
 
   /**

@@ -21,7 +21,6 @@ import com.kaltura.android.exoplayer2.ParserException;
 import com.kaltura.android.exoplayer2.extractor.Extractor;
 import com.kaltura.android.exoplayer2.extractor.ExtractorInput;
 import com.kaltura.android.exoplayer2.extractor.ExtractorOutput;
-import com.kaltura.android.exoplayer2.extractor.ExtractorsFactory;
 import com.kaltura.android.exoplayer2.extractor.PositionHolder;
 import com.kaltura.android.exoplayer2.extractor.SeekMap;
 import com.kaltura.android.exoplayer2.extractor.TrackOutput;

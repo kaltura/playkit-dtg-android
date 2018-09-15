@@ -54,11 +54,6 @@ public final class Ac3Util {
      */
     public final String mimeType;
     /**
-     * The type of the stream if {@link #mimeType} is {@link MimeTypes#AUDIO_E_AC3}, or {@link
-     * #STREAM_TYPE_UNDEFINED} otherwise.
-     */
-    final @StreamType int streamType;
-    /**
      * The audio sampling rate in Hz.
      */
     public final int sampleRate;
@@ -76,14 +71,12 @@ public final class Ac3Util {
     public final int sampleCount;
 
     private SyncFrameInfo(
-        String mimeType,
-        @StreamType int streamType,
-        int channelCount,
-        int sampleRate,
-        int frameSize,
-        int sampleCount) {
+            String mimeType,
+            int channelCount,
+            int sampleRate,
+            int frameSize,
+            int sampleCount) {
       this.mimeType = mimeType;
-      this.streamType = streamType;
       this.channelCount = channelCount;
       this.sampleRate = sampleRate;
       this.frameSize = frameSize;
@@ -92,12 +85,6 @@ public final class Ac3Util {
 
   }
 
-  /**
-   * The number of samples to store in each output chunk when rechunking TrueHD streams. The number
-   * of samples extracted from the container corresponding to one syncframe must be an integer
-   * multiple of this value.
-   */
-  public static final int TRUEHD_RECHUNK_SAMPLE_COUNT = 16;
   /**
    * The number of bytes that must be parsed from a TrueHD syncframe to calculate the sample count.
    */
@@ -426,7 +413,7 @@ public final class Ac3Util {
       channelCount = CHANNEL_COUNT_BY_ACMOD[acmod] + (lfeon ? 1 : 0);
     }
     return new SyncFrameInfo(
-        mimeType, streamType, channelCount, sampleRate, frameSize, sampleCount);
+        mimeType, channelCount, sampleRate, frameSize, sampleCount);
   }
 
   /**

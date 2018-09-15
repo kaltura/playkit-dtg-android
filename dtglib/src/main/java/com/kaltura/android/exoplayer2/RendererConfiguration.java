@@ -22,13 +22,7 @@ import android.support.annotation.Nullable;
  */
 public final class RendererConfiguration {
 
-  /**
-   * The default configuration.
-   */
-  public static final RendererConfiguration DEFAULT =
-      new RendererConfiguration(C.AUDIO_SESSION_ID_UNSET);
-
-  /**
+    /**
    * The audio session id to use for tunneling, or {@link C#AUDIO_SESSION_ID_UNSET} if tunneling
    * should not be enabled.
    */
