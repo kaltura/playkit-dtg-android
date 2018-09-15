@@ -22,16 +22,6 @@ import com.kaltura.android.exoplayer2.text.Cue;
  */
 /* package */ final class TtmlRegion {
 
-  private final String id;
-  private final float position;
-  private final float line;
-  private final @Cue.LineType
-  int lineType;
-  private final @Cue.AnchorType int lineAnchor;
-  private final float width;
-  private final @Cue.TextSizeType int textSizeType;
-  private final float textSize;
-
   public TtmlRegion(String id) {
     this(
         id,
@@ -40,8 +30,8 @@ import com.kaltura.android.exoplayer2.text.Cue;
         /* lineType= */ Cue.TYPE_UNSET,
         /* lineAnchor= */ Cue.TYPE_UNSET,
         /* width= */ Cue.DIMEN_UNSET,
-        /* textSizeType= */ Cue.TYPE_UNSET,
-        /* textSize= */ Cue.DIMEN_UNSET);
+        /* textSizeType= */ Cue.TYPE_UNSET
+            /* textSize= */);
   }
 
   private TtmlRegion(
@@ -51,16 +41,7 @@ import com.kaltura.android.exoplayer2.text.Cue;
           @Cue.LineType int lineType,
           @Cue.AnchorType int lineAnchor,
           float width,
-          int textSizeType,
-          float textSize) {
-    this.id = id;
-    this.position = position;
-    this.line = line;
-    this.lineType = lineType;
-    this.lineAnchor = lineAnchor;
-    this.width = width;
-    this.textSizeType = textSizeType;
-    this.textSize = textSize;
+          int textSizeType) {
   }
 
 }

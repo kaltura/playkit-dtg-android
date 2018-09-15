@@ -146,8 +146,8 @@ import java.util.List;
           /* sizes= */ new int[0],
           /* maximumSize= */ 0,
           /* timestampsUs= */ new long[0],
-          /* flags= */ new int[0],
-          /* durationUs= */ C.TIME_UNSET);
+          /* flags= */ new int[0]
+              /* durationUs= */);
     }
 
     // Entries are byte offsets of chunks.
@@ -327,7 +327,7 @@ import java.util.List;
       // This implementation does not support applying both gapless metadata and an edit list.
       Util.scaleLargeTimestampsInPlace(timestamps, C.MICROS_PER_SECOND, track.timescale);
       return new TrackSampleTable(
-          track, offsets, sizes, maximumSize, timestamps, flags, durationUs);
+          track, offsets, sizes, maximumSize, timestamps, flags);
     }
 
     // See the BMFF spec (ISO 14496-12) subsection 8.6.6. Edit lists that require prerolling from a
@@ -355,7 +355,7 @@ import java.util.List;
           gaplessInfoHolder.encoderPadding = (int) encoderPadding;
           Util.scaleLargeTimestampsInPlace(timestamps, C.MICROS_PER_SECOND, track.timescale);
           return new TrackSampleTable(
-              track, offsets, sizes, maximumSize, timestamps, flags, durationUs);
+              track, offsets, sizes, maximumSize, timestamps, flags);
         }
       }
     }
@@ -373,7 +373,7 @@ import java.util.List;
       durationUs =
           Util.scaleLargeTimestamp(duration - editStartTime, C.MICROS_PER_SECOND, track.timescale);
       return new TrackSampleTable(
-          track, offsets, sizes, maximumSize, timestamps, flags, durationUs);
+          track, offsets, sizes, maximumSize, timestamps, flags);
     }
 
     // Omit any sample at the end point of an edit for audio tracks.
@@ -449,8 +449,8 @@ import java.util.List;
         editedSizes,
         editedMaximumSize,
         editedTimestamps,
-        editedFlags,
-        editedDurationUs);
+        editedFlags
+    );
   }
 
   /**

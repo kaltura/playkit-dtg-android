@@ -26,24 +26,19 @@ import com.kaltura.android.exoplayer2.text.Cue;
  */
 public final class WebvttCue extends Cue {
 
-  private final long startTime;
-  private final long endTime;
-
   public WebvttCue(CharSequence text) {
     this(0, 0, text);
   }
 
   private WebvttCue(long startTime, long endTime, CharSequence text) {
-    this(startTime, endTime, text, null, Cue.DIMEN_UNSET, Cue.TYPE_UNSET, Cue.TYPE_UNSET,
+    this(startTime, text, null, Cue.DIMEN_UNSET, Cue.TYPE_UNSET, Cue.TYPE_UNSET,
         Cue.DIMEN_UNSET, Cue.TYPE_UNSET, Cue.DIMEN_UNSET);
   }
 
-  private WebvttCue(long startTime, long endTime, CharSequence text, Alignment textAlignment,
+  private WebvttCue(long startTime, CharSequence text, Alignment textAlignment,
                     float line, @Cue.LineType int lineType, @Cue.AnchorType int lineAnchor, float position,
                     @Cue.AnchorType int positionAnchor, float width) {
     super(text, textAlignment, line, lineType, lineAnchor, position, positionAnchor, width);
-    this.startTime = startTime;
-    this.endTime = endTime;
   }
 
   /**
@@ -100,7 +95,7 @@ public final class WebvttCue extends Cue {
       if (position != Cue.DIMEN_UNSET && positionAnchor == Cue.TYPE_UNSET) {
         derivePositionAnchorFromAlignment();
       }
-      return new WebvttCue(startTime, endTime, text, textAlignment, line, lineType, lineAnchor,
+      return new WebvttCue(startTime, text, textAlignment, line, lineType, lineAnchor,
           position, positionAnchor, width);
     }
 

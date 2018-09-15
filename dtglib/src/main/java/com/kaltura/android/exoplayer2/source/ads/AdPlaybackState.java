@@ -233,9 +233,6 @@ public final class AdPlaybackState {
   /** State for an ad that could not be loaded. */
   private static final int AD_STATE_ERROR = 4;
 
-  /** Ad playback state with no ads. */
-  public static final AdPlaybackState NONE = new AdPlaybackState();
-
   /** The number of ad groups. */
   private final int adGroupCount;
   /**
