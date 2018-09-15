@@ -28,7 +28,6 @@ import com.kaltura.android.exoplayer2.ParserException;
 import com.kaltura.android.exoplayer2.drm.DrmInitData;
 import com.kaltura.android.exoplayer2.extractor.mp4.PsshAtomUtil;
 import com.kaltura.android.exoplayer2.metadata.emsg.EventMessage;
-import com.kaltura.android.exoplayer2.upstream.ParsingLoadable;
 import com.kaltura.android.exoplayer2.util.Assertions;
 import com.kaltura.android.exoplayer2.util.MimeTypes;
 import com.kaltura.android.exoplayer2.util.UriUtil;
@@ -54,7 +53,7 @@ import java.util.regex.Pattern;
  * A parser of media presentation description files.
  */
 public class DashManifestParser extends DefaultHandler
-    implements ParsingLoadable.Parser<DashManifest> {
+    {
 
   private static final String TAG = "MpdParser";
 
@@ -87,8 +86,6 @@ public class DashManifestParser extends DefaultHandler
   }
 
   // MPD parsing.
-
-  @Override
   public DashManifest parse(Uri uri, InputStream inputStream) throws IOException {
     try {
       XmlPullParser xpp = xmlParserFactory.newPullParser();

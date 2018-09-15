@@ -23,7 +23,6 @@ import com.kaltura.android.exoplayer2.Format;
 import com.kaltura.android.exoplayer2.ParserException;
 import com.kaltura.android.exoplayer2.drm.DrmInitData;
 import com.kaltura.android.exoplayer2.source.UnrecognizedInputFormatException;
-import com.kaltura.android.exoplayer2.upstream.ParsingLoadable;
 import com.kaltura.android.exoplayer2.util.MimeTypes;
 import com.kaltura.android.exoplayer2.util.Util;
 
@@ -45,7 +44,7 @@ import java.util.regex.Pattern;
 /**
  * HLS playlists parsing logic.
  */
-public final class HlsPlaylistParser implements ParsingLoadable.Parser<HlsPlaylist> {
+public final class HlsPlaylistParser {
 
   private static final String PLAYLIST_HEADER = "#EXTM3U";
 
@@ -156,7 +155,6 @@ public final class HlsPlaylistParser implements ParsingLoadable.Parser<HlsPlayli
     return parseStringAttr(line, REGEX_URI);
   }
 
-  @Override
   public HlsPlaylist parse(Uri uri, InputStream inputStream) throws IOException {
     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
     Queue<String> extraLines = new ArrayDeque<>();
