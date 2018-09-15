@@ -1172,7 +1172,7 @@ public class DashManifestParser extends DefaultHandler
   }
 
   /** A parsed Representation element. */
-  protected static final class RepresentationInfo {
+  static final class RepresentationInfo {
 
     final Format format;
     final String baseUrl;

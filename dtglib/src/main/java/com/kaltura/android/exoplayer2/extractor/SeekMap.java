@@ -75,7 +75,7 @@ public interface SeekMap {
     final SeekPoint second;
 
     /** @param point The single seek point. */
-    protected SeekPoints(SeekPoint point) {
+    SeekPoints(SeekPoint point) {
       this(point, point);
     }
 
@@ -83,7 +83,7 @@ public interface SeekMap {
      * @param first The first seek point.
      * @param second The second seek point.
      */
-    protected SeekPoints(SeekPoint first, SeekPoint second) {
+    SeekPoints(SeekPoint first, SeekPoint second) {
       this.first = Assertions.checkNotNull(first);
       this.second = Assertions.checkNotNull(second);
     }

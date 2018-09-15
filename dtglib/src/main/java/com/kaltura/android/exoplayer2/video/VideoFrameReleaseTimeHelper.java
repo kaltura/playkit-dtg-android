@@ -33,7 +33,7 @@ import com.kaltura.android.exoplayer2.util.Util;
  * Makes a best effort to adjust frame release timestamps for a smoother visual result.
  */
 @TargetApi(16)
-public final class VideoFrameReleaseTimeHelper {
+final class VideoFrameReleaseTimeHelper {
 
   private static final long CHOREOGRAPHER_SAMPLE_DELAY_MILLIS = 500;
   private static final long MAX_ALLOWED_DRIFT_NS = 20000000;

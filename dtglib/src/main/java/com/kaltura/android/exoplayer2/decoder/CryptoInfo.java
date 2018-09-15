@@ -23,7 +23,7 @@ import com.kaltura.android.exoplayer2.util.Util;
 /**
  * Compatibility wrapper for {@link android.media.MediaCodec.CryptoInfo}.
  */
-public final class CryptoInfo {
+final class CryptoInfo {
 
   /**
    * @see android.media.MediaCodec.CryptoInfo#iv

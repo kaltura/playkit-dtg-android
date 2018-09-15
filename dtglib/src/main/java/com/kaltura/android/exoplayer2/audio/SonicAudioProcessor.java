@@ -20,7 +20,6 @@ import android.support.annotation.Nullable;
 import com.kaltura.android.exoplayer2.C;
 import com.kaltura.android.exoplayer2.Format;
 import com.kaltura.android.exoplayer2.util.Assertions;
-import com.kaltura.android.exoplayer2.util.Util;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -32,22 +31,6 @@ import java.nio.ShortBuffer;
 public final class SonicAudioProcessor implements AudioProcessor {
 
   /**
-   * The maximum allowed playback speed in {@link #setSpeed(float)}.
-   */
-  private static final float MAXIMUM_SPEED = 8.0f;
-  /**
-   * The minimum allowed playback speed in {@link #setSpeed(float)}.
-   */
-  private static final float MINIMUM_SPEED = 0.1f;
-  /**
-   * The maximum allowed pitch in {@link #setPitch(float)}.
-   */
-  private static final float MAXIMUM_PITCH = 8.0f;
-  /**
-   * The minimum allowed pitch in {@link #setPitch(float)}.
-   */
-  private static final float MINIMUM_PITCH = 0.1f;
-  /**
    * Indicates that the output sample rate should be the same as the input.
    */
   private static final int SAMPLE_RATE_NO_CHANGE = -1;
@@ -56,12 +39,6 @@ public final class SonicAudioProcessor implements AudioProcessor {
    * The threshold below which the difference between two pitch/speed factors is negligible.
    */
   private static final float CLOSE_THRESHOLD = 0.01f;
-
-  /**
-   * The minimum number of output bytes at which the speedup is calculated using the input/output
-   * byte counts, rather than using the current playback parameters speed.
-   */
-  private static final int MIN_BYTES_FOR_SPEEDUP_CALCULATION = 1024;
 
   private int channelCount;
   private int sampleRateHz;
@@ -77,86 +54,6 @@ public final class SonicAudioProcessor implements AudioProcessor {
   private long inputBytes;
   private long outputBytes;
   private boolean inputEnded;
-
-  /**
-   * Creates a new Sonic audio processor.
-   */
-  public SonicAudioProcessor() {
-    speed = 1f;
-    pitch = 1f;
-    channelCount = Format.NO_VALUE;
-    sampleRateHz = Format.NO_VALUE;
-    outputSampleRateHz = Format.NO_VALUE;
-    buffer = EMPTY_BUFFER;
-    shortBuffer = buffer.asShortBuffer();
-    outputBuffer = EMPTY_BUFFER;
-    pendingOutputSampleRateHz = SAMPLE_RATE_NO_CHANGE;
-  }
-
-  /**
-   * Sets the playback speed. Calling this method will discard any data buffered within the
-   * processor, and may update the value returned by {@link #isActive()}.
-   *
-   * @param speed The requested new playback speed.
-   * @return The actual new playback speed.
-   */
-  public float setSpeed(float speed) {
-    speed = Util.constrainValue(speed, MINIMUM_SPEED, MAXIMUM_SPEED);
-    if (this.speed != speed) {
-      this.speed = speed;
-      sonic = null;
-    }
-    flush();
-    return speed;
-  }
-
-  /**
-   * Sets the playback pitch. Calling this method will discard any data buffered within the
-   * processor, and may update the value returned by {@link #isActive()}.
-   *
-   * @param pitch The requested new pitch.
-   * @return The actual new pitch.
-   */
-  public float setPitch(float pitch) {
-    pitch = Util.constrainValue(pitch, MINIMUM_PITCH, MAXIMUM_PITCH);
-    if (this.pitch != pitch) {
-      this.pitch = pitch;
-      sonic = null;
-    }
-    flush();
-    return pitch;
-  }
-
-  /**
-   * Sets the sample rate for output audio, in hertz. Pass {@link #SAMPLE_RATE_NO_CHANGE} to output
-   * audio at the same sample rate as the input. After calling this method, call
-   * {@link #configure(int, int, int)} to start using the new sample rate.
-   *
-   * @param sampleRateHz The sample rate for output audio, in hertz.
-   * @see #configure(int, int, int)
-   */
-  public void setOutputSampleRateHz(int sampleRateHz) {
-    pendingOutputSampleRateHz = sampleRateHz;
-  }
-
-  /**
-   * Returns the specified duration scaled to take into account the speedup factor of this instance,
-   * in the same units as {@code duration}.
-   *
-   * @param duration The duration to scale taking into account speedup.
-   * @return The specified duration scaled to take into account speedup, in the same units as
-   *     {@code duration}.
-   */
-  public long scaleDurationForSpeedup(long duration) {
-    if (outputBytes >= MIN_BYTES_FOR_SPEEDUP_CALCULATION) {
-      return outputSampleRateHz == sampleRateHz
-          ? Util.scaleLargeTimestamp(duration, inputBytes, outputBytes)
-          : Util.scaleLargeTimestamp(duration, inputBytes * outputSampleRateHz,
-              outputBytes * sampleRateHz);
-    } else {
-      return (long) ((double) speed * duration);
-    }
-  }
 
   @Override
   public boolean configure(int sampleRateHz, int channelCount, @C.Encoding int encoding)

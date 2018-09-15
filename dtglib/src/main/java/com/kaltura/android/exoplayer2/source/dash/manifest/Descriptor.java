@@ -23,7 +23,7 @@ import com.kaltura.android.exoplayer2.util.Util;
 /**
  * A descriptor, as defined by ISO 23009-1, 2nd edition, 5.8.2.
  */
-public final class Descriptor {
+final class Descriptor {
 
   /**
    * The scheme URI.

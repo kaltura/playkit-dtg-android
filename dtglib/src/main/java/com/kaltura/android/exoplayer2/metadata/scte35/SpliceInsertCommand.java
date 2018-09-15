@@ -190,7 +190,7 @@ public final class SpliceInsertCommand extends SpliceCommand {
   /**
    * Holds splicing information for specific splice insert command components.
    */
-  public static final class ComponentSplice {
+  static final class ComponentSplice {
 
     final int componentTag;
     final long componentSplicePts;
