@@ -54,10 +54,6 @@ public final class DefaultTsPayloadReaderFactory implements TsPayloadReader.Fact
   @Flags private final int flags;
   private final List<Format> closedCaptionFormats;
 
-  public DefaultTsPayloadReaderFactory() {
-    this(0);
-  }
-
   /**
    * @param flags A combination of {@code FLAG_*} values that control the behavior of the created
    *     readers.

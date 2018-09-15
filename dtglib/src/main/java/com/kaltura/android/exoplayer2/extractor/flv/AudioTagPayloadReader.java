@@ -51,12 +51,7 @@ import java.util.Collections;
     super(output);
   }
 
-  @Override
-  public void seek() {
-    // Do nothing.
-  }
-
-  @Override
+    @Override
   protected boolean parseHeader(ParsableByteArray data) throws UnsupportedFormatException {
     if (!hasParsedAudioDataHeader) {
       int header = data.readUnsignedByte();
