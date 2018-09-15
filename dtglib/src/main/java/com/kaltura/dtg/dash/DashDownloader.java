@@ -1,17 +1,19 @@
 package com.kaltura.dtg.dash;
 
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
-import com.kaltura.android.exoplayer.chunk.Format;
-import com.kaltura.android.exoplayer.dash.mpd.AdaptationSet;
-import com.kaltura.android.exoplayer.dash.mpd.MediaPresentationDescription;
-import com.kaltura.android.exoplayer.dash.mpd.MediaPresentationDescriptionParser;
-import com.kaltura.android.exoplayer.dash.mpd.Period;
-import com.kaltura.android.exoplayer.dash.mpd.RangedUri;
-import com.kaltura.android.exoplayer.dash.mpd.Representation;
+import com.kaltura.android.exoplayer2.C;
+import com.kaltura.android.exoplayer2.Format;
+import com.kaltura.android.exoplayer2.source.dash.manifest.AdaptationSet;
+import com.kaltura.android.exoplayer2.source.dash.manifest.DashManifest;
+import com.kaltura.android.exoplayer2.source.dash.manifest.DashManifestParser;
+import com.kaltura.android.exoplayer2.source.dash.manifest.Period;
+import com.kaltura.android.exoplayer2.source.dash.manifest.RangedUri;
+import com.kaltura.android.exoplayer2.source.dash.manifest.Representation;
 import com.kaltura.dtg.AbrDownloader;
 import com.kaltura.dtg.AssetFormat;
 import com.kaltura.dtg.BaseTrack;
@@ -64,8 +66,9 @@ public class DashDownloader extends AbrDownloader {
 
     @Override
     protected void parseOriginManifest() throws IOException {
-        MediaPresentationDescriptionParser mpdParser = new MediaPresentationDescriptionParser();
-        MediaPresentationDescription parsedMpd = mpdParser.parse(manifestUrl, new ByteArrayInputStream(originManifestBytes));
+
+        DashManifestParser mpdParser = new DashManifestParser();
+        DashManifest parsedMpd = mpdParser.parse(Uri.parse(manifestUrl), new ByteArrayInputStream(originManifestBytes));
 
         if (parsedMpd.getPeriodCount() < 1) {
             throw new IOException("At least one period is required");
@@ -73,7 +76,7 @@ public class DashDownloader extends AbrDownloader {
 
         int periodIndex = 0;
         currentPeriod = parsedMpd.getPeriod(periodIndex);
-        setItemDurationMS(parsedMpd.getPeriodDuration(periodIndex));
+        setItemDurationMS(parsedMpd.getPeriodDurationMs(periodIndex));
 
     }
 
@@ -105,25 +108,25 @@ public class DashDownloader extends AbrDownloader {
         RangedUri initializationUri = representation.getInitializationUri();
 
         if (initializationUri != null) {
-            addTask(initializationUri, "init-" + reprId + ".mp4", dashTrack.getRelativeId(), 0);
+            addTask(initializationUri.resolveUri(manifestUrl), "init-" + reprId + ".mp4", dashTrack.getRelativeId(), 0);
         }
 
-        String ext = TextUtils.equals(representation.format.mimeType, "text/vtt") ? ".vtt" : ".m4s";
+        String ext = TextUtils.equals(representation.format.sampleMimeType, "text/vtt") ? ".vtt" : ".m4s";
 
         if (representation instanceof Representation.MultiSegmentRepresentation) {
             Representation.MultiSegmentRepresentation rep = (Representation.MultiSegmentRepresentation) representation;
 
             long periodDurationUs = itemDurationMS * 1000;
-            int lastSegmentNum = rep.getLastSegmentNum(periodDurationUs);
-            for (int segmentNum = rep.getFirstSegmentNum(); segmentNum <= lastSegmentNum; segmentNum++) {
+            int segmentCount = rep.getSegmentCount(periodDurationUs);
+            for (int i = 0; i < segmentCount; i++) {
+                final long segmentNum = rep.getFirstSegmentNum() + i;
                 RangedUri url = rep.getSegmentUrl(segmentNum);
-                addTask(url, "seg-" + reprId + "-" + segmentNum + ext, dashTrack.getRelativeId(), segmentNum);
+                addTask(url.resolveUri(manifestUrl), "seg-" + reprId + "-" + segmentNum + ext, dashTrack.getRelativeId(), i + 1);
             }
 
         } else if (representation instanceof Representation.SingleSegmentRepresentation) {
             Representation.SingleSegmentRepresentation rep = (Representation.SingleSegmentRepresentation) representation;
-            RangedUri url = rep.getIndex().getSegmentUrl(0);
-            addTask(url, reprId + ext, dashTrack.getRelativeId(), 1);
+            addTask(rep.uri, reprId + ext, dashTrack.getRelativeId(), 1);
         }
 
         setEstimatedDownloadSize(estimatedDownloadSize + (itemDurationMS * representation.format.bitrate / 8 / 1000));
@@ -148,9 +151,9 @@ public class DashDownloader extends AbrDownloader {
         return LOCAL_MANIFEST_MPD;
     }
 
-    private void addTask(RangedUri url, String file, String trackId, int order) {
+    private void addTask(Uri url, String file, String trackId, int order) {
         File targetFile = new File(getTargetDir(), file);
-        DownloadTask task = new DownloadTask(url.getUri(), targetFile, order);
+        DownloadTask task = new DownloadTask(url, targetFile, order);
         task.setTrackRelativeId(trackId);
         task.setOrder(order);
         downloadTasks.add(task);
@@ -177,13 +180,13 @@ public class DashDownloader extends AbrDownloader {
                 Representation representation = itRepresentations.next();
                 DownloadItem.TrackType type;
                 switch (adaptationSet.type) {
-                    case AdaptationSet.TYPE_VIDEO:
+                    case C.TRACK_TYPE_VIDEO:
                         type = DownloadItem.TrackType.VIDEO;
                         break;
-                    case AdaptationSet.TYPE_AUDIO:
+                    case C.TRACK_TYPE_AUDIO:
                         type = DownloadItem.TrackType.AUDIO;
                         break;
-                    case AdaptationSet.TYPE_TEXT:
+                    case C.TRACK_TYPE_TEXT:
                         type = DownloadItem.TrackType.TEXT;
                         break;
                     default:
@@ -192,10 +195,10 @@ public class DashDownloader extends AbrDownloader {
                 }
 
                 Format format = representation.format;
-
                 if (!CodecSupport.isFormatSupported(format, type)) {
                     continue;
                 }
+
 
                 DashTrack track = new DashTrack(type, format, adaptationIndex, representationIndex);
                 track.setHeight(format.height);
