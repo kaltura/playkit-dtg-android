@@ -22,7 +22,7 @@ package com.kaltura.android.exoplayer2.decoder;
  * @param <O> The type of buffer output from the decoder.
  * @param <E> The type of exception thrown from the decoder.
  */
-public interface Decoder<I, O, E extends Exception> {
+interface Decoder<I, O, E extends Exception> {
 
   /**
    * Returns the name of the decoder.

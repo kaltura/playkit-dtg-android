@@ -623,7 +623,7 @@ public final class HlsPlaylistParser implements ParsingLoadable.Parser<HlsPlayli
       return false;
     }
 
-    public String next() throws IOException {
+    String next() throws IOException {
       String result = null;
       if (hasNext()) {
         result = next;

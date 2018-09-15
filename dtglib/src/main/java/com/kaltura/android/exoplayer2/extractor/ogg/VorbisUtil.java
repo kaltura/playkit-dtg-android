@@ -413,16 +413,16 @@ import java.util.Arrays;
     // Prevent instantiation.
   }
 
-  public static final class CodeBook {
+  static final class CodeBook {
 
-    public final int dimensions;
-    public final int entries;
-    public final long[] lengthMap;
-    public final int lookupType;
-    public final boolean isOrdered;
+    final int dimensions;
+    final int entries;
+    final long[] lengthMap;
+    final int lookupType;
+    final boolean isOrdered;
 
-    public CodeBook(int dimensions, int entries, long[] lengthMap, int lookupType,
-        boolean isOrdered) {
+    CodeBook(int dimensions, int entries, long[] lengthMap, int lookupType,
+             boolean isOrdered) {
       this.dimensions = dimensions;
       this.entries = entries;
       this.lengthMap = lengthMap;
@@ -434,11 +434,11 @@ import java.util.Arrays;
 
   public static final class CommentHeader {
 
-    public final String vendor;
-    public final String[] comments;
-    public final int length;
+    final String vendor;
+    final String[] comments;
+    final int length;
 
-    public CommentHeader(String vendor, String[] comments, int length) {
+    CommentHeader(String vendor, String[] comments, int length) {
       this.vendor = vendor;
       this.comments = comments;
       this.length = length;
@@ -448,20 +448,20 @@ import java.util.Arrays;
 
   public static final class VorbisIdHeader {
 
-    public final long version;
+    final long version;
     public final int channels;
     public final long sampleRate;
-    public final int bitrateMax;
+    final int bitrateMax;
     public final int bitrateNominal;
-    public final int bitrateMin;
+    final int bitrateMin;
     public final int blockSize0;
     public final int blockSize1;
-    public final boolean framingFlag;
+    final boolean framingFlag;
     public final byte[] data;
 
-    public VorbisIdHeader(long version, int channels, long sampleRate, int bitrateMax,
-        int bitrateNominal, int bitrateMin, int blockSize0, int blockSize1, boolean framingFlag,
-        byte[] data) {
+    VorbisIdHeader(long version, int channels, long sampleRate, int bitrateMax,
+                   int bitrateNominal, int bitrateMin, int blockSize0, int blockSize1, boolean framingFlag,
+                   byte[] data) {
       this.version = version;
       this.channels = channels;
       this.sampleRate = sampleRate;
@@ -483,11 +483,11 @@ import java.util.Arrays;
   public static final class Mode {
 
     public final boolean blockFlag;
-    public final int windowType;
-    public final int transformType;
-    public final int mapping;
+    final int windowType;
+    final int transformType;
+    final int mapping;
 
-    public Mode(boolean blockFlag, int windowType, int transformType, int mapping) {
+    Mode(boolean blockFlag, int windowType, int transformType, int mapping) {
       this.blockFlag = blockFlag;
       this.windowType = windowType;
       this.transformType = transformType;

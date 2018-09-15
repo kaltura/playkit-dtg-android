@@ -42,9 +42,9 @@ public final class NalUnitUtil {
     public final int picOrderCntLsbLength;
     public final boolean deltaPicOrderAlwaysZeroFlag;
 
-    public SpsData(int seqParameterSetId, int width, int height, float pixelWidthAspectRatio,
-        boolean separateColorPlaneFlag, boolean frameMbsOnlyFlag, int frameNumLength,
-        int picOrderCountType, int picOrderCntLsbLength, boolean deltaPicOrderAlwaysZeroFlag) {
+    SpsData(int seqParameterSetId, int width, int height, float pixelWidthAspectRatio,
+            boolean separateColorPlaneFlag, boolean frameMbsOnlyFlag, int frameNumLength,
+            int picOrderCountType, int picOrderCntLsbLength, boolean deltaPicOrderAlwaysZeroFlag) {
       this.seqParameterSetId = seqParameterSetId;
       this.width = width;
       this.height = height;
@@ -68,8 +68,8 @@ public final class NalUnitUtil {
     public final int seqParameterSetId;
     public final boolean bottomFieldPicOrderInFramePresentFlag;
 
-    public PpsData(int picParameterSetId, int seqParameterSetId,
-        boolean bottomFieldPicOrderInFramePresentFlag) {
+    PpsData(int picParameterSetId, int seqParameterSetId,
+            boolean bottomFieldPicOrderInFramePresentFlag) {
       this.picParameterSetId = picParameterSetId;
       this.seqParameterSetId = seqParameterSetId;
       this.bottomFieldPicOrderInFramePresentFlag = bottomFieldPicOrderInFramePresentFlag;

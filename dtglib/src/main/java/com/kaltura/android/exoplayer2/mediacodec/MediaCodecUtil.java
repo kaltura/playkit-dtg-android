@@ -140,8 +140,8 @@ public final class MediaCodecUtil {
    *     given by {@link MediaCodecList}.
    * @throws DecoderQueryException If there was an error querying the available decoders.
    */
-  public static synchronized List<MediaCodecInfo> getDecoderInfos(String mimeType,
-      boolean secure) throws DecoderQueryException {
+  private static synchronized List<MediaCodecInfo> getDecoderInfos(String mimeType,
+                                                                   boolean secure) throws DecoderQueryException {
     CodecKey key = new CodecKey(mimeType, secure);
     List<MediaCodecInfo> cachedDecoderInfos = decoderInfosCache.get(key);
     if (cachedDecoderInfos != null) {
@@ -556,7 +556,7 @@ public final class MediaCodecUtil {
 
     private android.media.MediaCodecInfo[] mediaCodecInfos;
 
-    public MediaCodecListCompatV21(boolean includeSecure) {
+    MediaCodecListCompatV21(boolean includeSecure) {
       codecKind = includeSecure ? MediaCodecList.ALL_CODECS : MediaCodecList.REGULAR_CODECS;
     }
 
@@ -619,10 +619,10 @@ public final class MediaCodecUtil {
 
   private static final class CodecKey {
 
-    public final String mimeType;
-    public final boolean secure;
+    final String mimeType;
+    final boolean secure;
 
-    public CodecKey(String mimeType, boolean secure) {
+    CodecKey(String mimeType, boolean secure) {
       this.mimeType = mimeType;
       this.secure = secure;
     }

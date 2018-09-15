@@ -18,7 +18,7 @@ package com.kaltura.android.exoplayer2.metadata;
 /**
  * Thrown when an error occurs decoding metadata.
  */
-public class MetadataDecoderException extends Exception {
+class MetadataDecoderException extends Exception {
 
   /**
    * @param message The detail message for this exception.

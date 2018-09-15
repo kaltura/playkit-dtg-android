@@ -28,7 +28,7 @@ import java.io.IOException;
 /**
  * Encodes data that can be decoded by {@link EventMessageDecoder}. This class isn't thread safe.
  */
-public final class EventMessageEncoder {
+final class EventMessageEncoder {
 
   private final ByteArrayOutputStream byteArrayOutputStream;
   private final DataOutputStream dataOutputStream;

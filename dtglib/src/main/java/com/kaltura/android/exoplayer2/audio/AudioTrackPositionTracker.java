@@ -42,7 +42,7 @@ import java.lang.reflect.Method;
 /* package */ final class AudioTrackPositionTracker {
 
   /** Listener for position tracker events. */
-  public interface Listener {
+  interface Listener {
 
     /**
      * Called when the frame position is too far from the expected frame position.
@@ -326,7 +326,7 @@ import java.lang.reflect.Method;
    * @param writtenFrames The number of frames written to the audio track.
    * @return Whether the audio track has any pending data to play out.
    */
-  public boolean hasPendingData(long writtenFrames) {
+  private boolean hasPendingData(long writtenFrames) {
     return writtenFrames > getPlaybackHeadPosition()
         || forceHasPendingData();
   }

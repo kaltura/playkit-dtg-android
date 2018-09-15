@@ -31,9 +31,9 @@ public final class FileDataSource implements DataSource {
   /**
    * Thrown when IOException is encountered during local file read operation.
    */
-  public static class FileDataSourceException extends IOException {
+  static class FileDataSourceException extends IOException {
 
-    public FileDataSourceException(IOException cause) {
+    FileDataSourceException(IOException cause) {
       super(cause);
     }
 

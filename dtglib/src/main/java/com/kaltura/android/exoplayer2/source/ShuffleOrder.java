@@ -166,7 +166,7 @@ public interface ShuffleOrder {
      *
      * @param length The length of the shuffle order.
      */
-    public UnshuffledShuffleOrder(int length) {
+    UnshuffledShuffleOrder(int length) {
       this.length = length;
     }
 

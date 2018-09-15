@@ -27,12 +27,12 @@ import java.util.Arrays;
  */
 public final class ChapterTocFrame extends Id3Frame {
 
-  public static final String ID = "CTOC";
+  private static final String ID = "CTOC";
 
-  public final String elementId;
-  public final boolean isRoot;
-  public final boolean isOrdered;
-  public final String[] children;
+  private final String elementId;
+  private final boolean isRoot;
+  private final boolean isOrdered;
+  private final String[] children;
   private final Id3Frame[] subFrames;
 
   public ChapterTocFrame(String elementId, boolean isRoot, boolean isOrdered, String[] children,
@@ -45,7 +45,8 @@ public final class ChapterTocFrame extends Id3Frame {
     this.subFrames = subFrames;
   }
 
-  /* package */ ChapterTocFrame(Parcel in) {
+  /* package */
+  private ChapterTocFrame(Parcel in) {
     super(ID);
     this.elementId = in.readString();
     this.isRoot = in.readByte() != 0;

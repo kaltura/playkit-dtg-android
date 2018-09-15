@@ -130,8 +130,8 @@ public final class DataSpec {
    * @param key {@link #key}.
    * @param flags {@link #flags}.
    */
-  public DataSpec(
-      Uri uri, long absoluteStreamPosition, long length, @Nullable String key, @Flags int flags) {
+  private DataSpec(
+          Uri uri, long absoluteStreamPosition, long length, @Nullable String key, @Flags int flags) {
     this(uri, absoluteStreamPosition, absoluteStreamPosition, length, key, flags);
   }
 
@@ -168,14 +168,14 @@ public final class DataSpec {
    * @param key {@link #key}.
    * @param flags {@link #flags}.
    */
-  public DataSpec(
-      Uri uri,
-      @Nullable byte[] postBody,
-      long absoluteStreamPosition,
-      long position,
-      long length,
-      @Nullable String key,
-      @Flags int flags) {
+  private DataSpec(
+          Uri uri,
+          @Nullable byte[] postBody,
+          long absoluteStreamPosition,
+          long position,
+          long length,
+          @Nullable String key,
+          @Flags int flags) {
     Assertions.checkArgument(absoluteStreamPosition >= 0);
     Assertions.checkArgument(position >= 0);
     Assertions.checkArgument(length > 0 || length == C.LENGTH_UNSET);
@@ -221,7 +221,7 @@ public final class DataSpec {
    * @param length The length of the subrange.
    * @return A {@link DataSpec} that represents a subrange of the data defined by this DataSpec.
    */
-  public DataSpec subrange(long offset, long length) {
+  private DataSpec subrange(long offset, long length) {
     if (offset == 0 && this.length == length) {
       return this;
     } else {

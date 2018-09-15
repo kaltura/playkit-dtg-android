@@ -90,7 +90,7 @@ import java.io.IOException;
    * If {@link #definesEncryptionData} is true, indicates the length of the sample encryption data.
    * Undefined otherwise.
    */
-  public int sampleEncryptionDataLength;
+  private int sampleEncryptionDataLength;
   /**
    * If {@link #definesEncryptionData} is true, contains binary sample encryption data. Undefined
    * otherwise.

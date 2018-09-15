@@ -22,7 +22,7 @@ import com.kaltura.android.exoplayer2.source.TrackGroup;
 import java.io.IOException;
 
 /** Thrown when it is not possible to map a {@link TrackGroup} to a {@link SampleQueue}. */
-public final class SampleQueueMappingException extends IOException {
+final class SampleQueueMappingException extends IOException {
 
   /** @param mimeType The mime type of the track group whose mapping failed. */
   public SampleQueueMappingException(@Nullable String mimeType) {

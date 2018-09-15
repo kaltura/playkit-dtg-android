@@ -18,7 +18,7 @@ package com.kaltura.android.exoplayer2.source;
 /**
  * A factory to create composite {@link SequenceableLoader}s.
  */
-public interface CompositeSequenceableLoaderFactory {
+interface CompositeSequenceableLoaderFactory {
 
   /**
    * Creates a composite {@link SequenceableLoader}.

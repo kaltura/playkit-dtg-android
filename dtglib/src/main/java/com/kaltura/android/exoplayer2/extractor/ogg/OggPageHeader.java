@@ -29,20 +29,20 @@ import java.io.IOException;
  */
 /* package */  final class OggPageHeader {
 
-  public static final int EMPTY_PAGE_HEADER_SIZE = 27;
-  public static final int MAX_SEGMENT_COUNT = 255;
+  private static final int EMPTY_PAGE_HEADER_SIZE = 27;
+  private static final int MAX_SEGMENT_COUNT = 255;
   public static final int MAX_PAGE_PAYLOAD = 255 * 255;
   public static final int MAX_PAGE_SIZE = EMPTY_PAGE_HEADER_SIZE + MAX_SEGMENT_COUNT
       + MAX_PAGE_PAYLOAD;
 
   private static final int TYPE_OGGS = Util.getIntegerCodeForString("OggS");
 
-  public int revision;
+  private int revision;
   public int type;
   public long granulePosition;
-  public long streamSerialNumber;
-  public long pageSequenceNumber;
-  public long pageChecksum;
+  private long streamSerialNumber;
+  private long pageSequenceNumber;
+  private long pageChecksum;
   public int pageSegmentCount;
   public int headerSize;
   public int bodySize;

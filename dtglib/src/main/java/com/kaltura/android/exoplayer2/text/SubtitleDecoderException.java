@@ -18,7 +18,7 @@ package com.kaltura.android.exoplayer2.text;
 /**
  * Thrown when an error occurs decoding subtitle data.
  */
-public class SubtitleDecoderException extends Exception {
+class SubtitleDecoderException extends Exception {
 
   /**
    * @param message The detail message for this exception.

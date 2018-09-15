@@ -57,9 +57,9 @@ public final class CacheDataSink implements DataSink {
   /**
    * Thrown when IOException is encountered when writing data into sink.
    */
-  public static class CacheDataSinkException extends CacheException {
+  static class CacheDataSinkException extends CacheException {
 
-    public CacheDataSinkException(IOException cause) {
+    CacheDataSinkException(IOException cause) {
       super(cause);
     }
 
@@ -111,8 +111,8 @@ public final class CacheDataSink implements DataSink {
    *     value disables buffering.
    * @param syncFileDescriptor Whether file descriptors are sync'd when closing output streams.
    */
-  public CacheDataSink(
-      Cache cache, long maxCacheFileSize, int bufferSize, boolean syncFileDescriptor) {
+  private CacheDataSink(
+          Cache cache, long maxCacheFileSize, int bufferSize, boolean syncFileDescriptor) {
     this.cache = Assertions.checkNotNull(cache);
     this.maxCacheFileSize = maxCacheFileSize;
     this.bufferSize = bufferSize;

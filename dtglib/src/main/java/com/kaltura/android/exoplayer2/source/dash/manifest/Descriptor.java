@@ -36,7 +36,8 @@ public final class Descriptor {
   /**
    * The identifier, or null.
    */
-  @Nullable public final String id;
+  @Nullable
+  private final String id;
 
   /**
    * @param schemeIdUri The scheme URI.

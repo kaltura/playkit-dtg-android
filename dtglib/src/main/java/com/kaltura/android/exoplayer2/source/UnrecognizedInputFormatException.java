@@ -27,7 +27,7 @@ public class UnrecognizedInputFormatException extends ParserException {
   /**
    * The {@link Uri} from which the unrecognized data was read.
    */
-  public final Uri uri;
+  private final Uri uri;
 
   /**
    * @param message The detail message for the exception.

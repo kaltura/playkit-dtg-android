@@ -55,12 +55,12 @@ public final class Format implements Parcelable {
   /** Codecs of the format as described in RFC 6381, or null if unknown or not applicable. */
   public final @Nullable String codecs;
   /** Metadata, or null if unknown or not applicable. */
-  public final @Nullable Metadata metadata;
+  private final @Nullable Metadata metadata;
 
   // Container specific.
 
   /** The mime type of the container, or null if unknown or not applicable. */
-  public final @Nullable String containerMimeType;
+  private final @Nullable String containerMimeType;
 
   // Elementary stream specific.
 
@@ -73,14 +73,14 @@ public final class Format implements Parcelable {
    * The maximum size of a buffer of data (typically one sample), or {@link #NO_VALUE} if unknown or
    * not applicable.
    */
-  public final int maxInputSize;
+  private final int maxInputSize;
   /**
    * Initialization data that must be provided to the decoder. Will not be null, but may be empty
    * if initialization data is not required.
    */
-  public final List<byte[]> initializationData;
+  private final List<byte[]> initializationData;
   /** DRM initialization data if the stream is protected, or null otherwise. */
-  public final @Nullable
+  private final @Nullable
   DrmInitData drmInitData;
 
   /**
@@ -88,7 +88,7 @@ public final class Format implements Parcelable {
    * timestamps. A value of {@link #OFFSET_SAMPLE_RELATIVE} indicates that subsample timestamps are
    * relative to the timestamps of their parent samples.
    */
-  public final long subsampleOffsetUs;
+  private final long subsampleOffsetUs;
 
   // Video specific.
 
@@ -103,25 +103,25 @@ public final class Format implements Parcelable {
   /**
    * The frame rate in frames per second, or {@link #NO_VALUE} if unknown or not applicable.
    */
-  public final float frameRate;
+  private final float frameRate;
   /**
    * The clockwise rotation that should be applied to the video for it to be rendered in the correct
    * orientation, or 0 if unknown or not applicable. Only 0, 90, 180 and 270 are supported.
    */
-  public final int rotationDegrees;
+  private final int rotationDegrees;
   /** The width to height ratio of pixels in the video, or 1.0 if unknown or not applicable. */
-  public final float pixelWidthHeightRatio;
+  private final float pixelWidthHeightRatio;
   /**
    * The stereo layout for 360/3D/VR video, or {@link #NO_VALUE} if not applicable. Valid stereo
    * modes are {@link C#STEREO_MODE_MONO}, {@link C#STEREO_MODE_TOP_BOTTOM}, {@link
    * C#STEREO_MODE_LEFT_RIGHT}, {@link C#STEREO_MODE_STEREO_MESH}.
    */
   @C.StereoMode
-  public final int stereoMode;
+  private final int stereoMode;
   /** The projection data for 360/VR video, or null if not applicable. */
-  public final @Nullable byte[] projectionData;
+  private final @Nullable byte[] projectionData;
   /** The color metadata associated with the video, helps with accurate color reproduction. */
-  public final @Nullable
+  private final @Nullable
   ColorInfo colorInfo;
 
   // Audio specific.
@@ -146,11 +146,11 @@ public final class Format implements Parcelable {
    * The number of frames to trim from the start of the decoded audio stream, or 0 if not
    * applicable.
    */
-  public final int encoderDelay;
+  private final int encoderDelay;
   /**
    * The number of frames to trim from the end of the decoded audio stream, or 0 if not applicable.
    */
-  public final int encoderPadding;
+  private final int encoderPadding;
 
   // Audio and text specific.
 
@@ -357,12 +357,12 @@ public final class Format implements Parcelable {
     return createTextSampleFormat(id, sampleMimeType, selectionFlags, language, null);
   }
 
-  public static Format createTextSampleFormat(
-      @Nullable String id,
-      String sampleMimeType,
-      @C.SelectionFlags int selectionFlags,
-      @Nullable String language,
-      @Nullable DrmInitData drmInitData) {
+  private static Format createTextSampleFormat(
+          @Nullable String id,
+          String sampleMimeType,
+          @C.SelectionFlags int selectionFlags,
+          @Nullable String language,
+          @Nullable DrmInitData drmInitData) {
     return createTextSampleFormat(id, sampleMimeType, null, NO_VALUE, selectionFlags, language,
         NO_VALUE, drmInitData, OFFSET_SAMPLE_RELATIVE, Collections.<byte[]>emptyList());
   }
@@ -743,7 +743,7 @@ public final class Format implements Parcelable {
    * @return Whether the {@link #initializationData}s belonging to this format and {@code other} are
    *     equal.
    */
-  public boolean initializationDataEquals(Format other) {
+  private boolean initializationDataEquals(Format other) {
     if (initializationData.size() != other.initializationData.size()) {
       return false;
     }

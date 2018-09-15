@@ -78,7 +78,7 @@ import javax.crypto.spec.SecretKeySpec;
    * @param cacheDir Directory where the index file is kept.
    * @param secretKey 16 byte AES key for reading and writing the cache index.
    */
-  public CachedContentIndex(File cacheDir, byte[] secretKey) {
+  private CachedContentIndex(File cacheDir, byte[] secretKey) {
     this(cacheDir, secretKey, secretKey != null);
   }
 
@@ -340,7 +340,7 @@ import javax.crypto.spec.SecretKeySpec;
    * returns the smallest unused non-negative integer.
    */
   //@VisibleForTesting
-  public static int getNewId(SparseArray<String> idToKey) {
+  private static int getNewId(SparseArray<String> idToKey) {
     int size = idToKey.size();
     int id = size == 0 ? 0 : (idToKey.keyAt(size - 1) + 1);
     if (id < 0) { // In case if we pass max int value.

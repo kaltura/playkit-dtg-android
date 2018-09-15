@@ -37,13 +37,13 @@ import com.kaltura.android.exoplayer2.util.Util;
 @TargetApi(16)
 public final class MediaCodecInfo {
 
-  public static final String TAG = "MediaCodecInfo";
+  private static final String TAG = "MediaCodecInfo";
 
   /**
    * The value returned by {@link #getMaxSupportedInstances()} if the upper bound on the maximum
    * number of supported instances is unknown.
    */
-  public static final int MAX_SUPPORTED_INSTANCES_UNKNOWN = -1;
+  private static final int MAX_SUPPORTED_INSTANCES_UNKNOWN = -1;
 
   /**
    * The name of the decoder.
@@ -54,13 +54,13 @@ public final class MediaCodecInfo {
   public final String name;
 
   /** The MIME type handled by the codec, or {@code null} if this is a passthrough codec. */
-  public final @Nullable String mimeType;
+  private final @Nullable String mimeType;
 
   /**
    * The capabilities of the decoder, like the profiles/levels it supports, or {@code null} if this
    * is a passthrough codec.
    */
-  public final @Nullable CodecCapabilities capabilities;
+  private final @Nullable CodecCapabilities capabilities;
 
   /**
    * Whether the decoder supports seamless resolution switches.
@@ -68,7 +68,7 @@ public final class MediaCodecInfo {
    * @see CodecCapabilities#isFeatureSupported(String)
    * @see CodecCapabilities#FEATURE_AdaptivePlayback
    */
-  public final boolean adaptive;
+  private final boolean adaptive;
 
   /**
    * Whether the decoder supports tunneling.
@@ -76,7 +76,7 @@ public final class MediaCodecInfo {
    * @see CodecCapabilities#isFeatureSupported(String)
    * @see CodecCapabilities#FEATURE_TunneledPlayback
    */
-  public final boolean tunneling;
+  private final boolean tunneling;
 
   /**
    * Whether the decoder is secure.
@@ -84,10 +84,10 @@ public final class MediaCodecInfo {
    * @see CodecCapabilities#isFeatureSupported(String)
    * @see CodecCapabilities#FEATURE_SecurePlayback
    */
-  public final boolean secure;
+  private final boolean secure;
 
   /** Whether this instance describes a passthrough codec. */
-  public final boolean passthrough;
+  private final boolean passthrough;
 
   /**
    * Creates an instance representing an audio passthrough decoder.

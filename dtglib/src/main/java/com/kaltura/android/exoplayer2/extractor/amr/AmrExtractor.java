@@ -116,7 +116,7 @@ public final class AmrExtractor implements Extractor {
   private TrackOutput trackOutput;
   private boolean hasOutputFormat;
 
-  public AmrExtractor() {
+  private AmrExtractor() {
     scratch = new byte[1];
   }
 

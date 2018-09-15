@@ -18,7 +18,7 @@ package com.kaltura.android.exoplayer2;
 /**
  * Holds a {@link Format}.
  */
-public final class FormatHolder {
+final class FormatHolder {
 
   /**
    * The held {@link Format}.

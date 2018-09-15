@@ -27,7 +27,7 @@ import java.util.List;
 
 /** Helper class for configuring {@link MediaFormat} instances. */
 @TargetApi(16)
-public final class MediaFormatUtil {
+final class MediaFormatUtil {
 
   private MediaFormatUtil() {}
 
@@ -62,7 +62,7 @@ public final class MediaFormatUtil {
    * @param key The key to set.
    * @param value The value to set.
    */
-  public static void maybeSetInteger(MediaFormat format, String key, int value) {
+  private static void maybeSetInteger(MediaFormat format, String key, int value) {
     if (value != Format.NO_VALUE) {
       format.setInteger(key, value);
     }
@@ -89,7 +89,7 @@ public final class MediaFormatUtil {
    * @param key The key to set.
    * @param value The {@link byte[]} that will be wrapped to obtain the value.
    */
-  public static void maybeSetByteBuffer(MediaFormat format, String key, @Nullable byte[] value) {
+  private static void maybeSetByteBuffer(MediaFormat format, String key, @Nullable byte[] value) {
     if (value != null) {
       format.setByteBuffer(key, ByteBuffer.wrap(value));
     }

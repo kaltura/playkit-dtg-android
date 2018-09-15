@@ -123,7 +123,7 @@ public abstract class SimpleDecoder<I extends DecoderInputBuffer, O extends Outp
    *
    * @param outputBuffer The output buffer being released.
    */
-  protected void releaseOutputBuffer(O outputBuffer) {
+  void releaseOutputBuffer(O outputBuffer) {
     synchronized (lock) {
       releaseOutputBufferInternal(outputBuffer);
       maybeNotifyDecodeLoop();

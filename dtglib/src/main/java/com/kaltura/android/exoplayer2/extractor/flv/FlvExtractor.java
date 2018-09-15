@@ -89,7 +89,7 @@ public final class FlvExtractor implements Extractor {
   private AudioTagPayloadReader audioReader;
   private VideoTagPayloadReader videoReader;
 
-  public FlvExtractor() {
+  private FlvExtractor() {
     scratch = new ParsableByteArray(4);
     headerBuffer = new ParsableByteArray(FLV_HEADER_SIZE);
     tagHeaderBuffer = new ParsableByteArray(FLV_TAG_HEADER_SIZE);

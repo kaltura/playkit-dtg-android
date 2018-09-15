@@ -32,7 +32,7 @@ public final class Allocation {
   /**
    * The offset of the allocated space in {@link #data}.
    */
-  public final int offset;
+  private final int offset;
 
   /**
    * @param data The array containing the allocated space.

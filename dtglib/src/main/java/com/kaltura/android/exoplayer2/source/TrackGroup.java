@@ -39,7 +39,7 @@ public final class TrackGroup implements Parcelable {
   /**
    * The number of tracks in the group.
    */
-  public final int length;
+  private final int length;
 
   private final Format[] formats;
 

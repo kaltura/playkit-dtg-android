@@ -70,16 +70,16 @@ public final class TsExtractor implements Extractor {
   /**
    * Behave as defined in ISO/IEC 13818-1.
    */
-  public static final int MODE_MULTI_PMT = 0;
+  private static final int MODE_MULTI_PMT = 0;
   /**
    * Assume only one PMT will be contained in the stream, even if more are declared by the PAT.
    */
-  public static final int MODE_SINGLE_PMT = 1;
+  private static final int MODE_SINGLE_PMT = 1;
   /**
    * Enable single PMT mode, map {@link TrackOutput}s by their type (instead of PID) and ignore
    * continuity counters.
    */
-  public static final int MODE_HLS = 2;
+  private static final int MODE_HLS = 2;
 
   public static final int TS_STREAM_TYPE_MPA = 0x03;
   public static final int TS_STREAM_TYPE_MPA_LSF = 0x04;
@@ -123,7 +123,7 @@ public final class TsExtractor implements Extractor {
   private TsPayloadReader id3Reader;
   private int bytesSinceLastSync;
 
-  public TsExtractor() {
+  private TsExtractor() {
     this(0);
   }
 
@@ -131,7 +131,7 @@ public final class TsExtractor implements Extractor {
    * @param defaultTsPayloadReaderFlags A combination of {@link DefaultTsPayloadReaderFactory}
    *     {@code FLAG_*} values that control the behavior of the payload readers.
    */
-  public TsExtractor(@DefaultTsPayloadReaderFactory.Flags int defaultTsPayloadReaderFlags) {
+  private TsExtractor(@DefaultTsPayloadReaderFactory.Flags int defaultTsPayloadReaderFlags) {
     this(MODE_SINGLE_PMT, defaultTsPayloadReaderFlags);
   }
 
@@ -141,7 +141,7 @@ public final class TsExtractor implements Extractor {
    * @param defaultTsPayloadReaderFlags A combination of {@link DefaultTsPayloadReaderFactory}
    *     {@code FLAG_*} values that control the behavior of the payload readers.
    */
-  public TsExtractor(@Mode int mode, @DefaultTsPayloadReaderFactory.Flags int defaultTsPayloadReaderFlags) {
+  private TsExtractor(@Mode int mode, @DefaultTsPayloadReaderFactory.Flags int defaultTsPayloadReaderFlags) {
     this(mode, new TimestampAdjuster(0),
         new DefaultTsPayloadReaderFactory(defaultTsPayloadReaderFlags));
   }
@@ -153,8 +153,8 @@ public final class TsExtractor implements Extractor {
    * @param timestampAdjuster A timestamp adjuster for offsetting and scaling sample timestamps.
    * @param payloadReaderFactory Factory for injecting a custom set of payload readers.
    */
-  public TsExtractor(@Mode int mode, TimestampAdjuster timestampAdjuster,
-      TsPayloadReader.Factory payloadReaderFactory) {
+  private TsExtractor(@Mode int mode, TimestampAdjuster timestampAdjuster,
+                      TsPayloadReader.Factory payloadReaderFactory) {
     this.payloadReaderFactory = Assertions.checkNotNull(payloadReaderFactory);
     this.mode = mode;
     if (mode == MODE_SINGLE_PMT || mode == MODE_HLS) {
@@ -328,7 +328,7 @@ public final class TsExtractor implements Extractor {
 
     private final ParsableBitArray patScratch;
 
-    public PatReader() {
+    PatReader() {
       patScratch = new ParsableBitArray(new byte[4]);
     }
 
@@ -387,7 +387,7 @@ public final class TsExtractor implements Extractor {
     private final SparseIntArray trackIdToPidScratch;
     private final int pid;
 
-    public PmtReader(int pid) {
+    PmtReader(int pid) {
       pmtScratch = new ParsableBitArray(new byte[5]);
       trackIdToReaderScratch = new SparseArray<>();
       trackIdToPidScratch = new SparseIntArray();

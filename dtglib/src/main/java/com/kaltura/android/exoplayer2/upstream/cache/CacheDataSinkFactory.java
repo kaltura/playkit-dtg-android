@@ -36,7 +36,7 @@ public final class CacheDataSinkFactory implements DataSink.Factory {
   /**
    * @see CacheDataSink#CacheDataSink(Cache, long, int)
    */
-  public CacheDataSinkFactory(Cache cache, long maxCacheFileSize, int bufferSize) {
+  private CacheDataSinkFactory(Cache cache, long maxCacheFileSize, int bufferSize) {
     this.cache = cache;
     this.maxCacheFileSize = maxCacheFileSize;
     this.bufferSize = bufferSize;

@@ -109,7 +109,7 @@ public final class SimpleCache implements Cache {
    * @param encrypt Whether the index will be encrypted when written. Must be false if {@code
    *     secretKey} is null.
    */
-  public SimpleCache(File cacheDir, CacheEvictor evictor, byte[] secretKey, boolean encrypt) {
+  private SimpleCache(File cacheDir, CacheEvictor evictor, byte[] secretKey, boolean encrypt) {
     this(cacheDir, evictor, new CachedContentIndex(cacheDir, secretKey, encrypt));
   }
 
@@ -121,7 +121,8 @@ public final class SimpleCache implements Cache {
    * @param evictor The evictor to be used.
    * @param index The CachedContentIndex to be used.
    */
-  /*package*/ SimpleCache(File cacheDir, CacheEvictor evictor, CachedContentIndex index) {
+  /*package*/
+  private SimpleCache(File cacheDir, CacheEvictor evictor, CachedContentIndex index) {
     if (!lockFolder(cacheDir)) {
       throw new IllegalStateException("Another SimpleCache instance uses the folder: " + cacheDir);
     }

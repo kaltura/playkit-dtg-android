@@ -24,7 +24,7 @@ import com.kaltura.android.exoplayer2.util.TimestampAdjuster;
 /**
  * Reads section data.
  */
-public interface SectionPayloadReader {
+interface SectionPayloadReader {
 
   /**
    * Initializes the section payload reader.

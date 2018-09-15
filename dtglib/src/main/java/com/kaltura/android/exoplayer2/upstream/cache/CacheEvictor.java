@@ -19,7 +19,7 @@ package com.kaltura.android.exoplayer2.upstream.cache;
  * Evicts data from a {@link Cache}. Implementations should call {@link Cache#removeSpan(CacheSpan)}
  * to evict cache entries based on their eviction policies.
  */
-public interface CacheEvictor extends Cache.Listener {
+interface CacheEvictor extends Cache.Listener {
 
   /**
    * Called when cache has been initialized.

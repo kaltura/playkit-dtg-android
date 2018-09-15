@@ -30,7 +30,8 @@ public class Period {
   /**
    * The period identifier, if one exists.
    */
-  @Nullable public final String id;
+  @Nullable
+  private final String id;
 
   /**
    * The start time of the period in milliseconds.
@@ -45,7 +46,7 @@ public class Period {
   /**
    * The event stream belonging to the period.
    */
-  public final List<EventStream> eventStreams;
+  private final List<EventStream> eventStreams;
 
   /**
    * @param id The period identifier. May be null.

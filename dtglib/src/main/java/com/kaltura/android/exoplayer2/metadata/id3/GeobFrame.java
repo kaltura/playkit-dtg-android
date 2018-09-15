@@ -28,12 +28,12 @@ import java.util.Arrays;
  */
 public final class GeobFrame extends Id3Frame {
 
-  public static final String ID = "GEOB";
+  private static final String ID = "GEOB";
 
-  public final String mimeType;
-  public final String filename;
-  public final String description;
-  public final byte[] data;
+  private final String mimeType;
+  private final String filename;
+  private final String description;
+  private final byte[] data;
 
   public GeobFrame(String mimeType, String filename, String description, byte[] data) {
     super(ID);
@@ -43,7 +43,8 @@ public final class GeobFrame extends Id3Frame {
     this.data = data;
   }
 
-  /* package */ GeobFrame(Parcel in) {
+  /* package */
+  private GeobFrame(Parcel in) {
     super(ID);
     mimeType = in.readString();
     filename = in.readString();

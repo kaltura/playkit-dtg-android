@@ -40,7 +40,7 @@ public abstract class Representation {
    * For example, all {@link Representation}s belonging to a video should have the same content
    * identifier that uniquely identifies that video.
    */
-  public final String contentId;
+  private final String contentId;
   /**
    * Identifies the revision of the content.
    * <p>
@@ -49,7 +49,7 @@ public abstract class Representation {
    * updated encoder), then this identifier must uniquely identify the revision of the media. The
    * timestamp at which the media was encoded is often a suitable.
    */
-  public final long revisionId;
+  private final long revisionId;
   /**
    * The format of the representation.
    */
@@ -57,15 +57,15 @@ public abstract class Representation {
   /**
    * The base URL of the representation.
    */
-  public final String baseUrl;
+  private final String baseUrl;
   /**
    * The offset of the presentation timestamps in the media stream relative to media time.
    */
-  public final long presentationTimeOffsetUs;
+  private final long presentationTimeOffsetUs;
   /**
    * The in-band event streams in the representation. Never null, but may be empty.
    */
-  public final List<Descriptor> inbandEventStreams;
+  private final List<Descriptor> inbandEventStreams;
 
   private final RangedUri initializationUri;
 
@@ -114,9 +114,9 @@ public abstract class Representation {
    *     parameter is ignored if {@code segmentBase} consists of multiple segments.
    * @return The constructed instance.
    */
-  public static Representation newInstance(String contentId, long revisionId, Format format,
-      String baseUrl, SegmentBase segmentBase, List<Descriptor> inbandEventStreams,
-      String customCacheKey) {
+  private static Representation newInstance(String contentId, long revisionId, Format format,
+                                            String baseUrl, SegmentBase segmentBase, List<Descriptor> inbandEventStreams,
+                                            String customCacheKey) {
     if (segmentBase instanceof SegmentBase.SingleSegmentBase) {
       return new SingleSegmentRepresentation(contentId, revisionId, format, baseUrl,
           (SegmentBase.SingleSegmentBase) segmentBase, inbandEventStreams, customCacheKey, C.LENGTH_UNSET);
@@ -179,7 +179,7 @@ public abstract class Representation {
     /**
      * The content length, or {@link C#LENGTH_UNSET} if unknown.
      */
-    public final long contentLength;
+    final long contentLength;
 
     private final String cacheKey;
     private final RangedUri indexUri;
@@ -220,9 +220,9 @@ public abstract class Representation {
      * @param customCacheKey A custom value to be returned from {@link #getCacheKey()}, or null.
      * @param contentLength The content length, or {@link C#LENGTH_UNSET} if unknown.
      */
-    public SingleSegmentRepresentation(String contentId, long revisionId, Format format,
-                                       String baseUrl, SegmentBase.SingleSegmentBase segmentBase, List<Descriptor> inbandEventStreams,
-                                       String customCacheKey, long contentLength) {
+    SingleSegmentRepresentation(String contentId, long revisionId, Format format,
+                                String baseUrl, SegmentBase.SingleSegmentBase segmentBase, List<Descriptor> inbandEventStreams,
+                                String customCacheKey, long contentLength) {
       super(contentId, revisionId, format, baseUrl, segmentBase, inbandEventStreams);
       this.uri = Uri.parse(baseUrl);
       this.indexUri = segmentBase.getIndex();
@@ -268,8 +268,8 @@ public abstract class Representation {
      * @param segmentBase The segment base underlying the representation.
      * @param inbandEventStreams The in-band event streams in the representation. May be null.
      */
-    public MultiSegmentRepresentation(String contentId, long revisionId, Format format,
-                                      String baseUrl, SegmentBase.MultiSegmentBase segmentBase, List<Descriptor> inbandEventStreams) {
+    MultiSegmentRepresentation(String contentId, long revisionId, Format format,
+                               String baseUrl, SegmentBase.MultiSegmentBase segmentBase, List<Descriptor> inbandEventStreams) {
       super(contentId, revisionId, format, baseUrl, segmentBase, inbandEventStreams);
       this.segmentBase = segmentBase;
     }

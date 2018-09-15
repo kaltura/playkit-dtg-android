@@ -39,11 +39,11 @@ public final class EGLSurfaceTexture implements SurfaceTexture.OnFrameAvailableL
   public @interface SecureMode {}
 
   /** No secure EGL surface and context required. */
-  public static final int SECURE_MODE_NONE = 0;
+  private static final int SECURE_MODE_NONE = 0;
   /** Creating a surfaceless, secured EGL context. */
-  public static final int SECURE_MODE_SURFACELESS_CONTEXT = 1;
+  private static final int SECURE_MODE_SURFACELESS_CONTEXT = 1;
   /** Creating a secure surface backed by a pixel buffer. */
-  public static final int SECURE_MODE_PROTECTED_PBUFFER = 2;
+  private static final int SECURE_MODE_PROTECTED_PBUFFER = 2;
 
   private static final int[] EGL_CONFIG_ATTRIBUTES =
       new int[] {
@@ -61,7 +61,7 @@ public final class EGLSurfaceTexture implements SurfaceTexture.OnFrameAvailableL
   private static final int EGL_PROTECTED_CONTENT_EXT = 0x32C0;
 
   /** A runtime exception to be thrown if some EGL operations failed. */
-  public static final class GlException extends RuntimeException {
+  static final class GlException extends RuntimeException {
     private GlException(String msg) {
       super(msg);
     }

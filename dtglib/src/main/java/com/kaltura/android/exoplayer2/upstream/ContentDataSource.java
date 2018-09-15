@@ -36,9 +36,9 @@ public final class ContentDataSource implements DataSource {
   /**
    * Thrown when an {@link IOException} is encountered reading from a content URI.
    */
-  public static class ContentDataSourceException extends IOException {
+  static class ContentDataSourceException extends IOException {
 
-    public ContentDataSourceException(IOException cause) {
+    ContentDataSourceException(IOException cause) {
       super(cause);
     }
 

@@ -71,7 +71,7 @@ public final class VideoFrameReleaseTimeHelper {
    *
    * @param context A context from which information about the default display can be retrieved.
    */
-  public VideoFrameReleaseTimeHelper(@Nullable Context context) {
+  private VideoFrameReleaseTimeHelper(@Nullable Context context) {
     if (context != null) {
       context = context.getApplicationContext();
       windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
@@ -232,15 +232,15 @@ public final class VideoFrameReleaseTimeHelper {
 
     private final DisplayManager displayManager;
 
-    public DefaultDisplayListener(DisplayManager displayManager) {
+    DefaultDisplayListener(DisplayManager displayManager) {
       this.displayManager = displayManager;
     }
 
-    public void register() {
+    void register() {
       displayManager.registerDisplayListener(this, null);
     }
 
-    public void unregister() {
+    void unregister() {
       displayManager.unregisterDisplayListener(this);
     }
 
@@ -270,7 +270,7 @@ public final class VideoFrameReleaseTimeHelper {
    */
   private static final class VSyncSampler implements FrameCallback, Handler.Callback {
 
-    public volatile long sampledVsyncTimeNs;
+    volatile long sampledVsyncTimeNs;
 
     private static final int CREATE_CHOREOGRAPHER = 0;
     private static final int MSG_ADD_OBSERVER = 1;
@@ -283,7 +283,7 @@ public final class VideoFrameReleaseTimeHelper {
     private Choreographer choreographer;
     private int observerCount;
 
-    public static VSyncSampler getInstance() {
+    static VSyncSampler getInstance() {
       return INSTANCE;
     }
 
@@ -299,7 +299,7 @@ public final class VideoFrameReleaseTimeHelper {
      * Notifies the sampler that a {@link VideoFrameReleaseTimeHelper} is observing
      * {@link #sampledVsyncTimeNs}, and hence that the value should be periodically updated.
      */
-    public void addObserver() {
+    void addObserver() {
       handler.sendEmptyMessage(MSG_ADD_OBSERVER);
     }
 
@@ -307,7 +307,7 @@ public final class VideoFrameReleaseTimeHelper {
      * Notifies the sampler that a {@link VideoFrameReleaseTimeHelper} is no longer observing
      * {@link #sampledVsyncTimeNs}.
      */
-    public void removeObserver() {
+    void removeObserver() {
       handler.sendEmptyMessage(MSG_REMOVE_OBSERVER);
     }
 

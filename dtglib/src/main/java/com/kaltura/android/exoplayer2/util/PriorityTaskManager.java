@@ -32,9 +32,9 @@ public final class PriorityTaskManager {
   /**
    * Thrown when task attempts to proceed when another registered task has a higher priority.
    */
-  public static class PriorityTooLowException extends IOException {
+  static class PriorityTooLowException extends IOException {
 
-    public PriorityTooLowException(int priority, int highestPriority) {
+    PriorityTooLowException(int priority, int highestPriority) {
       super("Priority too low [priority=" + priority + ", highest=" + highestPriority + "]");
     }
 

@@ -415,11 +415,11 @@ public final class H265Reader implements ElementaryStreamReader {
     private long sampleTimeUs;
     private boolean sampleIsKeyframe;
 
-    public SampleReader(TrackOutput output) {
+    SampleReader(TrackOutput output) {
       this.output = output;
     }
 
-    public void reset() {
+    void reset() {
       lookingForFirstSliceFlag = false;
       isFirstSlice = false;
       isFirstParameterSet = false;
@@ -427,7 +427,7 @@ public final class H265Reader implements ElementaryStreamReader {
       writingParameterSets = false;
     }
 
-    public void startNalUnit(long position, int offset, int nalUnitType, long pesTimeUs) {
+    void startNalUnit(long position, int offset, int nalUnitType, long pesTimeUs) {
       isFirstSlice = false;
       isFirstParameterSet = false;
       nalUnitTimeUs = pesTimeUs;
@@ -452,7 +452,7 @@ public final class H265Reader implements ElementaryStreamReader {
       lookingForFirstSliceFlag = nalUnitHasKeyframeData || nalUnitType <= RASL_R;
     }
 
-    public void readNalUnitData(byte[] data, int offset, int limit) {
+    void readNalUnitData(byte[] data, int offset, int limit) {
       if (lookingForFirstSliceFlag) {
         int headerOffset = offset + FIRST_SLICE_FLAG_OFFSET - nalUnitBytesRead;
         if (headerOffset < limit) {
@@ -464,7 +464,7 @@ public final class H265Reader implements ElementaryStreamReader {
       }
     }
 
-    public void endNalUnit(long position, int offset) {
+    void endNalUnit(long position, int offset) {
       if (writingParameterSets && isFirstSlice) {
         // This sample has parameter sets. Reset the key-frame flag based on the first slice.
         sampleIsKeyframe = nalUnitHasKeyframeData;

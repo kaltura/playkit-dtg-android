@@ -30,7 +30,7 @@ public final class MimeTypes {
   public static final String BASE_TYPE_VIDEO = "video";
   public static final String BASE_TYPE_AUDIO = "audio";
   public static final String BASE_TYPE_TEXT = "text";
-  public static final String BASE_TYPE_APPLICATION = "application";
+  private static final String BASE_TYPE_APPLICATION = "application";
 
   public static final String VIDEO_MP4 = BASE_TYPE_VIDEO + "/mp4";
   public static final String VIDEO_WEBM = BASE_TYPE_VIDEO + "/webm";
@@ -39,10 +39,10 @@ public final class MimeTypes {
   public static final String VIDEO_H265 = BASE_TYPE_VIDEO + "/hevc";
   public static final String VIDEO_VP8 = BASE_TYPE_VIDEO + "/x-vnd.on2.vp8";
   public static final String VIDEO_VP9 = BASE_TYPE_VIDEO + "/x-vnd.on2.vp9";
-  public static final String VIDEO_MP4V = BASE_TYPE_VIDEO + "/mp4v-es";
-  public static final String VIDEO_MPEG = BASE_TYPE_VIDEO + "/mpeg";
+  private static final String VIDEO_MP4V = BASE_TYPE_VIDEO + "/mp4v-es";
+  private static final String VIDEO_MPEG = BASE_TYPE_VIDEO + "/mpeg";
   public static final String VIDEO_MPEG2 = BASE_TYPE_VIDEO + "/mpeg2";
-  public static final String VIDEO_VC1 = BASE_TYPE_VIDEO + "/wvc1";
+  private static final String VIDEO_VC1 = BASE_TYPE_VIDEO + "/wvc1";
   public static final String VIDEO_UNKNOWN = BASE_TYPE_VIDEO + "/x-unknown";
 
   public static final String AUDIO_MP4 = BASE_TYPE_AUDIO + "/mp4";
@@ -57,7 +57,7 @@ public final class MimeTypes {
   public static final String AUDIO_AC3 = BASE_TYPE_AUDIO + "/ac3";
   public static final String AUDIO_E_AC3 = BASE_TYPE_AUDIO + "/eac3";
   public static final String AUDIO_E_AC3_JOC = BASE_TYPE_AUDIO + "/eac3-joc";
-  public static final String AUDIO_TRUEHD = BASE_TYPE_AUDIO + "/true-hd";
+  private static final String AUDIO_TRUEHD = BASE_TYPE_AUDIO + "/true-hd";
   public static final String AUDIO_DTS = BASE_TYPE_AUDIO + "/vnd.dts";
   public static final String AUDIO_DTS_HD = BASE_TYPE_AUDIO + "/vnd.dts.hd";
   public static final String AUDIO_DTS_EXPRESS = BASE_TYPE_AUDIO + "/vnd.dts.hd;profile=lbr";
@@ -81,14 +81,14 @@ public final class MimeTypes {
   public static final String APPLICATION_ID3 = BASE_TYPE_APPLICATION + "/id3";
   public static final String APPLICATION_CEA608 = BASE_TYPE_APPLICATION + "/cea-608";
   public static final String APPLICATION_CEA708 = BASE_TYPE_APPLICATION + "/cea-708";
-  public static final String APPLICATION_SUBRIP = BASE_TYPE_APPLICATION + "/x-subrip";
+  private static final String APPLICATION_SUBRIP = BASE_TYPE_APPLICATION + "/x-subrip";
   public static final String APPLICATION_TTML = BASE_TYPE_APPLICATION + "/ttml+xml";
   public static final String APPLICATION_TX3G = BASE_TYPE_APPLICATION + "/x-quicktime-tx3g";
   public static final String APPLICATION_MP4VTT = BASE_TYPE_APPLICATION + "/x-mp4-vtt";
   public static final String APPLICATION_MP4CEA608 = BASE_TYPE_APPLICATION + "/x-mp4-cea-608";
   public static final String APPLICATION_RAWCC = BASE_TYPE_APPLICATION + "/x-rawcc";
-  public static final String APPLICATION_VOBSUB = BASE_TYPE_APPLICATION + "/vobsub";
-  public static final String APPLICATION_PGS = BASE_TYPE_APPLICATION + "/pgs";
+  private static final String APPLICATION_VOBSUB = BASE_TYPE_APPLICATION + "/vobsub";
+  private static final String APPLICATION_PGS = BASE_TYPE_APPLICATION + "/pgs";
   public static final String APPLICATION_SCTE35 = BASE_TYPE_APPLICATION + "/x-scte35";
   public static final String APPLICATION_CAMERA_MOTION = BASE_TYPE_APPLICATION + "/x-camera-motion";
   public static final String APPLICATION_EMSG = BASE_TYPE_APPLICATION + "/x-emsg";
@@ -314,7 +314,7 @@ public final class MimeTypes {
    * @param mimeType The MIME type.
    * @return The {@link C}{@code .TRACK_TYPE_*} constant that corresponds to a specified MIME type.
    */
-  public static int getTrackType(String mimeType) {
+  private static int getTrackType(String mimeType) {
     if (TextUtils.isEmpty(mimeType)) {
       return C.TRACK_TYPE_UNKNOWN;
     } else if (isAudio(mimeType)) {
@@ -418,11 +418,11 @@ public final class MimeTypes {
   }
 
   private static final class CustomMimeType {
-    public final String mimeType;
-    public final String codecPrefix;
-    public final int trackType;
+    final String mimeType;
+    final String codecPrefix;
+    final int trackType;
 
-    public CustomMimeType(String mimeType, String codecPrefix, int trackType) {
+    CustomMimeType(String mimeType, String codecPrefix, int trackType) {
       this.mimeType = mimeType;
       this.codecPrefix = codecPrefix;
       this.trackType = trackType;

@@ -151,9 +151,9 @@ public class SlidingPercentile {
 
   private static class Sample {
 
-    public int index;
-    public int weight;
-    public float value;
+    int index;
+    int weight;
+    float value;
 
   }
 

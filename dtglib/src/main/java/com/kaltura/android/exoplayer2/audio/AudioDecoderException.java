@@ -16,7 +16,7 @@
 package com.kaltura.android.exoplayer2.audio;
 
 /** Thrown when an audio decoder error occurs. */
-public class AudioDecoderException extends Exception {
+class AudioDecoderException extends Exception {
 
   /** @param message The detail message for this exception. */
   public AudioDecoderException(String message) {

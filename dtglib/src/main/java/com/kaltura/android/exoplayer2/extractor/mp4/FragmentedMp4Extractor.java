@@ -83,16 +83,16 @@ public final class FragmentedMp4Extractor implements Extractor {
    * <p>
    * This flag does nothing if the stream is not a video stream.
    */
-  public static final int FLAG_WORKAROUND_EVERY_VIDEO_FRAME_IS_SYNC_FRAME = 1;
+  private static final int FLAG_WORKAROUND_EVERY_VIDEO_FRAME_IS_SYNC_FRAME = 1;
   /**
    * Flag to ignore any tfdt boxes in the stream.
    */
-  public static final int FLAG_WORKAROUND_IGNORE_TFDT_BOX = 2;
+  private static final int FLAG_WORKAROUND_IGNORE_TFDT_BOX = 2;
   /**
    * Flag to indicate that the extractor should output an event message metadata track. Any event
    * messages in the stream will be delivered as samples to this track.
    */
-  public static final int FLAG_ENABLE_EMSG_TRACK = 4;
+  private static final int FLAG_ENABLE_EMSG_TRACK = 4;
   /**
    * Flag to indicate that the {@link Track} was sideloaded, instead of being declared by the MP4
    * container.
@@ -101,7 +101,7 @@ public final class FragmentedMp4Extractor implements Extractor {
   /**
    * Flag to ignore any edit lists in the stream.
    */
-  public static final int FLAG_WORKAROUND_IGNORE_EDIT_LISTS = 16;
+  private static final int FLAG_WORKAROUND_IGNORE_EDIT_LISTS = 16;
 
   private static final String TAG = "FragmentedMp4Extractor";
   private static final int SAMPLE_GROUP_TYPE_seig = Util.getIntegerCodeForString("seig");
@@ -171,14 +171,14 @@ public final class FragmentedMp4Extractor implements Extractor {
   // Whether extractorOutput.seekMap has been called.
   private boolean haveOutputSeekMap;
 
-  public FragmentedMp4Extractor() {
+  private FragmentedMp4Extractor() {
     this(0);
   }
 
   /**
    * @param flags Flags that control the extractor's behavior.
    */
-  public FragmentedMp4Extractor(@Flags int flags) {
+  private FragmentedMp4Extractor(@Flags int flags) {
     this(flags, null);
   }
 
@@ -186,7 +186,7 @@ public final class FragmentedMp4Extractor implements Extractor {
    * @param flags Flags that control the extractor's behavior.
    * @param timestampAdjuster Adjusts sample timestamps. May be null if no adjustment is needed.
    */
-  public FragmentedMp4Extractor(@Flags int flags, @Nullable TimestampAdjuster timestampAdjuster) {
+  private FragmentedMp4Extractor(@Flags int flags, @Nullable TimestampAdjuster timestampAdjuster) {
     this(flags, timestampAdjuster, null, null);
   }
 
@@ -198,11 +198,11 @@ public final class FragmentedMp4Extractor implements Extractor {
    * @param sideloadedDrmInitData The {@link DrmInitData} to use for encrypted tracks. If null, the
    *     pssh boxes (if present) will be used.
    */
-  public FragmentedMp4Extractor(
-      @Flags int flags,
-      @Nullable TimestampAdjuster timestampAdjuster,
-      @Nullable Track sideloadedTrack,
-      @Nullable DrmInitData sideloadedDrmInitData) {
+  private FragmentedMp4Extractor(
+          @Flags int flags,
+          @Nullable TimestampAdjuster timestampAdjuster,
+          @Nullable Track sideloadedTrack,
+          @Nullable DrmInitData sideloadedDrmInitData) {
     this(flags, timestampAdjuster, sideloadedTrack, sideloadedDrmInitData,
         Collections.<Format>emptyList());
   }
@@ -217,12 +217,12 @@ public final class FragmentedMp4Extractor implements Extractor {
    * @param closedCaptionFormats For tracks that contain SEI messages, the formats of the closed
    *     caption channels to expose.
    */
-  public FragmentedMp4Extractor(
-      @Flags int flags,
-      @Nullable TimestampAdjuster timestampAdjuster,
-      @Nullable Track sideloadedTrack,
-      @Nullable DrmInitData sideloadedDrmInitData,
-      List<Format> closedCaptionFormats) {
+  private FragmentedMp4Extractor(
+          @Flags int flags,
+          @Nullable TimestampAdjuster timestampAdjuster,
+          @Nullable Track sideloadedTrack,
+          @Nullable DrmInitData sideloadedDrmInitData,
+          List<Format> closedCaptionFormats) {
     this(flags, timestampAdjuster, sideloadedTrack, sideloadedDrmInitData,
         closedCaptionFormats, null);
   }
@@ -240,13 +240,13 @@ public final class FragmentedMp4Extractor implements Extractor {
    *     targeting the player, even if {@link #FLAG_ENABLE_EMSG_TRACK} is not set. Null if special
    *     handling of emsg messages for players is not required.
    */
-  public FragmentedMp4Extractor(
-      @Flags int flags,
-      @Nullable TimestampAdjuster timestampAdjuster,
-      @Nullable Track sideloadedTrack,
-      @Nullable DrmInitData sideloadedDrmInitData,
-      List<Format> closedCaptionFormats,
-      @Nullable TrackOutput additionalEmsgTrackOutput) {
+  private FragmentedMp4Extractor(
+          @Flags int flags,
+          @Nullable TimestampAdjuster timestampAdjuster,
+          @Nullable Track sideloadedTrack,
+          @Nullable DrmInitData sideloadedDrmInitData,
+          List<Format> closedCaptionFormats,
+          @Nullable TrackOutput additionalEmsgTrackOutput) {
     this.flags = flags | (sideloadedTrack != null ? FLAG_SIDELOADED : 0);
     this.timestampAdjuster = timestampAdjuster;
     this.sideloadedTrack = sideloadedTrack;
@@ -1385,10 +1385,10 @@ public final class FragmentedMp4Extractor implements Extractor {
    */
   private static final class MetadataSampleInfo {
 
-    public final long presentationTimeDeltaUs;
-    public final int size;
+    final long presentationTimeDeltaUs;
+    final int size;
 
-    public MetadataSampleInfo(long presentationTimeDeltaUs, int size) {
+    MetadataSampleInfo(long presentationTimeDeltaUs, int size) {
       this.presentationTimeDeltaUs = presentationTimeDeltaUs;
       this.size = size;
     }
@@ -1400,34 +1400,34 @@ public final class FragmentedMp4Extractor implements Extractor {
    */
   private static final class TrackBundle {
 
-    public final TrackOutput output;
-    public final TrackFragment fragment;
+    final TrackOutput output;
+    final TrackFragment fragment;
 
-    public Track track;
-    public DefaultSampleValues defaultSampleValues;
-    public int currentSampleIndex;
-    public int currentSampleInTrackRun;
-    public int currentTrackRunIndex;
-    public int firstSampleToOutputIndex;
+    Track track;
+    DefaultSampleValues defaultSampleValues;
+    int currentSampleIndex;
+    int currentSampleInTrackRun;
+    int currentTrackRunIndex;
+    int firstSampleToOutputIndex;
 
     private final ParsableByteArray encryptionSignalByte;
     private final ParsableByteArray defaultInitializationVector;
 
-    public TrackBundle(TrackOutput output) {
+    TrackBundle(TrackOutput output) {
       this.output = output;
       fragment = new TrackFragment();
       encryptionSignalByte = new ParsableByteArray(1);
       defaultInitializationVector = new ParsableByteArray();
     }
 
-    public void init(Track track, DefaultSampleValues defaultSampleValues) {
+    void init(Track track, DefaultSampleValues defaultSampleValues) {
       this.track = Assertions.checkNotNull(track);
       this.defaultSampleValues = Assertions.checkNotNull(defaultSampleValues);
       output.format(track.format);
       reset();
     }
 
-    public void updateDrmInitData(DrmInitData drmInitData) {
+    void updateDrmInitData(DrmInitData drmInitData) {
       TrackEncryptionBox encryptionBox =
           track.getSampleDescriptionEncryptionBox(fragment.header.sampleDescriptionIndex);
       String schemeType = encryptionBox != null ? encryptionBox.schemeType : null;
@@ -1435,7 +1435,7 @@ public final class FragmentedMp4Extractor implements Extractor {
     }
 
     /** Resets the current fragment and sample indices. */
-    public void reset() {
+    void reset() {
       fragment.reset();
       currentSampleIndex = 0;
       currentTrackRunIndex = 0;
@@ -1449,7 +1449,7 @@ public final class FragmentedMp4Extractor implements Extractor {
      *
      * @param timeUs The seek time, in microseconds.
      */
-    public void seek(long timeUs) {
+    void seek(long timeUs) {
       long timeMs = C.usToMs(timeUs);
       int searchIndex = currentSampleIndex;
       while (searchIndex < fragment.sampleCount
@@ -1469,7 +1469,7 @@ public final class FragmentedMp4Extractor implements Extractor {
      *
      * @return Whether the next sample is in the same track run as the previous one.
      */
-    public boolean next() {
+    boolean next() {
       currentSampleIndex++;
       currentSampleInTrackRun++;
       if (currentSampleInTrackRun == fragment.trunLength[currentTrackRunIndex]) {
@@ -1485,7 +1485,7 @@ public final class FragmentedMp4Extractor implements Extractor {
      *
      * @return The number of written bytes.
      */
-    public int outputSampleEncryptionData() {
+    int outputSampleEncryptionData() {
       if (!fragment.definesEncryptionData) {
         return 0;
       }

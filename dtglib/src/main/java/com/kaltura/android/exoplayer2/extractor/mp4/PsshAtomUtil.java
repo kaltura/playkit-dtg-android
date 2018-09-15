@@ -189,7 +189,7 @@ public final class PsshAtomUtil {
     private final int version;
     private final byte[] schemeData;
 
-    public PsshAtom(UUID uuid, int version, byte[] schemeData) {
+    PsshAtom(UUID uuid, int version, byte[] schemeData) {
       this.uuid = uuid;
       this.version = version;
       this.schemeData = schemeData;

@@ -68,12 +68,12 @@ public final class ParsingLoadable<T> implements Loader.Loadable {
   /**
    * The {@link DataSpec} that defines the data to be loaded.
    */
-  public final DataSpec dataSpec;
+  private final DataSpec dataSpec;
   /**
    * The type of the data. One of the {@code DATA_TYPE_*} constants defined in {@link C}. For
    * reporting only.
    */
-  public final int type;
+  private final int type;
 
   private final DataSource dataSource;
   private final Parser<? extends T> parser;
@@ -87,7 +87,7 @@ public final class ParsingLoadable<T> implements Loader.Loadable {
    * @param type See {@link #type}.
    * @param parser Parses the object from the response.
    */
-  public ParsingLoadable(DataSource dataSource, Uri uri, int type, Parser<? extends T> parser) {
+  private ParsingLoadable(DataSource dataSource, Uri uri, int type, Parser<? extends T> parser) {
     this(
         dataSource,
         new DataSpec(uri, DataSpec.FLAG_ALLOW_GZIP | DataSpec.FLAG_ALLOW_CACHING_UNKNOWN_LENGTH),
@@ -101,8 +101,8 @@ public final class ParsingLoadable<T> implements Loader.Loadable {
    * @param type See {@link #type}.
    * @param parser Parses the object from the response.
    */
-  public ParsingLoadable(DataSource dataSource, DataSpec dataSpec, int type,
-      Parser<? extends T> parser) {
+  private ParsingLoadable(DataSource dataSource, DataSpec dataSpec, int type,
+                          Parser<? extends T> parser) {
     this.dataSource = dataSource;
     this.dataSpec = dataSpec;
     this.type = type;
@@ -112,7 +112,7 @@ public final class ParsingLoadable<T> implements Loader.Loadable {
   /**
    * Returns the loaded object, or null if an object has not been loaded.
    */
-  public final T getResult() {
+  final T getResult() {
     return result;
   }
 

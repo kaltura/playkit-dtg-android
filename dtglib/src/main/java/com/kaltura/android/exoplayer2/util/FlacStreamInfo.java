@@ -22,14 +22,14 @@ import com.kaltura.android.exoplayer2.C;
  */
 public final class FlacStreamInfo {
 
-  public final int minBlockSize;
-  public final int maxBlockSize;
-  public final int minFrameSize;
-  public final int maxFrameSize;
+  private final int minBlockSize;
+  private final int maxBlockSize;
+  private final int minFrameSize;
+  private final int maxFrameSize;
   public final int sampleRate;
   public final int channels;
-  public final int bitsPerSample;
-  public final long totalSamples;
+  private final int bitsPerSample;
+  private final long totalSamples;
 
   /**
    * Constructs a FlacStreamInfo parsing the given binary FLAC stream info metadata structure.

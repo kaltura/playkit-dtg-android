@@ -55,7 +55,7 @@ public final class AesCipherDataSink implements DataSink {
    *     write is larger than the size of this array the write will still succeed, but multiple
    *     cipher calls will be required to complete the operation.
    */
-  public AesCipherDataSink(byte[] secretKey, DataSink wrappedDataSink, byte[] scratch) {
+  private AesCipherDataSink(byte[] secretKey, DataSink wrappedDataSink, byte[] scratch) {
     this.wrappedDataSink = wrappedDataSink;
     this.secretKey = secretKey;
     this.scratch = scratch;

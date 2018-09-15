@@ -50,7 +50,7 @@ public class CacheSpan implements Comparable<CacheSpan> {
   /**
    * The last access timestamp, or {@link C#TIME_UNSET} if {@link #isCached} is false.
    */
-  public final long lastAccessTimestamp;
+  private final long lastAccessTimestamp;
 
   /**
    * Creates a hole CacheSpan which isn't cached, has no last access time and no file associated.
@@ -75,8 +75,8 @@ public class CacheSpan implements Comparable<CacheSpan> {
    *     #isCached} is false.
    * @param file The file corresponding to this {@link CacheSpan}, or null if it's a hole.
    */
-  public CacheSpan(
-      String key, long position, long length, long lastAccessTimestamp, @Nullable File file) {
+  CacheSpan(
+          String key, long position, long length, long lastAccessTimestamp, @Nullable File file) {
     this.key = key;
     this.position = position;
     this.length = length;

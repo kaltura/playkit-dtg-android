@@ -28,7 +28,7 @@ import java.util.Set;
 /**
  * An interface for cache.
  */
-public interface Cache {
+interface Cache {
 
   /**
    * Listener of {@link Cache} events.

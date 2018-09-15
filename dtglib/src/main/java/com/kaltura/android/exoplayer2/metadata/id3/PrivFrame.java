@@ -28,10 +28,10 @@ import java.util.Arrays;
  */
 public final class PrivFrame extends Id3Frame {
 
-  public static final String ID = "PRIV";
+  private static final String ID = "PRIV";
 
-  public final String owner;
-  public final byte[] privateData;
+  private final String owner;
+  private final byte[] privateData;
 
   public PrivFrame(String owner, byte[] privateData) {
     super(ID);
@@ -39,7 +39,8 @@ public final class PrivFrame extends Id3Frame {
     this.privateData = privateData;
   }
 
-  /* package */ PrivFrame(Parcel in) {
+  /* package */
+  private PrivFrame(Parcel in) {
     super(ID);
     owner = in.readString();
     privateData = in.createByteArray();

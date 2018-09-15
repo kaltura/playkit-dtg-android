@@ -145,7 +145,7 @@ import java.util.List;
 
   public final int type;
 
-  public Atom(int type) {
+  Atom(int type) {
     this.type = type;
   }
 

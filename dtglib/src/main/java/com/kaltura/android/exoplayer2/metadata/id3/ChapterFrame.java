@@ -28,19 +28,19 @@ import java.util.Arrays;
  */
 public final class ChapterFrame extends Id3Frame {
 
-  public static final String ID = "CHAP";
+  private static final String ID = "CHAP";
 
-  public final String chapterId;
-  public final int startTimeMs;
-  public final int endTimeMs;
+  private final String chapterId;
+  private final int startTimeMs;
+  private final int endTimeMs;
   /**
    * The byte offset of the start of the chapter, or {@link C#POSITION_UNSET} if not set.
    */
-  public final long startOffset;
+  private final long startOffset;
   /**
    * The byte offset of the end of the chapter, or {@link C#POSITION_UNSET} if not set.
    */
-  public final long endOffset;
+  private final long endOffset;
   private final Id3Frame[] subFrames;
 
   public ChapterFrame(String chapterId, int startTimeMs, int endTimeMs, long startOffset,
@@ -54,7 +54,8 @@ public final class ChapterFrame extends Id3Frame {
     this.subFrames = subFrames;
   }
 
-  /* package */ ChapterFrame(Parcel in) {
+  /* package */
+  private ChapterFrame(Parcel in) {
     super(ID);
     this.chapterId = in.readString();
     this.startTimeMs = in.readInt();

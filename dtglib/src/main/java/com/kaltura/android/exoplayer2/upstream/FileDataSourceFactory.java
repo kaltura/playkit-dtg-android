@@ -26,7 +26,7 @@ public final class FileDataSourceFactory implements DataSource.Factory {
     this(null);
   }
 
-  public FileDataSourceFactory(TransferListener<? super FileDataSource> listener) {
+  private FileDataSourceFactory(TransferListener<? super FileDataSource> listener) {
     this.listener = listener;
   }
 

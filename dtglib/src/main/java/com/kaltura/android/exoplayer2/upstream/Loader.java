@@ -41,9 +41,9 @@ public final class Loader implements LoaderErrorThrower {
   /**
    * Thrown when an unexpected exception or error is encountered during loading.
    */
-  public static final class UnexpectedLoaderException extends IOException {
+  static final class UnexpectedLoaderException extends IOException {
 
-    public UnexpectedLoaderException(Throwable cause) {
+    UnexpectedLoaderException(Throwable cause) {
       super("Unexpected " + cause.getClass().getSimpleName() + ": " + cause.getMessage(), cause);
     }
 
@@ -72,7 +72,7 @@ public final class Loader implements LoaderErrorThrower {
   /**
    * A callback to be notified of {@link Loader} events.
    */
-  public interface Callback<T extends Loadable> {
+  interface Callback<T extends Loadable> {
 
     /**
      * Called when a load has completed.
@@ -123,7 +123,7 @@ public final class Loader implements LoaderErrorThrower {
   /**
    * A callback to be notified when a {@link Loader} has finished being released.
    */
-  public interface ReleaseCallback {
+  interface ReleaseCallback {
 
     /**
      * Called when the {@link Loader} has finished being released.
@@ -135,12 +135,12 @@ public final class Loader implements LoaderErrorThrower {
   /** Actions that can be taken in response to a load error. */
   @Retention(RetentionPolicy.SOURCE)
   @IntDef({RETRY, RETRY_RESET_ERROR_COUNT, DONT_RETRY, DONT_RETRY_FATAL})
-  public @interface RetryAction {}
+  private @interface RetryAction {}
 
-  public static final int RETRY = 0;
-  public static final int RETRY_RESET_ERROR_COUNT = 1;
-  public static final int DONT_RETRY = 2;
-  public static final int DONT_RETRY_FATAL = 3;
+  private static final int RETRY = 0;
+  private static final int RETRY_RESET_ERROR_COUNT = 1;
+  private static final int DONT_RETRY = 2;
+  private static final int DONT_RETRY_FATAL = 3;
 
   private final ExecutorService downloadExecutorService;
 
@@ -207,7 +207,7 @@ public final class Loader implements LoaderErrorThrower {
    * @param callback An optional callback to be called on the loading thread once the loader has
    *     been released.
    */
-  public void release(@Nullable ReleaseCallback callback) {
+  private void release(@Nullable ReleaseCallback callback) {
     if (currentTask != null) {
       currentTask.cancel(true);
     }
@@ -247,7 +247,7 @@ public final class Loader implements LoaderErrorThrower {
     private static final int MSG_IO_EXCEPTION = 3;
     private static final int MSG_FATAL_ERROR = 4;
 
-    public final int defaultMinRetryCount;
+    final int defaultMinRetryCount;
 
     private final T loadable;
     private final long startTimeMs;
@@ -260,8 +260,8 @@ public final class Loader implements LoaderErrorThrower {
     private volatile boolean canceled;
     private volatile boolean released;
 
-    public LoadTask(Looper looper, T loadable, Loader.Callback<T> callback,
-        int defaultMinRetryCount, long startTimeMs) {
+    LoadTask(Looper looper, T loadable, Loader.Callback<T> callback,
+             int defaultMinRetryCount, long startTimeMs) {
       super(looper);
       this.loadable = loadable;
       this.callback = callback;
@@ -269,13 +269,13 @@ public final class Loader implements LoaderErrorThrower {
       this.startTimeMs = startTimeMs;
     }
 
-    public void maybeThrowError(int minRetryCount) throws IOException {
+    void maybeThrowError(int minRetryCount) throws IOException {
       if (currentError != null && errorCount > minRetryCount) {
         throw currentError;
       }
     }
 
-    public void start(long delayMillis) {
+    void start(long delayMillis) {
       Assertions.checkState(currentTask == null);
       currentTask = this;
       if (delayMillis > 0) {
@@ -285,7 +285,7 @@ public final class Loader implements LoaderErrorThrower {
       }
     }
 
-    public void cancel(boolean released) {
+    void cancel(boolean released) {
       this.released = released;
       currentError = null;
       if (hasMessages(MSG_START)) {
@@ -430,7 +430,7 @@ public final class Loader implements LoaderErrorThrower {
 
     private final ReleaseCallback callback;
 
-    public ReleaseTask(ReleaseCallback callback) {
+    ReleaseTask(ReleaseCallback callback) {
       this.callback = callback;
     }
 

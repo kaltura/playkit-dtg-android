@@ -26,9 +26,9 @@ public abstract class Id3Frame implements Metadata.Entry {
   /**
    * The frame ID.
    */
-  public final String id;
+  final String id;
 
-  public Id3Frame(String id) {
+  Id3Frame(String id) {
     this.id = Assertions.checkNotNull(id);
   }
 

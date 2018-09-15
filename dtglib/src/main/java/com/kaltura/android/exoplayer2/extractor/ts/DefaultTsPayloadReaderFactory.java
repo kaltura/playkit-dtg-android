@@ -42,12 +42,12 @@ public final class DefaultTsPayloadReaderFactory implements TsPayloadReader.Fact
       FLAG_IGNORE_H264_STREAM, FLAG_DETECT_ACCESS_UNITS, FLAG_IGNORE_SPLICE_INFO_STREAM,
       FLAG_OVERRIDE_CAPTION_DESCRIPTORS})
   public @interface Flags {}
-  public static final int FLAG_ALLOW_NON_IDR_KEYFRAMES = 1;
-  public static final int FLAG_IGNORE_AAC_STREAM = 1 << 1;
-  public static final int FLAG_IGNORE_H264_STREAM = 1 << 2;
-  public static final int FLAG_DETECT_ACCESS_UNITS = 1 << 3;
-  public static final int FLAG_IGNORE_SPLICE_INFO_STREAM = 1 << 4;
-  public static final int FLAG_OVERRIDE_CAPTION_DESCRIPTORS = 1 << 5;
+  private static final int FLAG_ALLOW_NON_IDR_KEYFRAMES = 1;
+  private static final int FLAG_IGNORE_AAC_STREAM = 1 << 1;
+  private static final int FLAG_IGNORE_H264_STREAM = 1 << 2;
+  private static final int FLAG_DETECT_ACCESS_UNITS = 1 << 3;
+  private static final int FLAG_IGNORE_SPLICE_INFO_STREAM = 1 << 4;
+  private static final int FLAG_OVERRIDE_CAPTION_DESCRIPTORS = 1 << 5;
 
   private static final int DESCRIPTOR_TAG_CAPTION_SERVICE = 0x86;
 
@@ -76,7 +76,7 @@ public final class DefaultTsPayloadReaderFactory implements TsPayloadReader.Fact
    *     closed caption track with {@link Format#accessibilityChannel} {@link Format#NO_VALUE} will
    *     be exposed.
    */
-  public DefaultTsPayloadReaderFactory(@Flags int flags, List<Format> closedCaptionFormats) {
+  private DefaultTsPayloadReaderFactory(@Flags int flags, List<Format> closedCaptionFormats) {
     this.flags = flags;
     if (!isSet(FLAG_OVERRIDE_CAPTION_DESCRIPTORS) && closedCaptionFormats.isEmpty()) {
       closedCaptionFormats = Collections.singletonList(Format.createTextSampleFormat(null,

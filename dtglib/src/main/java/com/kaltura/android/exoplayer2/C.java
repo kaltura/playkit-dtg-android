@@ -110,7 +110,7 @@ public final class C {
   /**
    * @see MediaCodec#CRYPTO_MODE_UNENCRYPTED
    */
-  public static final int CRYPTO_MODE_UNENCRYPTED = MediaCodec.CRYPTO_MODE_UNENCRYPTED;
+  private static final int CRYPTO_MODE_UNENCRYPTED = MediaCodec.CRYPTO_MODE_UNENCRYPTED;
   /**
    * @see MediaCodec#CRYPTO_MODE_AES_CTR
    */
@@ -235,7 +235,7 @@ public final class C {
   /**
    * @see android.media.AudioAttributes#CONTENT_TYPE_MOVIE
    */
-  public static final int CONTENT_TYPE_MOVIE = android.media.AudioAttributes.CONTENT_TYPE_MOVIE;
+  private static final int CONTENT_TYPE_MOVIE = android.media.AudioAttributes.CONTENT_TYPE_MOVIE;
   /**
    * @see android.media.AudioAttributes#CONTENT_TYPE_MUSIC
    */
@@ -268,7 +268,7 @@ public final class C {
   /**
    * @see android.media.AudioAttributes#FLAG_AUDIBILITY_ENFORCED
    */
-  public static final int FLAG_AUDIBILITY_ENFORCED =
+  private static final int FLAG_AUDIBILITY_ENFORCED =
       android.media.AudioAttributes.FLAG_AUDIBILITY_ENFORCED;
 
   /**
@@ -544,7 +544,7 @@ public final class C {
   /**
    * A default size in bytes for an individual allocation that forms part of a larger buffer.
    */
-  public static final int DEFAULT_BUFFER_SEGMENT_SIZE = 64 * 1024;
+  private static final int DEFAULT_BUFFER_SEGMENT_SIZE = 64 * 1024;
 
   /**
    * A default size in bytes for a video buffer.
@@ -666,15 +666,15 @@ public final class C {
   /**
    * @see MediaFormat#COLOR_STANDARD_BT709
    */
-  public static final int COLOR_SPACE_BT709 = MediaFormat.COLOR_STANDARD_BT709;
+  private static final int COLOR_SPACE_BT709 = MediaFormat.COLOR_STANDARD_BT709;
   /**
    * @see MediaFormat#COLOR_STANDARD_BT601_PAL
    */
-  public static final int COLOR_SPACE_BT601 = MediaFormat.COLOR_STANDARD_BT601_PAL;
+  private static final int COLOR_SPACE_BT601 = MediaFormat.COLOR_STANDARD_BT601_PAL;
   /**
    * @see MediaFormat#COLOR_STANDARD_BT2020
    */
-  public static final int COLOR_SPACE_BT2020 = MediaFormat.COLOR_STANDARD_BT2020;
+  private static final int COLOR_SPACE_BT2020 = MediaFormat.COLOR_STANDARD_BT2020;
 
   /**
    * Video color transfer characteristics.
@@ -685,15 +685,15 @@ public final class C {
   /**
    * @see MediaFormat#COLOR_TRANSFER_SDR_VIDEO
    */
-  public static final int COLOR_TRANSFER_SDR = MediaFormat.COLOR_TRANSFER_SDR_VIDEO;
+  private static final int COLOR_TRANSFER_SDR = MediaFormat.COLOR_TRANSFER_SDR_VIDEO;
   /**
    * @see MediaFormat#COLOR_TRANSFER_ST2084
    */
-  public static final int COLOR_TRANSFER_ST2084 = MediaFormat.COLOR_TRANSFER_ST2084;
+  private static final int COLOR_TRANSFER_ST2084 = MediaFormat.COLOR_TRANSFER_ST2084;
   /**
    * @see MediaFormat#COLOR_TRANSFER_HLG
    */
-  public static final int COLOR_TRANSFER_HLG = MediaFormat.COLOR_TRANSFER_HLG;
+  private static final int COLOR_TRANSFER_HLG = MediaFormat.COLOR_TRANSFER_HLG;
 
   /**
    * Video color range.
@@ -704,18 +704,18 @@ public final class C {
   /**
    * @see MediaFormat#COLOR_RANGE_LIMITED
    */
-  public static final int COLOR_RANGE_LIMITED = MediaFormat.COLOR_RANGE_LIMITED;
+  private static final int COLOR_RANGE_LIMITED = MediaFormat.COLOR_RANGE_LIMITED;
   /**
    * @see MediaFormat#COLOR_RANGE_FULL
    */
-  public static final int COLOR_RANGE_FULL = MediaFormat.COLOR_RANGE_FULL;
+  private static final int COLOR_RANGE_FULL = MediaFormat.COLOR_RANGE_FULL;
 
   /**
    * Priority for media playback.
    *
    * <p>Larger values indicate higher priorities.
    */
-  public static final int PRIORITY_PLAYBACK = 0;
+  private static final int PRIORITY_PLAYBACK = 0;
 
   /**
    * Priority for media downloading.

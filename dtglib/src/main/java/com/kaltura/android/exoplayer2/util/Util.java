@@ -1134,7 +1134,7 @@ public final class Util {
    * @return The content type.
    */
   @C.ContentType
-  public static int inferContentType(Uri uri) {
+  private static int inferContentType(Uri uri) {
     String path = uri.getPath();
     return path == null ? C.TYPE_OTHER : inferContentType(path);
   }
@@ -1146,7 +1146,7 @@ public final class Util {
    * @return The content type.
    */
   @C.ContentType
-  public static int inferContentType(String fileName) {
+  private static int inferContentType(String fileName) {
     fileName = Util.toLowerInvariant(fileName);
     if (fileName.endsWith(".mpd")) {
       return C.TYPE_DASH;
@@ -1317,7 +1317,7 @@ public final class Util {
   }
 
   /** Recursively deletes a directory and its content. */
-  public static void recursiveDelete(File fileOrDirectory) {
+  private static void recursiveDelete(File fileOrDirectory) {
     if (fileOrDirectory.isDirectory()) {
       for (File child : fileOrDirectory.listFiles()) {
         recursiveDelete(child);
@@ -1335,7 +1335,7 @@ public final class Util {
   }
 
   /** Creates a new empty file in the directory returned by {@link Context#getCacheDir()}. */
-  public static File createTempFile(Context context, String prefix) throws IOException {
+  private static File createTempFile(Context context, String prefix) throws IOException {
     return File.createTempFile(prefix, null, context.getCacheDir());
   }
 
@@ -1375,7 +1375,7 @@ public final class Util {
    * @param display The display whose size is to be returned.
    * @return The physical display size, in pixels.
    */
-  public static Point getPhysicalDisplaySize(Context context, Display display) {
+  private static Point getPhysicalDisplaySize(Context context, Display display) {
     if (Util.SDK_INT < 25 && display.getDisplayId() == Display.DEFAULT_DISPLAY) {
       // Before API 25 the Display object does not provide a working way to identify Android TVs
       // that can show 4k resolution in a SurfaceView, so check for supported devices here.

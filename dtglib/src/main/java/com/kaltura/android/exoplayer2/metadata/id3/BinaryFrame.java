@@ -25,14 +25,15 @@ import java.util.Arrays;
  */
 public final class BinaryFrame extends Id3Frame {
 
-  public final byte[] data;
+  private final byte[] data;
 
   public BinaryFrame(String id, byte[] data) {
     super(id);
     this.data = data;
   }
 
-  /* package */ BinaryFrame(Parcel in) {
+  /* package */
+  private BinaryFrame(Parcel in) {
     super(in.readString());
     data = in.createByteArray();
   }

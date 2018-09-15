@@ -29,12 +29,12 @@ public final class RangedUri {
   /**
    * The (zero based) index of the first byte of the range.
    */
-  public final long start;
+  private final long start;
 
   /**
    * The length of the range, or {@link C#LENGTH_UNSET} to indicate that the range is unbounded.
    */
-  public final long length;
+  private final long length;
 
   private final String referenceUri;
 
@@ -70,7 +70,7 @@ public final class RangedUri {
    * @param baseUri The base Uri.
    * @return The uri represented by the instance.
    */
-  public String resolveUriString(String baseUri) {
+  private String resolveUriString(String baseUri) {
     return UriUtil.resolve(baseUri, referenceUri);
   }
 
