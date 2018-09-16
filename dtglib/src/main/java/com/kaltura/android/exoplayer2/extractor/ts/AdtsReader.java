@@ -88,13 +88,6 @@ public final class AdtsReader implements ElementaryStreamReader {
 
   /**
    * @param exposeId3 True if the reader should expose ID3 information.
-   */
-  public AdtsReader(boolean exposeId3) {
-    this(exposeId3, null);
-  }
-
-  /**
-   * @param exposeId3 True if the reader should expose ID3 information.
    * @param language Track language.
    */
   public AdtsReader(boolean exposeId3, String language) {

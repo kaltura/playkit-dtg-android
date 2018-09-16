@@ -55,11 +55,7 @@ public final class MpegAudioReader implements ElementaryStreamReader {
   // The timestamp to attach to the next sample in the current packet.
   private long timeUs;
 
-  public MpegAudioReader() {
-    this(null);
-  }
-
-  public MpegAudioReader(String language) {
+    public MpegAudioReader(String language) {
     state = STATE_FINDING_HEADER;
     // The first byte of an MPEG Audio frame header is always 0xFF.
     headerScratch = new ParsableByteArray(4);

@@ -18,8 +18,6 @@ package com.kaltura.android.exoplayer2;
 import com.kaltura.android.exoplayer2.util.Assertions;
 import com.kaltura.android.exoplayer2.util.TraceUtil;
 
-import java.util.HashSet;
-
 /**
  * Information about the ExoPlayer library.
  */
@@ -60,27 +58,8 @@ public final class ExoPlayerLibraryInfo {
    */
   public static final boolean TRACE_ENABLED = true;
 
-  private static final HashSet<String> registeredModules = new HashSet<>();
-  private static String registeredModulesString = "goog.exo.core";
+    private static String registeredModulesString = "goog.exo.core";
 
   private ExoPlayerLibraryInfo() {} // Prevents instantiation.
-
-  /**
-   * Returns a string consisting of registered module names separated by ", ".
-   */
-  public static synchronized String registeredModules() {
-    return registeredModulesString;
-  }
-
-  /**
-   * Registers a module to be returned in the {@link #registeredModules()} string.
-   *
-   * @param name The name of the module being registered.
-   */
-  public static synchronized void registerModule(String name) {
-    if (registeredModules.add(name)) {
-      registeredModulesString = registeredModulesString + ", " + name;
-    }
-  }
 
 }

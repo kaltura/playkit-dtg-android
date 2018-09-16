@@ -15,12 +15,7 @@
  */
 package com.kaltura.android.exoplayer2.extractor.mp4;
 
-import com.kaltura.android.exoplayer2.util.ParsableByteArray;
 import com.kaltura.android.exoplayer2.util.Util;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /* package*/ abstract class Atom {
 
@@ -155,153 +150,13 @@ import java.util.List;
   }
 
   /**
-   * An MP4 atom that is a leaf.
-   */
-  /* package */ static final class LeafAtom extends Atom {
-
-    /**
-     * The atom data.
-     */
-    public final ParsableByteArray data;
-
-    /**
-     * @param type The type of the atom.
-     * @param data The atom data.
-     */
-    public LeafAtom(int type, ParsableByteArray data) {
-      super(type);
-      this.data = data;
-    }
-
-  }
-
-  /**
-   * An MP4 atom that has child atoms.
-   */
-  /* package */ static final class ContainerAtom extends Atom {
-
-    public final long endPosition;
-    public final List<LeafAtom> leafChildren;
-    public final List<ContainerAtom> containerChildren;
-
-    /**
-     * @param type The type of the atom.
-     * @param endPosition The position of the first byte after the end of the atom.
-     */
-    public ContainerAtom(int type, long endPosition) {
-      super(type);
-      this.endPosition = endPosition;
-      leafChildren = new ArrayList<>();
-      containerChildren = new ArrayList<>();
-    }
-
-    /**
-     * Adds a child leaf to this container.
-     *
-     * @param atom The child to add.
-     */
-    public void add(LeafAtom atom) {
-      leafChildren.add(atom);
-    }
-
-    /**
-     * Adds a child container to this container.
-     *
-     * @param atom The child to add.
-     */
-    public void add(ContainerAtom atom) {
-      containerChildren.add(atom);
-    }
-
-    /**
-     * Returns the child leaf of the given type.
-     * <p>
-     * If no child exists with the given type then null is returned. If multiple children exist with
-     * the given type then the first one to have been added is returned.
-     *
-     * @param type The leaf type.
-     * @return The child leaf of the given type, or null if no such child exists.
-     */
-    public LeafAtom getLeafAtomOfType(int type) {
-      int childrenSize = leafChildren.size();
-      for (int i = 0; i < childrenSize; i++) {
-        LeafAtom atom = leafChildren.get(i);
-        if (atom.type == type) {
-          return atom;
-        }
-      }
-      return null;
-    }
-
-    /**
-     * Returns the child container of the given type.
-     * <p>
-     * If no child exists with the given type then null is returned. If multiple children exist with
-     * the given type then the first one to have been added is returned.
-     *
-     * @param type The container type.
-     * @return The child container of the given type, or null if no such child exists.
-     */
-    public ContainerAtom getContainerAtomOfType(int type) {
-      int childrenSize = containerChildren.size();
-      for (int i = 0; i < childrenSize; i++) {
-        ContainerAtom atom = containerChildren.get(i);
-        if (atom.type == type) {
-          return atom;
-        }
-      }
-      return null;
-    }
-
-    /**
-     * Returns the total number of leaf/container children of this atom with the given type.
-     *
-     * @param type The type of child atoms to count.
-     * @return The total number of leaf/container children of this atom with the given type.
-     */
-    public int getChildAtomOfTypeCount(int type) {
-      int count = 0;
-      int size = leafChildren.size();
-      for (int i = 0; i < size; i++) {
-        LeafAtom atom = leafChildren.get(i);
-        if (atom.type == type) {
-          count++;
-        }
-      }
-      size = containerChildren.size();
-      for (int i = 0; i < size; i++) {
-        ContainerAtom atom = containerChildren.get(i);
-        if (atom.type == type) {
-          count++;
-        }
-      }
-      return count;
-    }
-
-    @Override
-    public String toString() {
-      return getAtomTypeString(type)
-          + " leaves: " + Arrays.toString(leafChildren.toArray())
-          + " containers: " + Arrays.toString(containerChildren.toArray());
-    }
-
-  }
-
-  /**
    * Parses the version number out of the additional integer component of a full atom.
    */
   public static int parseFullAtomVersion(int fullAtomInt) {
     return 0x000000FF & (fullAtomInt >> 24);
   }
 
-  /**
-   * Parses the atom flags out of the additional integer component of a full atom.
-   */
-  public static int parseFullAtomFlags(int fullAtomInt) {
-    return 0x00FFFFFF & fullAtomInt;
-  }
-
-  /**
+    /**
    * Converts a numeric atom type to the corresponding four character string.
    *
    * @param type The numeric atom type.
