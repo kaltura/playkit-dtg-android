@@ -38,15 +38,11 @@ public class HlsAsset {
     HlsAsset() {
     }
 
-    private static HlsPlaylist exoParse(final String url, final byte[] bytes) {
-        try {
-            return parser.parse(Uri.parse(url), new ByteArrayInputStream(bytes));
-        } catch (IOException e) {
-            throw new IllegalStateException("Not possible");
-        }
+    private static HlsPlaylist exoParse(final String url, final byte[] bytes) throws IOException {
+        return parser.parse(Uri.parse(url), new ByteArrayInputStream(bytes));
     }
 
-    public HlsAsset parse(final String masterUrl, final byte[] masterBytes) {
+    public HlsAsset parse(final String masterUrl, final byte[] masterBytes) throws IOException {
         this.masterUrl = masterUrl;
 
         final HlsMasterPlaylist masterPlaylist = (HlsMasterPlaylist) exoParse(this.masterUrl, masterBytes);
@@ -93,12 +89,12 @@ public class HlsAsset {
             super(cursor);
         }
 
-        public void parse(byte[] bytes) {
+        public void parse(byte[] bytes) throws IOException {
             this.bytes = bytes;
             parse();
         }
 
-        private void parse() {
+        private void parse() throws IOException {
             final HlsMediaPlaylist mediaPlaylist = (HlsMediaPlaylist) exoParse(url, bytes);
 
             this.durationMs = mediaPlaylist.durationUs / 1000;
@@ -150,12 +146,16 @@ public class HlsAsset {
         final int encryptionKeyLineNum;
         final String url;
         final String encryptionKeyUri;
+        final String ext;
+        final String keyExt;
 
         Chunk(HlsMediaPlaylist.Segment segment, String trackUrl) {
             this.lineNum = segment.lineNum;
             this.url = Utils.resolveUrl(trackUrl, segment.url);
             this.encryptionKeyUri = Utils.resolveUrl(trackUrl, segment.fullSegmentEncryptionKeyUri);
             this.encryptionKeyLineNum = segment.encryptionKeyLineNum;
+            ext = Utils.getExtension(segment.url);
+            keyExt = Utils.getExtension(segment.fullSegmentEncryptionKeyUri);
         }
     }
 }
