@@ -235,16 +235,8 @@ public class Utils {
     // Returns hex-encoded md5 of the input, appending the extension.
     // "a.mp4" ==> "2a1f28800d49717bbf88dc2c704f4390.mp4"
     static String getHashedFileName(String original) {
-        String ext = getFileExtension(original);
-        return md5Hex(original) + ext;
-    }
-
-    @NonNull
-    private static String getFileExtension(String pathOrURL) {
-        // if it's a URL, get only the path. Uri does this correctly, even if the argument is a simple path.
-        String path = Uri.parse(pathOrURL).getPath();
-
-        return path.substring(path.lastIndexOf('.'));
+        String ext = getExtension(original);
+        return md5Hex(original) + '.' + ext;
     }
 
     static String toBase64(byte[] data) {
@@ -319,5 +311,26 @@ public class Utils {
         private DirectoryNotCreatableException(File dir) {
             super("Can't create directory " + dir);
         }
+    }
+
+    public static String getExtension(String url) {
+
+        if (url == null) {
+            return null;
+        }
+
+        final Uri uri = Uri.parse(url);
+        if (uri == null) {
+            return null;
+        }
+
+        final String lastPathSegment = uri.getLastPathSegment();
+        if (TextUtils.isEmpty(lastPathSegment)) {
+            return "";
+        }
+
+        final int dot = lastPathSegment.lastIndexOf('.');
+
+        return dot >= 0 ? lastPathSegment.substring(dot + 1) : "";
     }
 }

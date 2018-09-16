@@ -160,10 +160,13 @@ public final class HlsPlaylistParser {
     Queue<String> extraLines = new ArrayDeque<>();
     String line;
     try {
-      if (!checkPlaylistHeader(reader)) {
+      line = reader.readLine();
+      if (line == null || !line.trim().equals(PLAYLIST_HEADER)) {
         throw new UnrecognizedInputFormatException("Input does not start with the #EXTM3U header.",
             uri);
       }
+      extraLines.add(line);
+
       while ((line = reader.readLine()) != null) {
         line = line.trim();
         extraLines.add(line);
@@ -592,7 +595,7 @@ public final class HlsPlaylistParser {
     private final Queue<String> extraLines;
 
     private String next;
-    private int lineNum = 1;  // start from 1
+    private int lineNum;
 
     LineIterator(Queue<String> extraLines, BufferedReader reader) {
       this.extraLines = extraLines;

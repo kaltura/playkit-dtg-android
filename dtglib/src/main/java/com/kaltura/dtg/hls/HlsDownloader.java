@@ -60,7 +60,7 @@ public class HlsDownloader extends AbrDownloader {
     }
 
     @Override
-    public void parseOriginManifest() {
+    public void parseOriginManifest() throws IOException {
         this.hlsAsset = new HlsAsset().parse(manifestUrl, originManifestBytes);
     }
 
@@ -84,8 +84,8 @@ public class HlsDownloader extends AbrDownloader {
             int order = 0;
             for (HlsAsset.Chunk chunk : track.chunks) {
                 order++;
-                maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.lineNum, "media", chunk.url, order);
-                maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.encryptionKeyLineNum, "key", chunk.encryptionKeyUri, order);
+                maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.lineNum, chunk.ext, chunk.url, order);
+                maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.encryptionKeyLineNum, chunk.keyExt, chunk.encryptionKeyUri, order);
             }
 
             maxDuration = Math.max(maxDuration, track.durationMs);
@@ -154,8 +154,7 @@ public class HlsDownloader extends AbrDownloader {
                 while ((line = reader.readLine()) != null) {
                     final int lineNumber = reader.getLineNumber();
                     // Fix URI
-                    final String type = HlsAsset.parser.containsEncryptionKey(line) ? "key" : "media";
-                    line = maybeReplaceUri(line, lineNumber, type);
+                    line = maybeReplaceUri(line, lineNumber);
                     writer.write(line);
                     writer.write('\n');
                 }
@@ -223,10 +222,11 @@ public class HlsDownloader extends AbrDownloader {
         return new File(getTargetDir(), LOCAL_MASTER);
     }
 
-    private String maybeReplaceUri(@NonNull String line, int lineNum, String type) {
+    private String maybeReplaceUri(@NonNull String line, int lineNum) {
 
         String uri = extractUri(line);
         if (uri != null) {
+            final String type = Utils.getExtension(uri);
             return line.replace(uri, getLocalMediaFilename(lineNum, type));
         }
         return line;
