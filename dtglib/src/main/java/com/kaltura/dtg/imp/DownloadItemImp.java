@@ -8,7 +8,7 @@ import com.kaltura.dtg.DownloadState;
 
 import java.util.Date;
 
-public class DownloadItemImp implements DownloadItem {
+class DownloadItemImp implements DownloadItem {
 
     private static final String TAG = "DownloadItemImp";
     private final String itemId;
@@ -51,7 +51,7 @@ public class DownloadItemImp implements DownloadItem {
         return contentUrl;
     }
 
-    public String getDataDir() {
+    String getDataDir() {
         return dataDir;
     }
 
@@ -63,7 +63,7 @@ public class DownloadItemImp implements DownloadItem {
         return playbackPath;
     }
 
-    public void setPlaybackPath(String playbackPath) {
+    void setPlaybackPath(String playbackPath) {
         this.playbackPath = playbackPath;
     }
 
@@ -91,7 +91,7 @@ public class DownloadItemImp implements DownloadItem {
         return durationMS;
     }
 
-    public void setDurationMS(long duration) {
+    void setDurationMS(long duration) {
         this.durationMS = duration;
     }
 
@@ -100,7 +100,7 @@ public class DownloadItemImp implements DownloadItem {
         return estimatedSizeBytes;
     }
 
-    public void setEstimatedSizeBytes(long bytes) {
+    void setEstimatedSizeBytes(long bytes) {
         estimatedSizeBytes = bytes;
     }
 
@@ -157,7 +157,7 @@ public class DownloadItemImp implements DownloadItem {
         return trackSelector;
     }
 
-    public void setTrackSelector(TrackSelector trackSelector) {
+    void setTrackSelector(TrackSelector trackSelector) {
         this.trackSelector = trackSelector;
     }
 

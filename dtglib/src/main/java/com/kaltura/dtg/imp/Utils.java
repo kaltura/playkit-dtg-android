@@ -59,11 +59,11 @@ class Utils {
         fileOrDirectory.delete();
     }
 
-    public static String format(String format, Object... args) {
+    static String format(String format, Object... args) {
         return String.format(Locale.ENGLISH, format, args);
     }
 
-    public static boolean equals(Object a, Object b) {
+    static boolean equals(Object a, Object b) {
         return (a == b) || (a != null && a.equals(b));
     }
 
@@ -248,7 +248,7 @@ class Utils {
         return fullyReadInputStream(inputStream, byteLimit).toByteArray();
     }
 
-    public static long estimateTrackSize(int trackBitrate, long durationMS) {
+    static long estimateTrackSize(int trackBitrate, long durationMS) {
         return trackBitrate * durationMS / 1000 / 8;    // first multiply, then divide
     }
 

@@ -48,7 +48,7 @@ class ServiceProxy {
         this.settings = settings;
     }
 
-    public void start(ContentManager.OnStartedListener startedListener) {
+    void start(ContentManager.OnStartedListener startedListener) {
 
         if (service != null) {
             Log.d(TAG, "Already started");
@@ -65,7 +65,7 @@ class ServiceProxy {
         // ServiceProxy.onServiceConnected() will set downloadSettings and listener, then call service.start()
     }
 
-    public void stop() {
+    void stop() {
         if (service == null) {
             Log.d(TAG, "Not started");
             return;
@@ -75,54 +75,54 @@ class ServiceProxy {
         // DownloadService.onUnbind() will call stop().
     }
 
-    public void loadItemMetadata(DownloadItem item) {
+    void loadItemMetadata(DownloadItem item) {
         service.loadItemMetadata((DownloadItemImp) item);
     }
 
-    public void pauseDownload(DownloadItem item) {
+    void pauseDownload(DownloadItem item) {
         service.pauseDownload((DownloadItemImp) item);
     }
 
-    public void resumeDownload(DownloadItem item) {
+    void resumeDownload(DownloadItem item) {
         service.resumeDownload((DownloadItemImp) item);
     }
 
-    public void removeItem(DownloadItem item) {
+    void removeItem(DownloadItem item) {
         service.removeItem((DownloadItemImp) item);
     }
 
-    public DownloadItem findItem(String itemId) {
+    DownloadItem findItem(String itemId) {
         return service.findItem(itemId);
     }
 
-    public long getDownloadedItemSize(@Nullable String itemId) {
+    long getDownloadedItemSize(@Nullable String itemId) {
         return service.getDownloadedItemSize(itemId);
     }
 
-    public DownloadItem createItem(String itemId, String contentURL) throws Utils.DirectoryNotCreatableException {
+    DownloadItem createItem(String itemId, String contentURL) throws Utils.DirectoryNotCreatableException {
         return service.createItem(itemId, contentURL);
     }
 
-    public List<? extends DownloadItem> getDownloads(DownloadState[] states) {
+    List<? extends DownloadItem> getDownloads(DownloadState[] states) {
         return service.getDownloads(states);
     }
 
-    public String getPlaybackURL(String itemId) {
+    String getPlaybackURL(String itemId) {
         return service.getPlaybackURL(itemId);
     }
 
-    public File getLocalFile(String itemId) {
+    File getLocalFile(String itemId) {
         return service.getLocalFile(itemId);
     }
 
-    public void setDownloadStateListener(DownloadStateListener listener) {
+    void setDownloadStateListener(DownloadStateListener listener) {
         this.listener = listener;
         if (service != null) {
             service.setDownloadStateListener(listener);
         }
     }
 
-    public long getEstimatedItemSize(@Nullable String itemId) {
+    long getEstimatedItemSize(@Nullable String itemId) {
         return service.getEstimatedItemSize(itemId);
     }
 }

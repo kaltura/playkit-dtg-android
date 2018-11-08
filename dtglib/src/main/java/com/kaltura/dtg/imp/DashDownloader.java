@@ -27,7 +27,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 
-public class DashDownloader extends AbrDownloader {
+class DashDownloader extends AbrDownloader {
 
     private static final String ORIGIN_MANIFEST_MPD = "origin.mpd";
     private static final String LOCAL_MANIFEST_MPD = "local.mpd";
@@ -35,7 +35,7 @@ public class DashDownloader extends AbrDownloader {
 
     private Period currentPeriod;
 
-    public DashDownloader(DownloadItemImp item) {
+    DashDownloader(DownloadItemImp item) {
         super(item);
     }
 
@@ -54,12 +54,12 @@ public class DashDownloader extends AbrDownloader {
     }
 
     @Override
-    protected AssetFormat getAssetFormat() {
+    AssetFormat getAssetFormat() {
         return AssetFormat.dash;
     }
 
     @Override
-    protected void parseOriginManifest() throws IOException {
+    void parseOriginManifest() throws IOException {
 
         DashManifestParser mpdParser = new DashManifestParser();
         DashManifest parsedMpd = mpdParser.parse(Uri.parse(manifestUrl), new ByteArrayInputStream(originManifestBytes));
@@ -75,7 +75,7 @@ public class DashDownloader extends AbrDownloader {
     }
 
     @Override
-    protected void createDownloadTasks() {
+    void createDownloadTasks() {
 
         setDownloadTasks(new LinkedHashSet<DownloadTask>());
 
@@ -127,7 +127,7 @@ public class DashDownloader extends AbrDownloader {
     }
 
     @Override
-    protected void createLocalManifest() throws IOException {
+    void createLocalManifest() throws IOException {
 
         // The localizer needs a raw list of tracks.
         List<BaseTrack> tracks = getSelectedTracksFlat();
@@ -136,12 +136,12 @@ public class DashDownloader extends AbrDownloader {
     }
 
     @Override
-    public String storedOriginManifestName() {
+    String storedOriginManifestName() {
         return ORIGIN_MANIFEST_MPD;
     }
 
     @Override
-    public String storedLocalManifestName() {
+    String storedLocalManifestName() {
         return LOCAL_MANIFEST_MPD;
     }
 
@@ -154,7 +154,7 @@ public class DashDownloader extends AbrDownloader {
     }
 
     @Override
-    protected void createTracks() {
+    void createTracks() {
 
         List<AdaptationSet> adaptationSets = currentPeriod.adaptationSets;
 

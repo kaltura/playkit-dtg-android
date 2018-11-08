@@ -276,7 +276,7 @@ class Database {
 
         doTransaction(new Transaction() {
             @Override
-            public boolean execute(SQLiteDatabase db) {
+            boolean execute(SQLiteDatabase db) {
                 ContentValues values = new ContentValues();
                 for (DownloadTask task : downloadTasks) {
                     values.put(COL_ITEM_ID, item.getItemId());
@@ -356,7 +356,7 @@ class Database {
 
         doTransaction(new Transaction() {
             @Override
-            public boolean execute(SQLiteDatabase db) {
+            boolean execute(SQLiteDatabase db) {
                 ContentValues values = new ContentValues();
                 values.put(COL_FILE_COMPLETE, 1);
 
@@ -398,7 +398,7 @@ class Database {
 
         doTransaction(new Transaction() {
             @Override
-            public boolean execute(SQLiteDatabase db) {
+            boolean execute(SQLiteDatabase db) {
                 ContentValues values = new ContentValues(5);
                 values.put(COL_ITEM_ID, item.getItemId());
                 values.put(COL_CONTENT_URL, item.getContentURL());
@@ -419,7 +419,7 @@ class Database {
 
         doTransaction(new Transaction() {
             @Override
-            public boolean execute(SQLiteDatabase db) {
+            boolean execute(SQLiteDatabase db) {
                 db.delete(TBL_ITEMS, COL_ITEM_ID + "=?", new String[]{itemId});
 
                 // There's an "on delete cascade" between TBL_ITEMS and TBL_DOWNLOAD_FILES,
@@ -435,7 +435,7 @@ class Database {
 
         doTransaction(new Transaction() {
             @Override
-            public boolean execute(SQLiteDatabase db) {
+            boolean execute(SQLiteDatabase db) {
                 ContentValues values = new ContentValues();
                 values.put(COL_ITEM_STATE, itemState.name());
 
@@ -451,7 +451,7 @@ class Database {
 
         doTransaction(new Transaction() {
             @Override
-            public boolean execute(SQLiteDatabase db) {
+            boolean execute(SQLiteDatabase db) {
                 ContentValues values = new ContentValues();
                 values.put(COL_ITEM_FINISH_TIME, System.currentTimeMillis());
 
@@ -467,7 +467,7 @@ class Database {
 
         doTransaction(new Transaction() {
             @Override
-            public boolean execute(SQLiteDatabase db) {
+            boolean execute(SQLiteDatabase db) {
                 ContentValues values = new ContentValues();
                 values.put(COL_ITEM_ESTIMATED_SIZE, estimatedSizeBytes);
                 db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
@@ -481,7 +481,7 @@ class Database {
 
         doTransaction(new Transaction() {
             @Override
-            public boolean execute(SQLiteDatabase db) {
+            boolean execute(SQLiteDatabase db) {
                 ContentValues values = new ContentValues();
                 values.put(COL_ITEM_DOWNLOADED_SIZE, downloadedFileSize);
                 db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
@@ -529,7 +529,7 @@ class Database {
         }
         doTransaction(new Transaction() {
             @Override
-            public boolean execute(SQLiteDatabase db) {
+            boolean execute(SQLiteDatabase db) {
                 ContentValues values = new ContentValues(columns.length);
                 for (String column : columns) {
                     switch (column) {
@@ -682,7 +682,7 @@ class Database {
 
         doTransaction(new Transaction() {
             @Override
-            public boolean execute(SQLiteDatabase db) {
+            boolean execute(SQLiteDatabase db) {
 
                 for (BaseTrack track : availableTracks) {
                     ContentValues values = track.toContentValues();
@@ -755,7 +755,7 @@ class Database {
 
         doTransaction(new Transaction() {
             @Override
-            public boolean execute(SQLiteDatabase db) {
+            boolean execute(SQLiteDatabase db) {
 
                 ContentValues values = new ContentValues();
                 values.put(COL_TRACK_STATE, newState.name());
@@ -775,8 +775,8 @@ class Database {
         });
     }
 
-    interface Transaction {
-        boolean execute(SQLiteDatabase db);
+    abstract static class Transaction {
+        abstract boolean execute(SQLiteDatabase db);
     }
 
 }

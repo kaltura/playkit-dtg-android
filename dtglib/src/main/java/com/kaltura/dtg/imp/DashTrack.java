@@ -8,7 +8,7 @@ import com.kaltura.dtg.DownloadItem;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class DashTrack extends BaseTrack {
+class DashTrack extends BaseTrack {
     private static final String TAG = "DashTrack";
 
     private static final String EXTRA_ADAPTATION_INDEX = "originalAdaptationSetIndex";
@@ -23,24 +23,24 @@ public class DashTrack extends BaseTrack {
         this.representationIndex = representationIndex;
     }
 
-    public DashTrack(Cursor cursor) {
+    DashTrack(Cursor cursor) {
         super(cursor);
     }
 
     @Override
-    protected void parseExtra(JSONObject jsonExtra) {
+    void parseExtra(JSONObject jsonExtra) {
         adaptationIndex = jsonExtra.optInt(EXTRA_ADAPTATION_INDEX, 0);
         representationIndex = jsonExtra.optInt(EXTRA_REPRESENTATION_INDEX, 0);
     }
 
     @Override
-    protected void dumpExtra(JSONObject jsonExtra) throws JSONException {
+    void dumpExtra(JSONObject jsonExtra) throws JSONException {
         jsonExtra.put(EXTRA_ADAPTATION_INDEX, adaptationIndex)
                 .put(EXTRA_REPRESENTATION_INDEX, representationIndex);
     }
 
     @Override
-    protected String getRelativeId() {
+    String getRelativeId() {
         return "a" + adaptationIndex + "r" + representationIndex;
     }
 

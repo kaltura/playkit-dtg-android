@@ -59,7 +59,7 @@ abstract class BaseTrack implements DownloadItem.Track {
         }
     }
 
-    public static BaseTrack create(Cursor cursor, AssetFormat assetFormat) {
+    static BaseTrack create(Cursor cursor, AssetFormat assetFormat) {
 
         switch (assetFormat) {
             case hls:
@@ -71,7 +71,7 @@ abstract class BaseTrack implements DownloadItem.Track {
         }
     }
 
-    public static List<BaseTrack> filterByLanguage(@NonNull String language, List<BaseTrack> list) {
+    static List<BaseTrack> filterByLanguage(@NonNull String language, List<BaseTrack> list) {
         List<BaseTrack> filtered = new ArrayList<>();
         for (BaseTrack track : list) {
             if (language.equals(track.getLanguage())) {
@@ -143,11 +143,11 @@ abstract class BaseTrack implements DownloadItem.Track {
         }
     }
 
-    protected abstract void parseExtra(JSONObject jsonExtra);
+    abstract void parseExtra(JSONObject jsonExtra);
 
-    protected abstract void dumpExtra(JSONObject jsonExtra) throws JSONException;
+    abstract void dumpExtra(JSONObject jsonExtra) throws JSONException;
 
-    protected abstract String getRelativeId();
+    abstract String getRelativeId();
 
     @Override
     public DownloadItem.TrackType getType() {
@@ -179,7 +179,7 @@ abstract class BaseTrack implements DownloadItem.Track {
         return width;
     }
 
-    public enum TrackState {
+    enum TrackState {
         NOT_SELECTED, SELECTED, DOWNLOADED,
         UNKNOWN
     }

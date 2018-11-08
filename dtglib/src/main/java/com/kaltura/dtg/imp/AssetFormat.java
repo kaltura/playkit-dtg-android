@@ -1,11 +1,11 @@
 package com.kaltura.dtg.imp;
 
-public enum AssetFormat {
+enum AssetFormat {
     dash, hls, mp4, wvm, mp3, invalid;
 
     static final AssetFormat[] valid = {dash, hls, mp4, wvm, mp3};
 
-    public String extension() {
+    String extension() {
         switch (this) {
             case dash:
                 return ".mpd";
@@ -21,7 +21,7 @@ public enum AssetFormat {
         throw new IllegalStateException();
     }
 
-    public static AssetFormat byFilename(String filename) {
+    static AssetFormat byFilename(String filename) {
         for (AssetFormat assetFormat : valid) {
             if (filename.endsWith(assetFormat.extension())) {
                 return assetFormat;
@@ -30,7 +30,7 @@ public enum AssetFormat {
         return invalid;
     }
 
-    public boolean isAbr() {
+    boolean isAbr() {
         return this == dash || this == hls;
     }
 }

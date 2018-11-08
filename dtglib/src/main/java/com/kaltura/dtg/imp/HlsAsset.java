@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class HlsAsset {
+class HlsAsset {
 
     private static final String TAG = "HlsAsset";
     static final HlsPlaylistParser parser = new HlsPlaylistParser();
@@ -39,7 +39,7 @@ public class HlsAsset {
         return parser.parse(Uri.parse(url), new ByteArrayInputStream(bytes));
     }
 
-    public HlsAsset parse(final String masterUrl, final byte[] masterBytes) throws IOException {
+    HlsAsset parse(final String masterUrl, final byte[] masterBytes) throws IOException {
         this.masterUrl = masterUrl;
 
         final HlsMasterPlaylist masterPlaylist = (HlsMasterPlaylist) exoParse(this.masterUrl, masterBytes);
@@ -63,7 +63,7 @@ public class HlsAsset {
         }
     }
 
-    public static class Track extends BaseTrack {
+    static class Track extends BaseTrack {
         private static final String EXTRA_MASTER_FIRST_LINE = "masterFirstLine";
         private static final String EXTRA_MASTER_LAST_LINE = "masterLastLine";
         private static final String EXTRA_TRACK_URL = "url";
@@ -82,11 +82,11 @@ public class HlsAsset {
             this.lastMasterLine = variant.lastLineNum;
         }
 
-        public Track(Cursor cursor) {
+        Track(Cursor cursor) {
             super(cursor);
         }
 
-        public void parse(byte[] bytes) throws IOException {
+        void parse(byte[] bytes) throws IOException {
             this.bytes = bytes;
             parse();
         }
@@ -103,21 +103,21 @@ public class HlsAsset {
         }
 
         @Override
-        protected void parseExtra(JSONObject jsonExtra) {
+        void parseExtra(JSONObject jsonExtra) {
             this.firstMasterLine = jsonExtra.optInt(EXTRA_MASTER_FIRST_LINE, 0);
             this.lastMasterLine = jsonExtra.optInt(EXTRA_MASTER_LAST_LINE, 0);
             this.url = jsonExtra.optString(EXTRA_TRACK_URL);
         }
 
         @Override
-        protected void dumpExtra(JSONObject jsonExtra) throws JSONException {
+        void dumpExtra(JSONObject jsonExtra) throws JSONException {
             jsonExtra.put(EXTRA_MASTER_FIRST_LINE, firstMasterLine)
                     .put(EXTRA_MASTER_LAST_LINE, lastMasterLine)
                     .put(EXTRA_TRACK_URL, url);
         }
 
         @Override
-        protected String getRelativeId() {
+        String getRelativeId() {
             return "" + firstMasterLine;
         }
 

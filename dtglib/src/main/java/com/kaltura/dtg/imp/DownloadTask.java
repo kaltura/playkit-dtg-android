@@ -15,8 +15,8 @@ import java.net.HttpRetryException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 
-public class DownloadTask {
-    public static final int UNKNOWN_ORDER = -1;
+class DownloadTask {
+    static final int UNKNOWN_ORDER = -1;
     private static final String TAG = "DownloadTask";
     private static final int PROGRESS_REPORT_COUNT = 100;
 
@@ -33,7 +33,7 @@ public class DownloadTask {
     private int retryCount = 0;
     private ContentManager.Settings downloadSettings;
 
-    public DownloadTask(Uri url, File targetFile, int order) {
+    DownloadTask(Uri url, File targetFile, int order) {
         this.url = url;
         this.targetFile = targetFile;
         this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
@@ -45,11 +45,11 @@ public class DownloadTask {
     }
 
 
-    public void setTrackRelativeId(String trackRelativeId) {
+    void setTrackRelativeId(String trackRelativeId) {
         this.trackRelativeId = trackRelativeId;
     }
 
-    public void setOrder(int order) {
+    void setOrder(int order) {
         this.order = order;
     }
 
@@ -211,11 +211,11 @@ public class DownloadTask {
         listener.onTaskProgress(this, state, newBytes, stopError);
     }
 
-    public Listener getListener() {
+    Listener getListener() {
         return listener;
     }
 
-    public void setListener(Listener listener) {
+    void setListener(Listener listener) {
         this.listener = listener;
     }
 
@@ -242,7 +242,7 @@ public class DownloadTask {
         IDLE, STARTED, IN_PROGRESS, COMPLETED, STOPPED, ERROR
     }
 
-    interface Listener {
-        void onTaskProgress(DownloadTask task, State newState, int newBytes, Exception stopError);
+    abstract static class Listener {
+        abstract void onTaskProgress(DownloadTask task, State newState, int newBytes, Exception stopError);
     }
 }

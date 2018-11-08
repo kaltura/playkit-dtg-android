@@ -146,7 +146,7 @@ abstract class AbrDownloader {
         Log.d(TAG, "loadStoredOriginManifest: " + this.originManifestBytes.length + " bytes");
     }
 
-    protected abstract void createTracks();
+    abstract void createTracks();
 
     private void downloadManifest() throws IOException {
         File targetFile = new File(getTargetDir(), storedOriginManifestName());
@@ -217,7 +217,7 @@ abstract class AbrDownloader {
         item.setTrackSelector(null);
     }
 
-    public void apply() throws IOException {
+    void apply() throws IOException {
         if (mode == Mode.update) {
             applyTrackSelectionChanges();
         } else {
@@ -225,17 +225,17 @@ abstract class AbrDownloader {
         }
     }
 
-    protected abstract void parseOriginManifest() throws IOException;
+    abstract void parseOriginManifest() throws IOException;
 
-    protected abstract void createDownloadTasks() throws IOException;
+    abstract void createDownloadTasks() throws IOException;
 
-    protected abstract void createLocalManifest() throws IOException;
+    abstract void createLocalManifest() throws IOException;
 
-    protected abstract AssetFormat getAssetFormat();
+    abstract AssetFormat getAssetFormat();
 
-    protected abstract String storedOriginManifestName();
+    abstract String storedOriginManifestName();
 
-    protected abstract String storedLocalManifestName();
+    abstract String storedLocalManifestName();
 
     private void selectDefaultTracks() {
 
@@ -332,7 +332,7 @@ abstract class AbrDownloader {
         availableTracks.put(type, tracks);
     }
 
-    protected enum Mode {
+    enum Mode {
         create,
         update
     }

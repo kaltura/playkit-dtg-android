@@ -53,7 +53,7 @@ class CodecSupport {
         return sup;
     }
 
-    public static boolean isFormatSupported(@NonNull Format format, @Nullable TrackType type) {
+    static boolean isFormatSupported(@NonNull Format format, @Nullable TrackType type) {
 
         if (type == TrackType.TEXT) {
             return true;    // always supported

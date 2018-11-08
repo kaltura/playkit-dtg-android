@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TrackSelectorImp implements DownloadItem.TrackSelector {
+class TrackSelectorImp implements DownloadItem.TrackSelector {
     private final AbrDownloader downloader;
 
     TrackSelectorImp(AbrDownloader downloader) {

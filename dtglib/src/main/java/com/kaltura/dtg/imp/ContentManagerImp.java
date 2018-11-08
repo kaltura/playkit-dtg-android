@@ -306,11 +306,11 @@ public class ContentManagerImp extends ContentManager {
         return started;
     }
 
-    public String getSessionId() {
+    String getSessionId() {
         return sessionId;
     }
 
-    public String getApplicationName() {
+    String getApplicationName() {
         return applicationName;
     }
 }

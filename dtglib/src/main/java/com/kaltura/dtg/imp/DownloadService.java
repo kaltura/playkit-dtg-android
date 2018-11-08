@@ -65,7 +65,7 @@ public class DownloadService extends Service {
     private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
 
         @Override
-        public void onTaskProgress(final DownloadTask task, final DownloadTask.State newState, final int newBytes, final Exception stopError) {
+        void onTaskProgress(final DownloadTask task, final DownloadTask.State newState, final int newBytes, final Exception stopError) {
             if (taskProgressHandler.getLooper().getThread().isAlive()) {
                 taskProgressHandler.post(new Runnable() {
                     @Override

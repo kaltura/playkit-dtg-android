@@ -25,7 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class HlsDownloader extends AbrDownloader {
+class HlsDownloader extends AbrDownloader {
     private static final String TAG = "HlsDownloader";
     private static final String ORIGIN_M3U8 = "origin.m3u8";
     private static final String LOCAL_MASTER = "master.m3u8";
@@ -34,7 +34,7 @@ public class HlsDownloader extends AbrDownloader {
 
     private HlsAsset hlsAsset;
 
-    public HlsDownloader(DownloadItemImp item, int defaultHlsAudioBitrateEstimation) {
+    HlsDownloader(DownloadItemImp item, int defaultHlsAudioBitrateEstimation) {
         super(item);
         this.defaultHlsAudioBitrateEstimation = defaultHlsAudioBitrateEstimation;
     }
@@ -54,12 +54,12 @@ public class HlsDownloader extends AbrDownloader {
     }
 
     @Override
-    public void parseOriginManifest() throws IOException {
+    void parseOriginManifest() throws IOException {
         this.hlsAsset = new HlsAsset().parse(manifestUrl, originManifestBytes);
     }
 
     @Override
-    public void createDownloadTasks() throws IOException {
+    void createDownloadTasks() throws IOException {
 
         final LinkedHashSet<DownloadTask> tasks = new LinkedHashSet<>();
         List<BaseTrack> trackList = getSelectedTracksFlat();
@@ -104,7 +104,7 @@ public class HlsDownloader extends AbrDownloader {
     }
 
     @Override
-    public void createLocalManifest() throws IOException {
+    void createLocalManifest() throws IOException {
 
         createLocalMasterPlaylist();
 
@@ -115,17 +115,17 @@ public class HlsDownloader extends AbrDownloader {
     }
 
     @Override
-    public AssetFormat getAssetFormat() {
+    AssetFormat getAssetFormat() {
         return AssetFormat.hls;
     }
 
     @Override
-    public String storedOriginManifestName() {
+    String storedOriginManifestName() {
         return ORIGIN_M3U8;
     }
 
     @Override
-    public String storedLocalManifestName() {
+    String storedLocalManifestName() {
         return LOCAL_MASTER;
     }
 
@@ -252,7 +252,7 @@ public class HlsDownloader extends AbrDownloader {
     }
 
     @Override
-    protected void createTracks() {
+    void createTracks() {
 
         Map<DownloadItem.TrackType, List<BaseTrack>> availableTracks = new HashMap<>();
 
@@ -274,7 +274,7 @@ public class HlsDownloader extends AbrDownloader {
     }
 
     @Override
-    protected void applyInitialTrackSelection() throws IOException {
+    void applyInitialTrackSelection() throws IOException {
         if (trackSelectionApplied) {
             Log.w(TAG, "Ignoring unsupported extra call to apply()");
             return;
