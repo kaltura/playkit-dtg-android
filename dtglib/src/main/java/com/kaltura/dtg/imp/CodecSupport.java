@@ -16,7 +16,7 @@ import java.util.HashMap;
 class CodecSupport {
 
     private static final String TAG = "CodecSupport";
-    private static HashMap<TrackType, HashMap<String, Boolean>> cache = new HashMap<>();
+    private static final HashMap<TrackType, HashMap<String, Boolean>> cache = new HashMap<>();
 
     static {
         cache.put(TrackType.VIDEO, new HashMap<String, Boolean>());

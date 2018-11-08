@@ -731,7 +731,7 @@ class Database {
             }
 
             String selection = TextUtils.join("=? AND ", selectionCols) + "=?";
-            String[] selectionArgsArray = selectionArgs.toArray(new String[selectionArgs.size()]);
+            String[] selectionArgsArray = selectionArgs.toArray(new String[0]);
             cursor = database.query(TBL_TRACK,
                     BaseTrack.REQUIRED_DB_FIELDS,
                     selection,

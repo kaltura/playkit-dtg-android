@@ -60,7 +60,7 @@ public class DownloadService extends Service {
 
     private final Set<String> removedItems = new HashSet<>();
 
-    private ItemCache itemCache = new ItemCache();
+    private final ItemCache itemCache = new ItemCache();
 
     private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
 
