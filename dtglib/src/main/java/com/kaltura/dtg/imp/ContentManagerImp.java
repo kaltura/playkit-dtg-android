@@ -1,9 +1,16 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.imp;
 
 import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.kaltura.dtg.ContentManager;
+import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadRequestParams;
+import com.kaltura.dtg.DownloadState;
+import com.kaltura.dtg.DownloadStateListener;
+import com.kaltura.dtg.KalturaDownloadRequestAdapter;
 
 import java.io.File;
 import java.io.IOException;

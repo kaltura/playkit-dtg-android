@@ -1,4 +1,4 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.imp;
 
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;

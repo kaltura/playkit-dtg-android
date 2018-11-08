@@ -1,4 +1,4 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.imp;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -23,37 +23,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 public class Utils {
     private static final String TAG = "DTGUtils";
-
-    static String createTable(String name, String... colDefs) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("CREATE TABLE ").append(name).append("(");
-        for (int i = 0; i < colDefs.length; i += 2) {
-            if (i > 0) {
-                sb.append(",\n");
-            }
-            sb.append(colDefs[i]).append(" ").append(colDefs[i + 1]);
-        }
-        sb.append(");");
-        String str = sb.toString();
-        Log.i("DBUtils", "Create table:\n" + str);
-        return str;
-    }
-
-    static String createUniqueIndex(String tableName, String... colNames) {
-
-        String str = "CREATE UNIQUE INDEX " +
-                "unique_" + tableName + "_" + TextUtils.join("_", colNames) +
-                " ON " + tableName +
-                " (" + TextUtils.join(",", colNames) + ");";
-
-        Log.i("DBUtils", "Create index:\n" + str);
-        return str;
-    }
 
     private static long dirSize(File dir) {
 
@@ -74,7 +47,7 @@ public class Utils {
         return 0;
     }
 
-    static void deleteRecursive(File fileOrDirectory) {
+    public static void deleteRecursive(File fileOrDirectory) {
         if (fileOrDirectory.isDirectory()) {
             for (File child : fileOrDirectory.listFiles()) {
                 deleteRecursive(child);
@@ -201,7 +174,7 @@ public class Utils {
         }
     }
 
-    static HttpURLConnection openConnection(Uri uri) throws IOException {
+    public static HttpURLConnection openConnection(Uri uri) throws IOException {
         if (uri == null) {
             return null;
         }
@@ -234,25 +207,16 @@ public class Utils {
 
     // Returns hex-encoded md5 of the input, appending the extension.
     // "a.mp4" ==> "2a1f28800d49717bbf88dc2c704f4390.mp4"
-    static String getHashedFileName(String original) {
+    public static String getHashedFileName(String original) {
         String ext = getExtension(original);
         return md5Hex(original) + '.' + ext;
     }
 
-    static String toBase64(byte[] data) {
+    public static String toBase64(byte[] data) {
         if (data == null || data.length == 0) {
             return null;
         }
         return Base64.encodeToString(data, Base64.NO_WRAP);
-    }
-
-    @NonNull
-    static List<BaseTrack> flattenTrackList(Map<DownloadItem.TrackType, List<BaseTrack>> tracksMap) {
-        List<BaseTrack> tracks = new ArrayList<>();
-        for (Map.Entry<DownloadItem.TrackType, List<BaseTrack>> entry : tracksMap.entrySet()) {
-            tracks.addAll(entry.getValue());
-        }
-        return tracks;
     }
 
     public static String resolveUrl(String baseUrl, String maybeRelative) {

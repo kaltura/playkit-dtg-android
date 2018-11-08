@@ -3,7 +3,7 @@ package com.kaltura.dtg;
 import android.net.Uri;
 
 import static com.kaltura.dtg.ContentManager.CLIENT_TAG;
-import static com.kaltura.dtg.Utils.toBase64;
+import static com.kaltura.dtg.imp.Utils.toBase64;
 
 
 public class KalturaDownloadRequestAdapter implements DownloadRequestParams.Adapter {

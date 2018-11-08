@@ -1,7 +1,9 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.imp;
 
 import android.net.Uri;
 import android.util.Log;
+
+import com.kaltura.dtg.ContentManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;

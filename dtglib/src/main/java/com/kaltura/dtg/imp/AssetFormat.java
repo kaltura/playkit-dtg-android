@@ -1,4 +1,4 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.imp;
 
 public enum AssetFormat {
     dash, hls, mp4, wvm, mp3, invalid;
@@ -30,7 +30,7 @@ public enum AssetFormat {
         return invalid;
     }
 
-    boolean isAbr() {
+    public boolean isAbr() {
         return this == dash || this == hls;
     }
 }

@@ -2,6 +2,8 @@ package com.kaltura.dtg;
 
 import android.content.Context;
 
+import com.kaltura.dtg.imp.ContentManagerImp;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -141,7 +143,7 @@ public abstract class ContentManager {
         public boolean createNoMediaFileInDownloadsDir = true;
         public int defaultHlsAudioBitrateEstimation = 64000;
 
-        Settings copy() {
+        public Settings copy() {
             try {
                 return (Settings) clone();
             } catch (CloneNotSupportedException e) {

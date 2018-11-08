@@ -1,4 +1,4 @@
-package com.kaltura.dtg.hls;
+package com.kaltura.dtg.imp;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -6,13 +6,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.kaltura.android.exoplayer2.ParserException;
-import com.kaltura.dtg.AbrDownloader;
-import com.kaltura.dtg.AssetFormat;
-import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.DownloadItemImp;
-import com.kaltura.dtg.DownloadTask;
-import com.kaltura.dtg.Utils;
 
 import java.io.BufferedWriter;
 import java.io.File;

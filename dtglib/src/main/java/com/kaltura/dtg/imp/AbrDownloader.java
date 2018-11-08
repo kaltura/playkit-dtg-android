@@ -1,14 +1,15 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.imp;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.kaltura.dtg.ContentManager;
+import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadItem.TrackSelector;
 import com.kaltura.dtg.DownloadItem.TrackType;
-import com.kaltura.dtg.dash.DashDownloader;
-import com.kaltura.dtg.hls.HlsDownloader;
+import com.kaltura.dtg.DownloadStateListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,7 +92,7 @@ public abstract class AbrDownloader {
         item.setTrackSelector(null);
 
 
-        List<BaseTrack> availableTracks = Utils.flattenTrackList(this.getAvailableTracksMap());
+        List<BaseTrack> availableTracks = DownloadService.flattenTrackList(this.getAvailableTracksMap());
         List<BaseTrack> selectedTracks = this.getSelectedTracksFlat();
 
         downloadService.addTracksToDB(item, availableTracks, selectedTracks);
@@ -124,11 +125,11 @@ public abstract class AbrDownloader {
         this.loadStoredOriginManifest();
         this.parseOriginManifest();
 
-        this.setSelectedTracksMap(new HashMap<DownloadItem.TrackType, List<BaseTrack>>());
-        this.setAvailableTracksMap(new HashMap<DownloadItem.TrackType, List<BaseTrack>>());
-        Map<DownloadItem.TrackType, List<BaseTrack>> originalSelectedTracks = new HashMap<>();
+        this.setSelectedTracksMap(new HashMap<TrackType, List<BaseTrack>>());
+        this.setAvailableTracksMap(new HashMap<TrackType, List<BaseTrack>>());
+        Map<TrackType, List<BaseTrack>> originalSelectedTracks = new HashMap<>();
 
-        for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
+        for (TrackType type : DownloadItem.TrackType.values()) {
             List<BaseTrack> availableTracks = this.item.getService().readTracksFromDB(item.getItemId(), type, null, this.getAssetFormat());
             this.getAvailableTracksMap().put(type, availableTracks);
 
@@ -277,7 +278,7 @@ public abstract class AbrDownloader {
 
     @NonNull
     protected List<BaseTrack> getSelectedTracksFlat() {
-        return Utils.flattenTrackList(selectedTracks);
+        return DownloadService.flattenTrackList(selectedTracks);
     }
 
     List<BaseTrack> getSelectedTracksByType(TrackType type) {
@@ -320,7 +321,7 @@ public abstract class AbrDownloader {
     }
 
     protected List<BaseTrack> getAvailableTracksFlat() {
-        return Utils.flattenTrackList(availableTracks);
+        return DownloadService.flattenTrackList(availableTracks);
     }
 
     protected void setDownloadTasks(LinkedHashSet<DownloadTask> downloadTasks) {

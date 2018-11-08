@@ -1,6 +1,4 @@
-package com.kaltura.dtg.dash;
-
-import com.kaltura.dtg.BaseTrack;
+package com.kaltura.dtg.imp;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;

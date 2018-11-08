@@ -1,4 +1,4 @@
-package com.kaltura.dtg.hls;
+package com.kaltura.dtg.imp;
 
 import android.database.Cursor;
 import android.net.Uri;
@@ -8,10 +8,7 @@ import com.kaltura.android.exoplayer2.source.hls.playlist.HlsMasterPlaylist.HlsU
 import com.kaltura.android.exoplayer2.source.hls.playlist.HlsMediaPlaylist;
 import com.kaltura.android.exoplayer2.source.hls.playlist.HlsPlaylist;
 import com.kaltura.android.exoplayer2.source.hls.playlist.HlsPlaylistParser;
-import com.kaltura.dtg.BaseTrack;
-import com.kaltura.dtg.CodecSupport;
 import com.kaltura.dtg.DownloadItem.TrackType;
-import com.kaltura.dtg.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;

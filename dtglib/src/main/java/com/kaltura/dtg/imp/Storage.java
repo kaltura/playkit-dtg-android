@@ -1,7 +1,9 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.imp;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+
+import com.kaltura.dtg.ContentManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;

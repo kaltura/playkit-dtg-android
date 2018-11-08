@@ -1,4 +1,4 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.imp;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -13,6 +13,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadState;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -65,6 +68,32 @@ class Database {
     private BufferedWriter traceWriter;
     private long start;// = SystemClock.elapsedRealtime();
 
+    static String createTable(String name, String... colDefs) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CREATE TABLE ").append(name).append("(");
+        for (int i = 0; i < colDefs.length; i += 2) {
+            if (i > 0) {
+                sb.append(",\n");
+            }
+            sb.append(colDefs[i]).append(" ").append(colDefs[i + 1]);
+        }
+        sb.append(");");
+        String str = sb.toString();
+        Log.i("DBUtils", "Create table:\n" + str);
+        return str;
+    }
+
+    static String createUniqueIndex(String tableName, String... colNames) {
+
+        String str = "CREATE UNIQUE INDEX " +
+                "unique_" + tableName + "_" + TextUtils.join("_", colNames) +
+                " ON " + tableName +
+                " (" + TextUtils.join(",", colNames) + ");";
+
+        Log.i("DBUtils", "Create index:\n" + str);
+        return str;
+    }
+
     private void trace(String funcName, Object... args) {
         if (start == 0) return;
         try {
@@ -105,7 +134,7 @@ class Database {
 
             @Override
             public void onCreate(SQLiteDatabase db) {
-                db.execSQL(Utils.createTable(
+                db.execSQL(createTable(
                         TBL_ITEMS,
                         COL_ITEM_ID, "TEXT PRIMARY KEY",
                         COL_CONTENT_URL, "TEXT NOT NULL",
@@ -125,7 +154,7 @@ class Database {
             }
 
             private void createFilesTable(SQLiteDatabase db) {
-                db.execSQL(Utils.createTable(
+                db.execSQL(createTable(
                         TBL_DOWNLOAD_FILES,
                         COL_ITEM_ID, "TEXT NOT NULL REFERENCES " + TBL_ITEMS + "(" + COL_ITEM_ID + ") ON DELETE CASCADE",
                         COL_FILE_URL, "TEXT NOT NULL",
@@ -134,11 +163,11 @@ class Database {
                         COL_FILE_COMPLETE, "INTEGER NOT NULL DEFAULT 0",
                         COL_FILE_ORDER, "INTEGER"
                 ));
-                db.execSQL(Utils.createUniqueIndex(TBL_DOWNLOAD_FILES, COL_ITEM_ID, COL_FILE_URL));
+                db.execSQL(createUniqueIndex(TBL_DOWNLOAD_FILES, COL_ITEM_ID, COL_FILE_URL));
             }
 
             private void createTrackTable(SQLiteDatabase db) {
-                db.execSQL(Utils.createTable(
+                db.execSQL(createTable(
                         TBL_TRACK,
                         COL_TRACK_ID, "INTEGER PRIMARY KEY",
                         COL_TRACK_STATE, "TEXT NOT NULL",   // DashDownloader.TrackState
@@ -150,7 +179,7 @@ class Database {
                         COL_TRACK_CODECS, "TEXT",
                         COL_ITEM_ID, "TEXT NOT NULL REFERENCES " + TBL_ITEMS + "(" + COL_ITEM_ID + ") ON DELETE CASCADE"
                 ));
-                db.execSQL(Utils.createUniqueIndex(TBL_TRACK, COL_ITEM_ID, COL_TRACK_REL_ID));
+                db.execSQL(createUniqueIndex(TBL_TRACK, COL_ITEM_ID, COL_TRACK_REL_ID));
             }
 
             @Override

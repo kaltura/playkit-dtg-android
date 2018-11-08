@@ -1,7 +1,10 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.imp;
 
 import android.net.Uri;
 import android.util.Log;
+
+import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadState;
 
 import java.util.Date;
 

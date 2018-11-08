@@ -1,4 +1,4 @@
-package com.kaltura.dtg;
+package com.kaltura.dtg.imp;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -7,6 +7,11 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+
+import com.kaltura.dtg.ContentManager;
+import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadState;
+import com.kaltura.dtg.DownloadStateListener;
 
 import java.io.File;
 import java.util.List;

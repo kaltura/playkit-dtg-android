@@ -1,11 +1,9 @@
-package com.kaltura.dtg.dash;
+package com.kaltura.dtg.imp;
 
 import android.database.Cursor;
 
 import com.kaltura.android.exoplayer2.Format;
-import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItem;
-import com.kaltura.dtg.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
