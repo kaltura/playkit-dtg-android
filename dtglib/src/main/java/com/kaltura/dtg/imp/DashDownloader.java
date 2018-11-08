@@ -6,14 +6,14 @@ import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
-import com.kaltura.android.exoplayer2.C;
-import com.kaltura.android.exoplayer2.Format;
-import com.kaltura.android.exoplayer2.source.dash.manifest.AdaptationSet;
-import com.kaltura.android.exoplayer2.source.dash.manifest.DashManifest;
-import com.kaltura.android.exoplayer2.source.dash.manifest.DashManifestParser;
-import com.kaltura.android.exoplayer2.source.dash.manifest.Period;
-import com.kaltura.android.exoplayer2.source.dash.manifest.RangedUri;
-import com.kaltura.android.exoplayer2.source.dash.manifest.Representation;
+import com.kaltura.dtg.imp.exoplayer2.C;
+import com.kaltura.dtg.imp.exoplayer2.Format;
+import com.kaltura.dtg.imp.exoplayer2.source.dash.manifest.AdaptationSet;
+import com.kaltura.dtg.imp.exoplayer2.source.dash.manifest.DashManifest;
+import com.kaltura.dtg.imp.exoplayer2.source.dash.manifest.DashManifestParser;
+import com.kaltura.dtg.imp.exoplayer2.source.dash.manifest.Period;
+import com.kaltura.dtg.imp.exoplayer2.source.dash.manifest.RangedUri;
+import com.kaltura.dtg.imp.exoplayer2.source.dash.manifest.Representation;
 import com.kaltura.dtg.BuildConfig;
 import com.kaltura.dtg.DownloadItem;
 

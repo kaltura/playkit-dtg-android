@@ -3,11 +3,11 @@ package com.kaltura.dtg.imp;
 import android.database.Cursor;
 import android.net.Uri;
 
-import com.kaltura.android.exoplayer2.source.hls.playlist.HlsMasterPlaylist;
-import com.kaltura.android.exoplayer2.source.hls.playlist.HlsMasterPlaylist.HlsUrl;
-import com.kaltura.android.exoplayer2.source.hls.playlist.HlsMediaPlaylist;
-import com.kaltura.android.exoplayer2.source.hls.playlist.HlsPlaylist;
-import com.kaltura.android.exoplayer2.source.hls.playlist.HlsPlaylistParser;
+import com.kaltura.dtg.imp.exoplayer2.source.hls.playlist.HlsMasterPlaylist;
+import com.kaltura.dtg.imp.exoplayer2.source.hls.playlist.HlsMasterPlaylist.HlsUrl;
+import com.kaltura.dtg.imp.exoplayer2.source.hls.playlist.HlsMediaPlaylist;
+import com.kaltura.dtg.imp.exoplayer2.source.hls.playlist.HlsPlaylist;
+import com.kaltura.dtg.imp.exoplayer2.source.hls.playlist.HlsPlaylistParser;
 import com.kaltura.dtg.DownloadItem.TrackType;
 
 import org.json.JSONException;

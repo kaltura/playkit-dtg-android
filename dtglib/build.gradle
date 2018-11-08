@@ -28,7 +28,6 @@ android {
 tasks.withType(Javadoc) {
     options.addBooleanOption('Xdoclint:none', true)
     options.addStringOption('doctitle', "Download To Go")
-    exclude 'com/kaltura/android/exoplayer2'
     exclude 'com/kaltura/dtg/imp'
 }
 

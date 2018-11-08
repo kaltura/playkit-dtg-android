@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.kaltura.android.exoplayer2.ParserException;
+import com.kaltura.dtg.imp.exoplayer2.ParserException;
 import com.kaltura.dtg.DownloadItem;
 
 import java.io.BufferedWriter;
