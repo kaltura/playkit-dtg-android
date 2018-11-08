@@ -27,8 +27,11 @@ android {
 
 tasks.withType(Javadoc) {
     options.addBooleanOption('Xdoclint:none', true)
+    options.addBooleanOption('use', true)
     options.addStringOption('doctitle', "Download To Go")
+    options.addStringOption('windowtitle', 'Download To Go')
     exclude 'com/kaltura/dtg/imp'
+    exclude 'com/kaltura/dtg/parser'
 }
 
 dependencies {

@@ -4,7 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 
-import com.kaltura.dtg.imp.exoplayer2.Format;
+import com.kaltura.dtg.parser.Format;
 import com.kaltura.dtg.DownloadItem;
 
 import org.json.JSONException;

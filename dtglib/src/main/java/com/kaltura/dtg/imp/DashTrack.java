@@ -2,7 +2,7 @@ package com.kaltura.dtg.imp;
 
 import android.database.Cursor;
 
-import com.kaltura.dtg.imp.exoplayer2.Format;
+import com.kaltura.dtg.parser.Format;
 import com.kaltura.dtg.DownloadItem;
 
 import org.json.JSONException;
