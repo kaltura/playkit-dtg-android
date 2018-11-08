@@ -68,7 +68,7 @@ class Database {
     private BufferedWriter traceWriter;
     private long start;// = SystemClock.elapsedRealtime();
 
-    static String createTable(String name, String... colDefs) {
+    private static String createTable(String name, String... colDefs) {
         StringBuilder sb = new StringBuilder();
         sb.append("CREATE TABLE ").append(name).append("(");
         for (int i = 0; i < colDefs.length; i += 2) {
@@ -83,7 +83,7 @@ class Database {
         return str;
     }
 
-    static String createUniqueIndex(String tableName, String... colNames) {
+    private static String createUniqueIndex(String tableName, String... colNames) {
 
         String str = "CREATE UNIQUE INDEX " +
                 "unique_" + tableName + "_" + TextUtils.join("_", colNames) +

@@ -13,21 +13,21 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class BaseTrack implements DownloadItem.Track {
+abstract class BaseTrack implements DownloadItem.Track {
     static final String[] REQUIRED_DB_FIELDS =
             {Database.COL_TRACK_ID, Database.COL_TRACK_TYPE, Database.COL_TRACK_LANGUAGE, Database.COL_TRACK_BITRATE, Database.COL_TRACK_EXTRA, Database.COL_TRACK_CODECS};
 
     private static final String EXTRA_WIDTH = "width";
     private static final String EXTRA_HEIGHT = "height";
 
-    protected DownloadItem.TrackType type;
-    protected String language;
-    protected long bitrate;
-    protected int width;
-    protected int height;
+    DownloadItem.TrackType type;
+    String language;
+    long bitrate;
+    int width;
+    int height;
     private String codecs;
 
-    protected BaseTrack(DownloadItem.TrackType type, Format format) {
+    BaseTrack(DownloadItem.TrackType type, Format format) {
         this.type = type;
         this.bitrate = format.bitrate;
         this.codecs = format.codecs;
@@ -36,7 +36,7 @@ public abstract class BaseTrack implements DownloadItem.Track {
         this.language = format.language;
     }
 
-    protected BaseTrack(Cursor cursor) {
+    BaseTrack(Cursor cursor) {
         String[] columns = cursor.getColumnNames();
         for (int i = 0; i < columns.length; i++) {
             switch (columns[i]) {

@@ -13,7 +13,7 @@ import com.kaltura.dtg.DownloadItem.TrackType;
 
 import java.util.HashMap;
 
-public class CodecSupport {
+class CodecSupport {
 
     private static final String TAG = "CodecSupport";
     private static HashMap<TrackType, HashMap<String, Boolean>> cache = new HashMap<>();

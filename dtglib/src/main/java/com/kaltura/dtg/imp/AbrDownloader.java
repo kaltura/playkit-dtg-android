@@ -20,24 +20,24 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbrDownloader {
+abstract class AbrDownloader {
 
-    protected static final int MAX_MANIFEST_SIZE = 10 * 1024 * 1024;
+    static final int MAX_MANIFEST_SIZE = 10 * 1024 * 1024;
     private static final String TAG = "AbrDownloader";
     private final DownloadItemImp item;
-    protected final String manifestUrl;
-    protected byte[] originManifestBytes;
-    protected boolean trackSelectionApplied;
-    protected long itemDurationMS;
-    protected long estimatedDownloadSize;
-    protected final File targetDir;
-    protected Map<TrackType, List<BaseTrack>> selectedTracks;
-    protected Map<TrackType, List<BaseTrack>> availableTracks;
-    protected LinkedHashSet<DownloadTask> downloadTasks;
-    protected TrackUpdatingData trackUpdatingData;    // only used in update mode
-    protected Mode mode = Mode.create;
+    final String manifestUrl;
+    byte[] originManifestBytes;
+    boolean trackSelectionApplied;
+    long itemDurationMS;
+    long estimatedDownloadSize;
+    private final File targetDir;
+    private Map<TrackType, List<BaseTrack>> selectedTracks;
+    Map<TrackType, List<BaseTrack>> availableTracks;
+    LinkedHashSet<DownloadTask> downloadTasks;
+    private TrackUpdatingData trackUpdatingData;    // only used in update mode
+    private Mode mode = Mode.create;
 
-    protected AbrDownloader(DownloadItemImp item) {
+    AbrDownloader(DownloadItemImp item) {
         this.item = item;
         this.targetDir = new File(item.getDataDir());
         setDownloadTasks(new LinkedHashSet<DownloadTask>());
@@ -111,7 +111,7 @@ public abstract class AbrDownloader {
         downloadService.addDownloadTasksToDB(item, new ArrayList<>(downloadTasks));
     }
 
-    protected void applyInitialTrackSelection() throws IOException {
+    void applyInitialTrackSelection() throws IOException {
         if (trackSelectionApplied) {
             return;
         }
@@ -277,7 +277,7 @@ public abstract class AbrDownloader {
     }
 
     @NonNull
-    protected List<BaseTrack> getSelectedTracksFlat() {
+    List<BaseTrack> getSelectedTracksFlat() {
         return Utils.flattenTrackList(selectedTracks);
     }
 
@@ -300,35 +300,35 @@ public abstract class AbrDownloader {
         return Collections.unmodifiableList(availableTracks.get(type));
     }
 
-    protected void setItemDurationMS(long itemDurationMS) {
+    void setItemDurationMS(long itemDurationMS) {
         this.itemDurationMS = itemDurationMS;
     }
 
-    protected void setEstimatedDownloadSize(long estimatedDownloadSize) {
+    void setEstimatedDownloadSize(long estimatedDownloadSize) {
         this.estimatedDownloadSize = estimatedDownloadSize;
     }
 
-    protected File getTargetDir() {
+    File getTargetDir() {
         return targetDir;
     }
 
-    protected Map<TrackType, List<BaseTrack>> getAvailableTracksMap() {
+    private Map<TrackType, List<BaseTrack>> getAvailableTracksMap() {
         return availableTracks;
     }
 
-    protected void setAvailableTracksMap(Map<TrackType, List<BaseTrack>> availableTracks) {
+    void setAvailableTracksMap(Map<TrackType, List<BaseTrack>> availableTracks) {
         this.availableTracks = availableTracks;
     }
 
-    protected List<BaseTrack> getAvailableTracksFlat() {
+    List<BaseTrack> getAvailableTracksFlat() {
         return Utils.flattenTrackList(availableTracks);
     }
 
-    protected void setDownloadTasks(LinkedHashSet<DownloadTask> downloadTasks) {
+    void setDownloadTasks(LinkedHashSet<DownloadTask> downloadTasks) {
         this.downloadTasks = downloadTasks;
     }
 
-    protected void setAvailableTracksByType(TrackType type, ArrayList<BaseTrack> tracks) {
+    void setAvailableTracksByType(TrackType type, ArrayList<BaseTrack> tracks) {
         availableTracks.put(type, tracks);
     }
 
