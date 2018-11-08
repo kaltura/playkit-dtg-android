@@ -92,7 +92,7 @@ public abstract class AbrDownloader {
         item.setTrackSelector(null);
 
 
-        List<BaseTrack> availableTracks = DownloadService.flattenTrackList(this.getAvailableTracksMap());
+        List<BaseTrack> availableTracks = Utils.flattenTrackList(this.getAvailableTracksMap());
         List<BaseTrack> selectedTracks = this.getSelectedTracksFlat();
 
         downloadService.addTracksToDB(item, availableTracks, selectedTracks);
@@ -278,7 +278,7 @@ public abstract class AbrDownloader {
 
     @NonNull
     protected List<BaseTrack> getSelectedTracksFlat() {
-        return DownloadService.flattenTrackList(selectedTracks);
+        return Utils.flattenTrackList(selectedTracks);
     }
 
     List<BaseTrack> getSelectedTracksByType(TrackType type) {
@@ -321,7 +321,7 @@ public abstract class AbrDownloader {
     }
 
     protected List<BaseTrack> getAvailableTracksFlat() {
-        return DownloadService.flattenTrackList(availableTracks);
+        return Utils.flattenTrackList(availableTracks);
     }
 
     protected void setDownloadTasks(LinkedHashSet<DownloadTask> downloadTasks) {

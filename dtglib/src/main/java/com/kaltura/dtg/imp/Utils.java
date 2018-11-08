@@ -3,8 +3,9 @@ package com.kaltura.dtg.imp;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Base64;
 import android.util.Log;
+
+import com.kaltura.dtg.DownloadItem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -23,9 +24,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
-public class Utils {
+class Utils {
     private static final String TAG = "DTGUtils";
 
     private static long dirSize(File dir) {
@@ -47,12 +49,13 @@ public class Utils {
         return 0;
     }
 
-    public static void deleteRecursive(File fileOrDirectory) {
+    static void deleteRecursive(File fileOrDirectory) {
         if (fileOrDirectory.isDirectory()) {
             for (File child : fileOrDirectory.listFiles()) {
                 deleteRecursive(child);
             }
         }
+        //noinspection ResultOfMethodCallIgnored
         fileOrDirectory.delete();
     }
 
@@ -64,12 +67,12 @@ public class Utils {
         return (a == b) || (a != null && a.equals(b));
     }
 
-    public static int hash(Object... objects) {
+    static int hash(Object... objects) {
         return Arrays.hashCode(objects);
     }
 
     @NonNull
-    public static String md5Hex(String input) {
+    static String md5Hex(String input) {
         return bytesToHex(md5(input));
     }
 
@@ -93,7 +96,7 @@ public class Utils {
         return md.digest(input.getBytes());
     }
 
-    public static void safeClose(Closeable... closeables) {
+    static void safeClose(Closeable... closeables) {
         for (Closeable closeable : closeables) {
             if (closeable != null) {
                 try {
@@ -108,7 +111,7 @@ public class Utils {
     // Download the URL to targetFile and also return the contents.
     // If file is larger than maxReturnSize, the returned array will have maxReturnSize bytes,
     // but the file will have all of them.
-    public static byte[] downloadToFile(Uri uri, File targetFile, int maxReturnSize) throws IOException {
+    static byte[] downloadToFile(Uri uri, File targetFile, int maxReturnSize) throws IOException {
 
         InputStream inputStream = null;
         FileOutputStream fileOutputStream = null;
@@ -146,7 +149,7 @@ public class Utils {
         }
     }
 
-    public static byte[] downloadToFile(String url, File targetFile, int maxReturnSize) throws IOException {
+    static byte[] downloadToFile(String url, File targetFile, @SuppressWarnings("SameParameterValue") int maxReturnSize) throws IOException {
         return downloadToFile(Uri.parse(url), targetFile, maxReturnSize);
     }
 
@@ -174,7 +177,7 @@ public class Utils {
         }
     }
 
-    public static HttpURLConnection openConnection(Uri uri) throws IOException {
+    static HttpURLConnection openConnection(Uri uri) throws IOException {
         if (uri == null) {
             return null;
         }
@@ -207,19 +210,12 @@ public class Utils {
 
     // Returns hex-encoded md5 of the input, appending the extension.
     // "a.mp4" ==> "2a1f28800d49717bbf88dc2c704f4390.mp4"
-    public static String getHashedFileName(String original) {
+    static String getHashedFileName(String original) {
         String ext = getExtension(original);
         return md5Hex(original) + '.' + ext;
     }
 
-    public static String toBase64(byte[] data) {
-        if (data == null || data.length == 0) {
-            return null;
-        }
-        return Base64.encodeToString(data, Base64.NO_WRAP);
-    }
-
-    public static String resolveUrl(String baseUrl, String maybeRelative) {
+    static String resolveUrl(String baseUrl, String maybeRelative) {
         if (maybeRelative == null) {
             return null;
         }
@@ -237,17 +233,17 @@ public class Utils {
         return uri.toString();
     }
 
-    public static boolean mkdirs(File dir) {
+    static boolean mkdirs(File dir) {
         return dir.mkdirs() || dir.isDirectory();
     }
 
-    public static void mkdirsOrThrow(File dir) throws DirectoryNotCreatableException {
+    static void mkdirsOrThrow(File dir) throws DirectoryNotCreatableException {
         if (!mkdirs(dir)) {
             throw new DirectoryNotCreatableException(dir);
         }
     }
 
-    public static byte[] readFile(File file, int byteLimit) throws IOException {
+    static byte[] readFile(File file, @SuppressWarnings("SameParameterValue") int byteLimit) throws IOException {
         FileInputStream inputStream = new FileInputStream(file);
         return fullyReadInputStream(inputStream, byteLimit).toByteArray();
     }
@@ -256,7 +252,7 @@ public class Utils {
         return trackBitrate * durationMS / 1000 / 8;    // first multiply, then divide
     }
 
-    public static Set<Integer> makeRange(int first, int last) {
+    static Set<Integer> makeRange(int first, int last) {
         if (last < first) {
             return Collections.singleton(first);
         }
@@ -265,6 +261,15 @@ public class Utils {
             range.add(i);
         }
         return range;
+    }
+
+    @NonNull
+    static List<BaseTrack> flattenTrackList(Map<DownloadItem.TrackType, List<BaseTrack>> tracksMap) {
+        List<BaseTrack> tracks = new ArrayList<>();
+        for (Map.Entry<DownloadItem.TrackType, List<BaseTrack>> entry : tracksMap.entrySet()) {
+            tracks.addAll(entry.getValue());
+        }
+        return tracks;
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -277,7 +282,7 @@ public class Utils {
         }
     }
 
-    public static String getExtension(String url) {
+    static String getExtension(String url) {
 
         if (url == null) {
             return null;

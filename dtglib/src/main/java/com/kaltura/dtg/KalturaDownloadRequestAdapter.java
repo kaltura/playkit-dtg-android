@@ -1,9 +1,9 @@
 package com.kaltura.dtg;
 
 import android.net.Uri;
+import android.util.Base64;
 
 import static com.kaltura.dtg.ContentManager.CLIENT_TAG;
-import static com.kaltura.dtg.imp.Utils.toBase64;
 
 
 public class KalturaDownloadRequestAdapter implements DownloadRequestParams.Adapter {
@@ -18,6 +18,13 @@ public class KalturaDownloadRequestAdapter implements DownloadRequestParams.Adap
     public KalturaDownloadRequestAdapter(String playSessionId, String applicationName) {
         this.playSessionId = playSessionId;
         this.applicationName = applicationName;
+    }
+
+    private static String toBase64(byte[] data) {
+        if (data == null || data.length == 0) {
+            return null;
+        }
+        return Base64.encodeToString(data, Base64.NO_WRAP);
     }
 
     @Override

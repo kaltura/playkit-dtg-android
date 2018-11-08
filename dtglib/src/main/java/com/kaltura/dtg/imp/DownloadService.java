@@ -9,7 +9,6 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -121,15 +120,6 @@ public class DownloadService extends Service {
 
     public DownloadService() {
         this.context = this;
-    }
-
-    @NonNull
-    static List<BaseTrack> flattenTrackList(Map<TrackType, List<BaseTrack>> tracksMap) {
-        List<BaseTrack> tracks = new ArrayList<>();
-        for (Map.Entry<TrackType, List<BaseTrack>> entry : tracksMap.entrySet()) {
-            tracks.addAll(entry.getValue());
-        }
-        return tracks;
     }
 
     private void onTaskProgress(DownloadTask task, DownloadTask.State newState, int newBytes, final Exception stopError) {
@@ -629,7 +619,7 @@ public class DownloadService extends Service {
     }
 
     void updateTracksInDB(String itemId, Map<TrackType, List<BaseTrack>> tracksMap, BaseTrack.TrackState state) {
-        database.updateTracksState(itemId, flattenTrackList(tracksMap), state);
+        database.updateTracksState(itemId, Utils.flattenTrackList(tracksMap), state);
     }
 
     int countPendingFiles(String itemId, @Nullable BaseTrack track) {
