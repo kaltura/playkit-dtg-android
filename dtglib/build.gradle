@@ -1,6 +1,5 @@
-apply plugin: 'com.android.library'
-apply from: '../version.gradle'
 apply from: 'bintray.gradle'
+apply plugin: 'com.android.library'
 
 group='com.github.kaltura'
 
