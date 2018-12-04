@@ -37,14 +37,15 @@ import com.kaltura.playkit.PKMediaSource;
 import com.kaltura.playkit.PlayKitManager;
 import com.kaltura.playkit.Player;
 import com.kaltura.playkit.PlayerEvent;
-import com.kaltura.playkit.api.ovp.SimpleOvpSessionProvider;
-import com.kaltura.playkit.mediaproviders.base.OnMediaLoadCompletion;
-import com.kaltura.playkit.mediaproviders.ovp.KalturaOvpMediaProvider;
+
 import com.kaltura.playkit.player.AudioTrack;
 import com.kaltura.playkit.player.BaseTrack;
 import com.kaltura.playkit.player.MediaSupport;
 import com.kaltura.playkit.player.PKTracks;
 import com.kaltura.playkit.player.TextTrack;
+import com.kaltura.playkit.providers.api.SimpleSessionProvider;
+import com.kaltura.playkit.providers.base.OnMediaLoadCompletion;
+import com.kaltura.playkit.providers.ovp.KalturaOvpMediaProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,7 +93,7 @@ class ItemLoader {
     }
 
     private static List<Item> loadOVPItems(int partnerId, String... entries) {
-        SimpleOvpSessionProvider sessionProvider = new SimpleOvpSessionProvider("https://cdnapisec.kaltura.com", partnerId, null);
+        SimpleSessionProvider sessionProvider = new SimpleSessionProvider("https://cdnapisec.kaltura.com", partnerId, null);
         CountDownLatch latch = new CountDownLatch(entries.length);
         final List<Item> items = new ArrayList<>();
 
