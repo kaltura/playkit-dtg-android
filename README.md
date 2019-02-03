@@ -14,8 +14,8 @@ Documentation: https://kaltura.github.io/playkit/guide/android/dtg/
 Add build.gradle dependency:
 
 	dependencies {
-		compile 'com.kaltura.dtg:dtglib:2.1.0'
+		compile 'com.kaltura.dtg:dtglib:2.4.0'
 	}
 
 
-Replace `2.1.0` with the latest release.
+Replace `2.4.0` with the latest release.
