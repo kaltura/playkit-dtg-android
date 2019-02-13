@@ -6,4 +6,9 @@
             <certificates src="user" />
         </trust-anchors>
     </debug-overrides>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">com</domain>
+        <domain includeSubdomains="true">net</domain>
+        <domain includeSubdomains="true">192.168.164.17</domain>
+    </domain-config>
 </network-security-config>
