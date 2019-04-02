@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
@@ -667,9 +668,9 @@ public class DownloadService extends Service {
     }
 
     private class ItemCache {
-        private Map<String, DownloadItemImp> cache = new HashMap<>();
-        private Set<String> dbFlushNeeded = new HashSet<>();
-        private Map<String, Long> itemLastUseTime = new HashMap<>();
+        private Map<String, DownloadItemImp> cache = new ConcurrentHashMap<>();
+        private Set<String> dbFlushNeeded = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+        private Map<String, Long> itemLastUseTime = new ConcurrentHashMap<>();
 
         private void markDirty(String itemId) {
             dbFlushNeeded.add(itemId);
