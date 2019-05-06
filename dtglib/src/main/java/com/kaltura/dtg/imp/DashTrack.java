@@ -1,6 +1,7 @@
 package com.kaltura.dtg.imp;
 
 import android.database.Cursor;
+import android.support.annotation.NonNull;
 
 import com.kaltura.dtg.parser.Format;
 import com.kaltura.dtg.DownloadItem;
@@ -9,7 +10,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 class DashTrack extends BaseTrack {
-    private static final String TAG = "DashTrack";
 
     private static final String EXTRA_ADAPTATION_INDEX = "originalAdaptationSetIndex";
     private static final String EXTRA_REPRESENTATION_INDEX = "originalRepresentationIndex";
@@ -59,6 +59,7 @@ class DashTrack extends BaseTrack {
         return Utils.hash(super.hashCode(), adaptationIndex, representationIndex);
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "DashTrack{" +

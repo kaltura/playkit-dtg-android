@@ -23,7 +23,7 @@ class ItemFutureMap {
     synchronized void add(@NonNull String itemId, @NonNull Future future) {
         Set<Future> futureList = map.get(itemId);
         if (futureList == null) {
-            futureList = Collections.newSetFromMap(new WeakHashMap<Future, Boolean>());
+            futureList = Collections.newSetFromMap(new WeakHashMap<>());
             map.put(itemId, futureList);
         }
         futureList.add(future);

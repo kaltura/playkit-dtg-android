@@ -50,19 +50,9 @@ public interface DownloadItem {
     }
 
     interface Track {
-        Comparator<Track> bitrateComparator = new Comparator<DownloadItem.Track>() {
-            @Override
-            public int compare(DownloadItem.Track lhs, DownloadItem.Track rhs) {
-                return (int) (lhs.getBitrate() - rhs.getBitrate());
-            }
-        };
+        Comparator<Track> bitrateComparator = (lhs, rhs) -> (int) (lhs.getBitrate() - rhs.getBitrate());
 
-        Comparator<Track> heightComparator = new Comparator<DownloadItem.Track>() {
-            @Override
-            public int compare(DownloadItem.Track lhs, DownloadItem.Track rhs) {
-                return lhs.getHeight() - rhs.getHeight();
-            }
-        };
+        Comparator<Track> heightComparator = (lhs, rhs) -> lhs.getHeight() - rhs.getHeight();
 
 
         TrackType getType();

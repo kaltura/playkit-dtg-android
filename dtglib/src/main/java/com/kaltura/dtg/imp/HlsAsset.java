@@ -26,7 +26,6 @@ class HlsAsset {
     static final HlsPlaylistParser parser = new HlsPlaylistParser();
 
     private String masterUrl;
-    long durationMs;
     final List<Track> videoTracks = new ArrayList<>();
     final List<Track> audioTracks = new ArrayList<>();
     final List<Track> textTracks = new ArrayList<>();

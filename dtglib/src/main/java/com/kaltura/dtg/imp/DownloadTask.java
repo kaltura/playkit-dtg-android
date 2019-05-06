@@ -242,7 +242,7 @@ class DownloadTask {
         IDLE, STARTED, IN_PROGRESS, COMPLETED, STOPPED, ERROR
     }
 
-    abstract static class Listener {
-        abstract void onTaskProgress(DownloadTask task, State newState, int newBytes, Exception stopError);
+    interface Listener {
+        void onTaskProgress(DownloadTask task, State newState, int newBytes, Exception stopError);
     }
 }

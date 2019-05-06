@@ -125,7 +125,7 @@ class Utils {
             fileOutputStream = new FileOutputStream(targetFile);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(10 * 1024); // 10kb: save some realloc'
 
-            byte data[] = new byte[1024];
+            byte[] data = new byte[1024];
             int count;
 
             while ((count = inputStream.read(data)) != -1) {
@@ -187,7 +187,7 @@ class Utils {
     @NonNull
     private static ByteArrayOutputStream fullyReadInputStream(InputStream inputStream, int byteLimit) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        byte data[] = new byte[1024];
+        byte[] data = new byte[1024];
         int count;
 
         try {
@@ -246,10 +246,6 @@ class Utils {
     static byte[] readFile(File file, @SuppressWarnings("SameParameterValue") int byteLimit) throws IOException {
         FileInputStream inputStream = new FileInputStream(file);
         return fullyReadInputStream(inputStream, byteLimit).toByteArray();
-    }
-
-    static long estimateTrackSize(int trackBitrate, long durationMS) {
-        return trackBitrate * durationMS / 1000 / 8;    // first multiply, then divide
     }
 
     static Set<Integer> makeRange(int first, int last) {

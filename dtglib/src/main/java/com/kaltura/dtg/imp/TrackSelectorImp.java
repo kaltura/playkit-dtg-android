@@ -19,7 +19,7 @@ class TrackSelectorImp implements DownloadItem.TrackSelector {
     @Override
     public List<DownloadItem.Track> getAvailableTracks(@NonNull final DownloadItem.TrackType type) {
         List<BaseTrack> tracks = downloader.getAvailableTracksByType(type);
-        return new ArrayList<DownloadItem.Track>(tracks);
+        return new ArrayList<>(tracks);
     }
 
     @Override
@@ -35,19 +35,16 @@ class TrackSelectorImp implements DownloadItem.TrackSelector {
 
     @Override
     public void apply(final DownloadItem.OnTrackSelectionListener listener) {
-        AsyncTask.execute(new Runnable() {
-            @Override
-            public void run() {
-                Exception error = null;
-                try {
-                    downloader.apply();
-                } catch (IOException e) {
-                    error = e;
-                }
+        AsyncTask.execute(() -> {
+            Exception error = null;
+            try {
+                downloader.apply();
+            } catch (IOException e) {
+                error = e;
+            }
 
-                if (listener != null) {
-                    listener.onTrackSelectionComplete(error);
-                }
+            if (listener != null) {
+                listener.onTrackSelectionComplete(error);
             }
         });
     }
@@ -55,11 +52,11 @@ class TrackSelectorImp implements DownloadItem.TrackSelector {
     @Override
     public List<DownloadItem.Track> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {
         List<BaseTrack> tracks = downloader.getDownloadedTracks(type);
-        return new ArrayList<DownloadItem.Track>(tracks);
+        return new ArrayList<>(tracks);
     }
 
     @Override
     public List<DownloadItem.Track> getSelectedTracks(@NonNull DownloadItem.TrackType type) {
-        return new ArrayList<DownloadItem.Track>(downloader.getSelectedTracksByType(type));
+        return new ArrayList<>(downloader.getSelectedTracksByType(type));
     }
 }

@@ -79,10 +79,7 @@ public class ContentManagerImp extends ContentManager {
         }
     };
 
-    private int maxConcurrentDownloads;
     private final Context context;
-    private String sessionId;
-    private String applicationName;
     private ServiceProxy serviceProxy;
     private boolean started;
     private boolean autoResumeItemsInProgress = true;
@@ -134,8 +131,8 @@ public class ContentManagerImp extends ContentManager {
 
         Storage.setup(context, settings);
 
-        this.sessionId = UUID.randomUUID().toString();
-        this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
+        String sessionId = UUID.randomUUID().toString();
+        String applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
         this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
         if (serviceProxy != null) {
             // Call the onStarted callback even if it has already been started
@@ -147,21 +144,18 @@ public class ContentManagerImp extends ContentManager {
 
         serviceProxy = new ServiceProxy(context, settings.copy());
         serviceProxy.setDownloadStateListener(downloadStateRelay);
-        serviceProxy.start(new OnStartedListener() {
-            @Override
-            public void onStarted() {
-                started = true;
-                if (autoResumeItemsInProgress) {
-                    // Resume all downloads that were in progress on stop.
-                    List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
-                    for (DownloadItem download : downloads) {
-                        download.startDownload();
-                    }
+        serviceProxy.start(() -> {
+            started = true;
+            if (autoResumeItemsInProgress) {
+                // Resume all downloads that were in progress on stop.
+                List<DownloadItem> downloads = getDownloads(DownloadState.IN_PROGRESS);
+                for (DownloadItem download : downloads) {
+                    download.startDownload();
                 }
+            }
 
-                if (onStartedListener != null) {
-                    onStartedListener.onStarted();
-                }
+            if (onStartedListener != null) {
+                onStartedListener.onStarted();
             }
         });
     }
@@ -304,14 +298,6 @@ public class ContentManagerImp extends ContentManager {
     @Override
     public boolean isStarted() {
         return started;
-    }
-
-    String getSessionId() {
-        return sessionId;
-    }
-
-    String getApplicationName() {
-        return applicationName;
     }
 }
 

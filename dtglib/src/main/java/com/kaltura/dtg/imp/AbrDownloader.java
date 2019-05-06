@@ -40,7 +40,7 @@ abstract class AbrDownloader {
     AbrDownloader(DownloadItemImp item) {
         this.item = item;
         this.targetDir = new File(item.getDataDir());
-        setDownloadTasks(new LinkedHashSet<DownloadTask>());
+        setDownloadTasks(new LinkedHashSet<>());
         this.manifestUrl = item.getContentURL();
     }
 
@@ -125,8 +125,8 @@ abstract class AbrDownloader {
         this.loadStoredOriginManifest();
         this.parseOriginManifest();
 
-        this.setSelectedTracksMap(new HashMap<TrackType, List<BaseTrack>>());
-        this.setAvailableTracksMap(new HashMap<TrackType, List<BaseTrack>>());
+        this.setSelectedTracksMap(new HashMap<>());
+        this.setAvailableTracksMap(new HashMap<>());
         Map<TrackType, List<BaseTrack>> originalSelectedTracks = new HashMap<>();
 
         for (TrackType type : DownloadItem.TrackType.values()) {
@@ -296,7 +296,7 @@ abstract class AbrDownloader {
         selectedTracks.put(type, new ArrayList<>(tracks));
     }
 
-    List<BaseTrack> getAvailableTracksByType(TrackType type) {
+    List<BaseTrack> getAvailableTracksByType(@NonNull TrackType type) {
         return Collections.unmodifiableList(availableTracks.get(type));
     }
 

@@ -28,8 +28,6 @@ public class DownloadRequestParams {
          * @return The input object, or an adapted one.
          */
         DownloadRequestParams adapt(DownloadRequestParams requestParams);
-
-        void updateParams(String playSessionId);
     }
 }
 

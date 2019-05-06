@@ -25,7 +25,6 @@ class ServiceProxy {
     private DownloadStateListener listener;
 
     private ContentManager.OnStartedListener onStartedListener;
-    private int maxConcurrentDownloads;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
@@ -73,10 +72,6 @@ class ServiceProxy {
 
         context.unbindService(serviceConnection);
         // DownloadService.onUnbind() will call stop().
-    }
-
-    void loadItemMetadata(DownloadItem item) {
-        service.loadItemMetadata((DownloadItemImp) item);
     }
 
     void pauseDownload(DownloadItem item) {
