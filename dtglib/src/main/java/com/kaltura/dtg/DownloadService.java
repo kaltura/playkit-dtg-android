@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.net.HttpRetryException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -147,15 +146,7 @@ public class DownloadService extends Service {
         if (newState == DownloadTask.State.ERROR) {
             Log.d(TAG, "Task has failed; cancelling item " + itemId + " offending URL: " + task.url);
 
-            itemCache.updateItemState(item, DownloadState.FAILED);
-
-            futureMap.cancelItem(itemId);
-            listenerHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    downloadStateListener.onDownloadFailure(item, stopError);
-                }
-            });
+            cancelItemWithError(item, stopError);
             return;
         }
 
@@ -181,6 +172,18 @@ public class DownloadService extends Service {
                 }
             });
         }
+    }
+
+    private void cancelItemWithError(final DownloadItemImp item, final Exception stopError) {
+        itemCache.updateItemState(item, DownloadState.FAILED);
+
+        futureMap.cancelItem(item.getItemId());
+        listenerHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                downloadStateListener.onDownloadFailure(item, stopError);
+            }
+        });
     }
 
     @Override
@@ -404,10 +407,14 @@ public class DownloadService extends Service {
     DownloadState startDownload(final DownloadItemImp item) {
         assertStarted();
 
+        if (Storage.isLowDiskSpace(settings.freeDiskSpaceRequiredBytes)) {
+            cancelItemWithError(item, new Utils.LowDiskSpaceException());
+            return DownloadState.FAILED;
+        }
+
         // Refresh item state
 
         if (item.getState() == DownloadState.NEW) {
-            final DownloadItemImp downloadItemImp = itemCache.get(item.getItemId());
             throw new IllegalStateException("Can't start download while itemState == NEW");
         }
 
@@ -634,6 +641,11 @@ public class DownloadService extends Service {
             public Void call() throws Exception {
                 while (true) {
                     try {
+                        if (Storage.isLowDiskSpace(settings.freeDiskSpaceRequiredBytes)) {
+                            final DownloadItemImp item = itemCache.get(itemId);
+                            cancelItemWithError(item, new Utils.LowDiskSpaceException());
+                            return null;
+                        }
                         task.download();
                         break;
                     } catch (HttpRetryException e) {
