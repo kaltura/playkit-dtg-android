@@ -15,7 +15,7 @@
  */
 package com.kaltura.dtg.parser.extractor.ts;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Pair;
 
 import com.kaltura.dtg.parser.C;

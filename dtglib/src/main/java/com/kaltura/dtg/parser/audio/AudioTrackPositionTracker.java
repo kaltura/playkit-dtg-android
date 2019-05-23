@@ -18,7 +18,7 @@ package com.kaltura.dtg.parser.audio;
 import android.media.AudioTimestamp;
 import android.media.AudioTrack;
 import android.os.SystemClock;
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 
 import com.kaltura.dtg.parser.C;
 import com.kaltura.dtg.parser.util.Assertions;

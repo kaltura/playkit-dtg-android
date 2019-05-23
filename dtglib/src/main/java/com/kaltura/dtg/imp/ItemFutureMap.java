@@ -1,6 +1,6 @@
 package com.kaltura.dtg.imp;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import java.util.Collections;

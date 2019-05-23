@@ -15,9 +15,9 @@
  */
 package com.kaltura.dtg.parser.source.hls.playlist;
 
-import android.support.annotation.IntDef;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.kaltura.dtg.parser.C;
 import com.kaltura.dtg.parser.drm.DrmInitData;

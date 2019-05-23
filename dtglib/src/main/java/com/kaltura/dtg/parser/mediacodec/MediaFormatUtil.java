@@ -17,7 +17,7 @@ package com.kaltura.dtg.parser.mediacodec;
 
 import android.annotation.TargetApi;
 import android.media.MediaFormat;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.kaltura.dtg.parser.Format;
 import com.kaltura.dtg.parser.video.ColorInfo;

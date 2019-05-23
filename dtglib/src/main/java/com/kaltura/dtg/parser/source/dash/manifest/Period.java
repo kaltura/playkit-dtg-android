@@ -15,7 +15,7 @@
  */
 package com.kaltura.dtg.parser.source.dash.manifest;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.kaltura.dtg.parser.C;
 

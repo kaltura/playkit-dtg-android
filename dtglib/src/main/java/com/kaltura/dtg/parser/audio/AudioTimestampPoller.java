@@ -18,8 +18,8 @@ package com.kaltura.dtg.parser.audio;
 import android.annotation.TargetApi;
 import android.media.AudioTimestamp;
 import android.media.AudioTrack;
-import android.support.annotation.IntDef;
-import android.support.annotation.Nullable;
+import androidx.annotation.IntDef;
+import androidx.annotation.Nullable;
 
 import com.kaltura.dtg.parser.C;
 import com.kaltura.dtg.parser.util.Util;

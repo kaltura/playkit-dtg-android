@@ -17,7 +17,7 @@ package com.kaltura.dtg.parser;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.kaltura.dtg.parser.drm.DrmInitData;
 import com.kaltura.dtg.parser.metadata.Metadata;
