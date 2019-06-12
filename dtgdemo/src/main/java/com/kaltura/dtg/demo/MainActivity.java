@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -776,33 +775,28 @@ public class MainActivity extends ListActivity {
 
     private void addPlayerEventListeners() {
 
-        player.addEventListener(event -> {
+        player.addListener(this, PlayerEvent.tracksAvailable, event -> {
+            PKTracks tracksInfo = event.tracksInfo;
+            audioTracks = tracksInfo.getAudioTracks();
+            textTracks = tracksInfo.getTextTracks();
 
-            PlayerEvent pe = (PlayerEvent) event;
-
-            switch (pe.type) {
-                case TRACKS_AVAILABLE:
-                    PKTracks tracksInfo = ((PlayerEvent.TracksAvailable) pe).tracksInfo;
-                    audioTracks = tracksInfo.getAudioTracks();
-                    textTracks = tracksInfo.getTextTracks();
-
-                    if (currentAudioTrack == null && !audioTracks.isEmpty()) {
-                        currentAudioTrack = audioTracks.get(tracksInfo.getDefaultAudioTrackIndex());
-                    }
-                    if (currentTextTrack != null && !textTracks.isEmpty()) {
-                        currentTextTrack = textTracks.get(tracksInfo.getDefaultTextTrackIndex());
-                    }
-                    break;
-                case AUDIO_TRACK_CHANGED:
-                    currentAudioTrack = ((PlayerEvent.AudioTrackChanged) pe).newTrack;
-                    Log.d(TAG, "currentAudioTrack: " + currentAudioTrack.getUniqueId() + " " + currentAudioTrack.getLanguage());
-                    break;
-                case TEXT_TRACK_CHANGED:
-                    currentTextTrack = ((PlayerEvent.TextTrackChanged) pe).newTrack;
-                    Log.d(TAG, "currentTextTrack: " + currentTextTrack);
-                    break;
+            if (currentAudioTrack == null && !audioTracks.isEmpty()) {
+                currentAudioTrack = audioTracks.get(tracksInfo.getDefaultAudioTrackIndex());
             }
-        }, PlayerEvent.Type.TRACKS_AVAILABLE, PlayerEvent.Type.AUDIO_TRACK_CHANGED, PlayerEvent.Type.TEXT_TRACK_CHANGED);
+            if (currentTextTrack != null && !textTracks.isEmpty()) {
+                currentTextTrack = textTracks.get(tracksInfo.getDefaultTextTrackIndex());
+            }
+        });
+
+        player.addListener(this, PlayerEvent.audioTrackChanged, event -> {
+            currentAudioTrack = event.newTrack;
+            Log.d(TAG, "currentAudioTrack: " + currentAudioTrack.getUniqueId() + " " + currentAudioTrack.getLanguage());
+        });
+
+        player.addListener(this, PlayerEvent.textTrackChanged, event -> {
+            currentTextTrack = event.newTrack;
+            Log.d(TAG, "currentTextTrack: " + currentTextTrack);
+        });
     }
 
     private void loadTestItems(final ArrayAdapter<Item> itemAdapter) {

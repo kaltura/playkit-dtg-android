@@ -34,9 +34,9 @@ repositories {
 
 dependencies {
     implementation project(':dtglib')
-    implementation 'com.kaltura.playkit:playkit:3.6.1'
+    implementation 'com.kaltura.playkit:playkit:3.9.4'
 
-    implementation 'com.kaltura.playkit:playkitproviders:1.0.2', {
+    implementation 'com.kaltura.playkit:playkitproviders:3.9.4', {
         exclude group: 'com.kaltura.playkit', module: 'playkit'
     }
     implementation 'com.google.android.gms:play-services-basement:15.0.1', {
