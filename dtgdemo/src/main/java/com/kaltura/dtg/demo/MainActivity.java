@@ -205,7 +205,8 @@ class ItemLoader {
         // TODO: fill the list with Items -- each item has a single PKMediaSource with relevant DRM data.
         // Using OVP provider for simplicity
 //        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx"));
-
+        // Using Phoenix provider for simplicity
+//        items.addAll(loadOTTItems("https://api-preprod.ott.kaltura.com/v5_1_0/api_v3/", 198, "",  "Mobile_Devices_Main_HD_Dash", "480989"));
         // For simple cases (no DRM), no need for MediaSource.
         //noinspection CollectionAddAllCanBeReplacedWithConstructor
         items.addAll(Arrays.asList(
@@ -769,6 +770,7 @@ public class MainActivity extends ListActivity {
             public void onRegistered(String localAssetPath) {
                 item.drmRegistered = true;
                 notifyDataSetChanged();
+                toast("item:" + item.getId() + " Registered");
             }
 
             @Override
@@ -790,6 +792,7 @@ public class MainActivity extends ListActivity {
         localAssetsManager.unregisterAsset(localAssetPath, item.getId(), localAssetPath1 -> {
             item.drmRegistered = false;
             notifyDataSetChanged();
+            toast("item:" + item.getId() + " Unregistered");
         });
     }
 
