@@ -341,7 +341,7 @@ class Database {
         trace("markTaskAsComplete done", downloadTask.itemId, downloadTask.taskId);
     }
 
-    synchronized DownloadItemImp findItemInDB(String itemId) {
+    synchronized @Nullable DownloadItemImp findItemInDB(String itemId) {
 
         trace("findItemInDB", itemId);
 

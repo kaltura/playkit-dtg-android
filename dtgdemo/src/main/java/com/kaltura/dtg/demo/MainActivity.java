@@ -261,7 +261,7 @@ class Item {
 
 
 public class MainActivity extends ListActivity {
-    
+
     private static final String TAG = "MainActivity";
     private ContentManager contentManager;
     private LocalAssetsManager localAssetsManager;
@@ -300,7 +300,14 @@ public class MainActivity extends ListActivity {
         }
 
         @Override
-        public void onDownloadFailure(DownloadItem item, Exception error) {
+        public void onDownloadFailure(final DownloadItem item, final Exception error) {
+            Log.d(TAG, "onDownloadFailure: " + item);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, "Download of " + item.getItemId() + " has failed: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
             itemStateChanged(item);
         }
 
@@ -524,10 +531,11 @@ public class MainActivity extends ListActivity {
 
         contentManager = ContentManager.getInstance(this);
 
-        contentManager.getSettings().defaultHlsAudioBitrateEstimation = DemoParams.defaultHlsAudioBitrateEstimation;
-        contentManager.getSettings().applicationName = "MyApplication";
-        contentManager.getSettings().maxConcurrentDownloads = 4;
-        contentManager.getSettings().createNoMediaFileInDownloadsDir = true;
+        final ContentManager.Settings settings = contentManager.getSettings();
+        settings.defaultHlsAudioBitrateEstimation = DemoParams.defaultHlsAudioBitrateEstimation;
+        settings.applicationName = "MyApplication";
+        settings.maxConcurrentDownloads = 4;
+        settings.createNoMediaFileInDownloadsDir = true;
         contentManager.addDownloadStateListener(cmListener);
 
         try {

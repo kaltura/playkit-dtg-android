@@ -140,6 +140,7 @@ public abstract class ContentManager {
         public String applicationName = "";
         public boolean createNoMediaFileInDownloadsDir = true;
         public int defaultHlsAudioBitrateEstimation = 64000;
+        public long freeDiskSpaceRequiredBytes = 400 * 1024 * 1024; // default 400MB
 
         Settings copy() {
             try {

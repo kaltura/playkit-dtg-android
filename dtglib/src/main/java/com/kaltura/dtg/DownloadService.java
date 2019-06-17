@@ -9,6 +9,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -19,7 +20,6 @@ import java.io.IOException;
 import java.net.HttpRetryException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -147,15 +147,7 @@ public class DownloadService extends Service {
         if (newState == DownloadTask.State.ERROR) {
             Log.d(TAG, "Task has failed; cancelling item " + itemId + " offending URL: " + task.url);
 
-            itemCache.updateItemState(item, DownloadState.FAILED);
-
-            futureMap.cancelItem(itemId);
-            listenerHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    downloadStateListener.onDownloadFailure(item, stopError);
-                }
-            });
+            cancelItemWithError(item, stopError);
             return;
         }
 
@@ -181,6 +173,18 @@ public class DownloadService extends Service {
                 }
             });
         }
+    }
+
+    private void cancelItemWithError(@NonNull final DownloadItemImp item, final Exception stopError) {
+        itemCache.updateItemState(item, DownloadState.FAILED);
+
+        futureMap.cancelItem(item.getItemId());
+        listenerHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                downloadStateListener.onDownloadFailure(item, stopError);
+            }
+        });
     }
 
     @Override
@@ -401,13 +405,17 @@ public class DownloadService extends Service {
         database.addTracks(item, availableTracks, selectedTracks);
     }
 
-    DownloadState startDownload(final DownloadItemImp item) {
+    DownloadState startDownload(@NonNull final DownloadItemImp item) {
         assertStarted();
+
+        if (Storage.isLowDiskSpace(settings.freeDiskSpaceRequiredBytes)) {
+            cancelItemWithError(item, new Utils.LowDiskSpaceException());
+            return DownloadState.FAILED;
+        }
 
         // Refresh item state
 
         if (item.getState() == DownloadState.NEW) {
-            final DownloadItemImp downloadItemImp = itemCache.get(item.getItemId());
             throw new IllegalStateException("Can't start download while itemState == NEW");
         }
 
@@ -472,7 +480,7 @@ public class DownloadService extends Service {
         }
     }
 
-    void resumeDownload(DownloadItemImp item) {
+    void resumeDownload(@NonNull DownloadItemImp item) {
         assertStarted();
 
         // resume should be considered as download start
@@ -513,7 +521,7 @@ public class DownloadService extends Service {
      *
      * @return An item identified by itemId, or null if not found.
      */
-    DownloadItemImp findItem(String itemId) {
+    @Nullable DownloadItemImp findItem(String itemId) {
         assertStarted();
 
         return itemCache.get(itemId);
@@ -634,6 +642,13 @@ public class DownloadService extends Service {
             public Void call() throws Exception {
                 while (true) {
                     try {
+                        if (Storage.isLowDiskSpace(settings.freeDiskSpaceRequiredBytes)) {
+                            final DownloadItemImp item = itemCache.get(itemId);
+                            if (item != null) {
+                                cancelItemWithError(item, new Utils.LowDiskSpaceException());
+                            }
+                            return null;
+                        }
                         task.download();
                         break;
                     } catch (HttpRetryException e) {
@@ -704,7 +719,7 @@ public class DownloadService extends Service {
             });
         }
 
-        private DownloadItemImp get(String itemId) {
+        private @Nullable DownloadItemImp get(String itemId) {
             DownloadItemImp item = cache.get(itemId);
             if (item != null) {
                 itemLastUseTime.put(itemId, elapsedRealtime());

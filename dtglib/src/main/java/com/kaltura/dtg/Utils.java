@@ -305,11 +305,15 @@ public class Utils {
 
     @SuppressWarnings("WeakerAccess")
     public static class DirectoryNotCreatableException extends IOException {
-
-        private static final long serialVersionUID = -1369279756939511377L;
-
         private DirectoryNotCreatableException(File dir) {
             super("Can't create directory " + dir);
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static class LowDiskSpaceException extends IOException {
+        LowDiskSpaceException() {
+            super("Not enough disk space available");
         }
     }
 
