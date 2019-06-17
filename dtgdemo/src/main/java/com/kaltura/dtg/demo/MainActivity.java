@@ -147,8 +147,8 @@ class ItemLoader {
         }
     }
 
-    private static List<Item> loadOTTItems(String apiURL, int partnerId, String ks, String format, String... entries) {
-        SimpleSessionProvider sessionProvider = new SimpleSessionProvider(apiURL, partnerId, ks);
+    private static List<Item> loadOTTItems(String phoenixBaseURL, int partnerId, String ks, String format, String... entries) {
+        SimpleSessionProvider sessionProvider = new SimpleSessionProvider(phoenixBaseURL, partnerId, ks);
         CountDownLatch latch = new CountDownLatch(entries.length);
         final List<Item> items = new ArrayList<>();
 
@@ -762,6 +762,8 @@ public class MainActivity extends ListActivity {
 
         String absolutePath = contentManager.getLocalFile(item.getId()).getAbsolutePath();
         PKMediaSource mediaSource = item.getMediaSource();
+
+
         localAssetsManager.registerAsset(mediaSource, absolutePath, item.getId(), new LocalAssetsManager.AssetRegistrationListener() {
             @Override
             public void onRegistered(String localAssetPath) {
