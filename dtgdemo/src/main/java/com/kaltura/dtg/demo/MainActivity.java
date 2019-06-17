@@ -40,6 +40,8 @@ import com.kaltura.playkit.player.MediaSupport;
 import com.kaltura.playkit.player.PKTracks;
 import com.kaltura.playkit.player.TextTrack;
 import com.kaltura.playkit.providers.api.SimpleSessionProvider;
+import com.kaltura.playkit.providers.api.phoenix.APIDefines;
+import com.kaltura.playkit.providers.ott.PhoenixMediaProvider;
 import com.kaltura.playkit.providers.ovp.KalturaOvpMediaProvider;
 
 import java.io.File;
@@ -145,7 +147,57 @@ class ItemLoader {
         }
     }
 
+    private static List<Item> loadOTTItems(String apiURL, int partnerId, String ks, String format, String... entries) {
+        SimpleSessionProvider sessionProvider = new SimpleSessionProvider(apiURL, partnerId, ks);
+        CountDownLatch latch = new CountDownLatch(entries.length);
+        final List<Item> items = new ArrayList<>();
 
+        for (int i = 0; i < entries.length; i++) {
+            items.add(null);
+            final String mediaId = entries[i];
+            final int index = i;
+
+            new PhoenixMediaProvider()
+                    .setSessionProvider(sessionProvider)
+                    .setAssetId(mediaId)
+                    .setProtocol(PhoenixMediaProvider.HttpProtocol.Https)
+                    .setContextType(APIDefines.PlaybackContextType.Playback)
+                    .setAssetType(APIDefines.KalturaAssetType.Media)
+                    .setFormats(format).load(response -> {
+                PKMediaEntry mediaEntry = response.getResponse();
+                if (mediaEntry != null) {
+                    PKMediaSource source = findPreferredSource(mediaEntry.getSources());
+
+                    if (source == null) {
+                        Log.w(TAG, "onComplete: No playable source for " + mediaEntry);
+                        return; // don't add because we don't have a source
+                    }
+
+                    forceReducedLicenseDuration(source, DemoParams.forceReducedLicenseDurationSeconds);
+
+                    Item item = new Item(source);
+                    items.set(index, item);
+
+                } else {
+                    Log.d("LOAD", mediaId);
+                }
+            });
+        }
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        for (Iterator<Item> iterator = items.iterator(); iterator.hasNext();) {
+            Item item = iterator.next();
+            if (item == null) {
+                // Remove the current element from the iterator and the list.
+                iterator.remove();
+            }
+        }
+        return items;
+    }
 
     static List<Item> loadItems() {
         List<Item> items = new ArrayList<>();
