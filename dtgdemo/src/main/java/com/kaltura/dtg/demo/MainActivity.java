@@ -2,7 +2,6 @@ package com.kaltura.dtg.demo;
 
 import android.app.ListActivity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
@@ -26,7 +25,6 @@ import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadState;
 import com.kaltura.dtg.DownloadStateListener;
-import com.kaltura.netkit.connect.response.ResultElement;
 import com.kaltura.playkit.LocalAssetsManager;
 import com.kaltura.playkit.PKDrmParams;
 import com.kaltura.playkit.PKEvent;
@@ -37,14 +35,14 @@ import com.kaltura.playkit.PKMediaSource;
 import com.kaltura.playkit.PlayKitManager;
 import com.kaltura.playkit.Player;
 import com.kaltura.playkit.PlayerEvent;
-import com.kaltura.playkit.api.ovp.SimpleOvpSessionProvider;
-import com.kaltura.playkit.mediaproviders.base.OnMediaLoadCompletion;
-import com.kaltura.playkit.mediaproviders.ovp.KalturaOvpMediaProvider;
 import com.kaltura.playkit.player.AudioTrack;
 import com.kaltura.playkit.player.BaseTrack;
-import com.kaltura.playkit.player.MediaSupport;
 import com.kaltura.playkit.player.PKTracks;
 import com.kaltura.playkit.player.TextTrack;
+import com.kaltura.playkit.providers.api.phoenix.APIDefines;
+import com.kaltura.playkit.providers.ott.PhoenixMediaProvider;
+import com.kaltura.playkit.providers.ovp.KalturaOvpMediaProvider;
+import com.kaltura.playkit.providers.api.SimpleSessionProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,12 +55,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static com.kaltura.playkit.player.MediaSupport.*;
+
 class DemoParams {
-//    static int forceReducedLicenseDurationSeconds = 600;
+    //    static int forceReducedLicenseDurationSeconds = 600;
     static int forceReducedLicenseDurationSeconds = 0;
 
 
@@ -92,7 +91,7 @@ class ItemLoader {
     }
 
     private static List<Item> loadOVPItems(int partnerId, String... entries) {
-        SimpleOvpSessionProvider sessionProvider = new SimpleOvpSessionProvider("https://cdnapisec.kaltura.com", partnerId, null);
+        SimpleSessionProvider sessionProvider = new SimpleSessionProvider("https://cdnapisec.kaltura.com", partnerId, null);
         CountDownLatch latch = new CountDownLatch(entries.length);
         final List<Item> items = new ArrayList<>();
 
@@ -100,26 +99,23 @@ class ItemLoader {
             items.add(null);
             final String entryId = entries[i];
             final int index = i;
-            new KalturaOvpMediaProvider().setSessionProvider(sessionProvider).setEntryId(entryId).load(new OnMediaLoadCompletion() {
-                @Override
-                public void onComplete(ResultElement<PKMediaEntry> response) {
-                    PKMediaEntry mediaEntry = response.getResponse();
-                    if (mediaEntry != null) {
-                        PKMediaSource source = findPreferredSource(mediaEntry.getSources());
+            new KalturaOvpMediaProvider().setSessionProvider(sessionProvider).setEntryId(entryId).load(response -> {
+                PKMediaEntry mediaEntry = response.getResponse();
+                if (mediaEntry != null) {
+                    PKMediaSource source = findPreferredSource(mediaEntry.getSources());
 
-                        if (source == null) {
-                            Log.w(TAG, "onComplete: No playable source for " + mediaEntry);
-                            return; // don't add because we don't have a source
-                        }
-
-                        forceReducedLicenseDuration(source, DemoParams.forceReducedLicenseDurationSeconds);
-
-                        Item item = new Item(source, mediaEntry.getName());
-                        items.set(index, item);
-
-                    } else {
-                        Log.d("LOAD", entryId);
+                    if (source == null) {
+                        Log.w(TAG, "onComplete: No playable source for " + mediaEntry);
+                        return; // don't add because we don't have a source
                     }
+
+                    forceReducedLicenseDuration(source, DemoParams.forceReducedLicenseDurationSeconds);
+
+                    Item item = new Item(source, mediaEntry.getName());
+                    items.set(index, item);
+
+                } else {
+                    Log.d("LOAD", entryId);
                 }
             });
 
@@ -152,6 +148,57 @@ class ItemLoader {
         }
     }
 
+    private static List<Item> loadOTTItems(String phoenixBaseURL, int partnerId, String ks, String format, String... entries) {
+        SimpleSessionProvider sessionProvider = new SimpleSessionProvider(phoenixBaseURL, partnerId, ks);
+        CountDownLatch latch = new CountDownLatch(entries.length);
+        final List<Item> items = new ArrayList<>();
+
+        for (int i = 0; i < entries.length; i++) {
+            items.add(null);
+            final String mediaId = entries[i];
+            final int index = i;
+
+            new PhoenixMediaProvider()
+                    .setSessionProvider(sessionProvider)
+                    .setAssetId(mediaId)
+                    .setProtocol(PhoenixMediaProvider.HttpProtocol.Https)
+                    .setContextType(APIDefines.PlaybackContextType.Playback)
+                    .setAssetType(APIDefines.KalturaAssetType.Media)
+                    .setFormats(format).load(response -> {
+                PKMediaEntry mediaEntry = response.getResponse();
+                if (mediaEntry != null) {
+                    PKMediaSource source = findPreferredSource(mediaEntry.getSources());
+
+                    if (source == null) {
+                        Log.w(TAG, "onComplete: No playable source for " + mediaEntry);
+                        return; // don't add because we don't have a source
+                    }
+
+                    //forceReducedLicenseDuration(source, DemoParams.forceReducedLicenseDurationSeconds);
+
+                    Item item = new Item(source, mediaEntry.getName());
+                    items.set(index, item);
+
+                } else {
+                    Log.d("LOAD", mediaId);
+                }
+            });
+        }
+
+        try {
+            latch.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        for (Iterator<Item> iterator = items.iterator(); iterator.hasNext();) {
+            Item item = iterator.next();
+            if (item == null) {
+                // Remove the current element from the iterator and the list.
+                iterator.remove();
+            }
+        }
+        return items;
+    }
 
 
     static List<Item>  loadItems() {
@@ -160,6 +207,8 @@ class ItemLoader {
         // TODO: fill the list with Items -- each item has a single PKMediaSource with relevant DRM data.
         // Using OVP provider for simplicity
 //        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx"));
+        // Using Phoenix provider for simplicity
+        items.addAll(loadOTTItems("https://api-preprod.ott.kaltura.com/v5_1_0/api_v3/", 198, "",  "Mobile_Devices_Main_HD_Dash", "480989"));
 
         // For simple cases (no DRM), no need for MediaSource.
         //noinspection CollectionAddAllCanBeReplacedWithConstructor
@@ -180,7 +229,7 @@ class ItemLoader {
 //                "<CONTENT-URL>",
 //                "<LICENCE-URL>"
 //        ));
-        
+
         return items;
     }
 
@@ -203,12 +252,12 @@ class Item {
         this.mediaSource = new PKMediaSource().setId(id).setUrl(url);
         this.name = id;
     }
-    
+
     Item(PKMediaSource mediaSource, String name) {
         this.mediaSource = mediaSource;
         this.name = name;
     }
-    
+
     Item(String id, String name, PKMediaFormat format, PKDrmParams.Scheme scheme, String url, String licenseUrl) {
         this.mediaSource = new PKMediaSource()
                 .setId(id)
@@ -221,11 +270,12 @@ class Item {
     boolean isDrmRegistered() {
         return drmRegistered;
     }
-    
+
     boolean isDrmProtected() {
         return mediaSource.hasDrmParams();
     }
 
+    @NonNull
     @Override
     public String toString() {
         String drmState ;
@@ -234,7 +284,7 @@ class Item {
         } else {
             drmState = "C";
         }
-        
+
         String progress;
         if (estimatedSize > 0) {
             float percentComplete = 100f * downloadedSize / estimatedSize;
@@ -242,7 +292,7 @@ class Item {
         } else {
             progress = "-?-";
         }
-        
+
         return String.format(Locale.ENGLISH, "[%s] %s -- %s -- DRM:%s", progress, getId(), downloadState, drmState);
     }
 
@@ -302,12 +352,7 @@ public class MainActivity extends ListActivity {
         @Override
         public void onDownloadFailure(final DownloadItem item, final Exception error) {
             Log.d(TAG, "onDownloadFailure: " + item);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(context, "Download of " + item.getItemId() + " has failed: " + error.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            });
+            runOnUiThread(() -> Toast.makeText(context, "Download of " + item.getItemId() + " has failed: " + error.getMessage(), Toast.LENGTH_LONG).show());
             itemStateChanged(item);
         }
 
@@ -354,7 +399,7 @@ public class MainActivity extends ListActivity {
                 }
             }
 
-            final String[] allTrackNames = trackNames.toArray(new String[trackNames.size()]);
+            final String[] allTrackNames = trackNames.toArray(new String[0]);
             final boolean[] selected = new boolean[boolSelectedTracks.size()];
             for (int i = 0; i < boolSelectedTracks.size(); i++) {
                 selected[i] = boolSelectedTracks.get(i);
@@ -367,39 +412,22 @@ public class MainActivity extends ListActivity {
                     // TODO: select tracks, if not selected before.
                     new AlertDialog.Builder(context)
                             .setTitle("Select tracks")
-                            .setMultiChoiceItems(allTrackNames, selected, new DialogInterface.OnMultiChoiceClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                                    selected[which] = isChecked;
-                                }
-                            })
-                            .setPositiveButton("Save", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    saveSelection(tracks, selected, trackSelector);
-                                    trackSelector.apply(new DownloadItem.OnTrackSelectionListener() {
-                                        @Override
-                                        public void onTrackSelectionComplete(Exception e) {
-                                            itemStateChanged(item);
-                                            notifyDataSetChanged();
-                                        }
-                                    });
-                                }
+                            .setMultiChoiceItems(allTrackNames, selected, (dialog, which, isChecked) -> selected[which] = isChecked)
+                            .setPositiveButton("Save", (dialog, which) -> {
+                                saveSelection(tracks, selected, trackSelector);
+                                trackSelector.apply(e -> {
+                                    itemStateChanged(item);
+                                    notifyDataSetChanged();
+                                });
                             })
                             .setNegativeButton("Default", null)
-                            .setNeutralButton("Start", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    saveSelection(tracks, selected, trackSelector);
-                                    trackSelector.apply(new DownloadItem.OnTrackSelectionListener() {
-                                        @Override
-                                        public void onTrackSelectionComplete(Exception e) {
-                                            itemStateChanged(item);
-                                            notifyDataSetChanged();
-                                            item.startDownload();
-                                        }
-                                    });
-                                }
+                            .setNeutralButton("Start", (dialog, which) -> {
+                                saveSelection(tracks, selected, trackSelector);
+                                trackSelector.apply(e -> {
+                                    itemStateChanged(item);
+                                    notifyDataSetChanged();
+                                    item.startDownload();
+                                });
                             })
                             .show();
                 }
@@ -409,9 +437,11 @@ public class MainActivity extends ListActivity {
 
         @Override
         public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
-            // TODO: select tracks
+            /*
+            TODO: select tracks
+            For example, leave the video selection as is; select all audio and text tracks.
+            */
 
-            // For example, leave the video selection as is; select all audio and text tracks.
             trackSelector.setSelectedTracks(DownloadItem.TrackType.AUDIO, trackSelector.getAvailableTracks(DownloadItem.TrackType.AUDIO));
             trackSelector.setSelectedTracks(DownloadItem.TrackType.TEXT, trackSelector.getAvailableTracks(DownloadItem.TrackType.TEXT));
         }
@@ -443,14 +473,9 @@ public class MainActivity extends ListActivity {
             notifyDataSetChanged();
         }
     }
-    
+
     private void notifyDataSetChanged() {
-        getListView().post(new Runnable() {
-            @Override
-            public void run() {
-                itemArrayAdapter.notifyDataSetChanged();
-            }
-        });
+        getListView().post(() -> itemArrayAdapter.notifyDataSetChanged());
     }
 
     enum Action {
@@ -468,7 +493,7 @@ public class MainActivity extends ListActivity {
             if (item.downloadState == null) {
                 return new Action[] {add, unregister, playOnline};
             }
-            
+
             switch (item.downloadState) {
                 case NEW:
                     return new Action[] {remove, checkStatus, unregister, playOnline};
@@ -493,13 +518,13 @@ public class MainActivity extends ListActivity {
             }
             throw new IllegalStateException();
         }
-        
+
         static String[] strings(Action[] actions) {
             List<String> stringActions = new ArrayList<>();
             for (Action action : actions) {
                 stringActions.add(action.name());
             }
-            return stringActions.toArray(new String[stringActions.size()]);
+            return stringActions.toArray(new String[0]);
         }
     }
 
@@ -530,24 +555,20 @@ public class MainActivity extends ListActivity {
         }
 
         contentManager = ContentManager.getInstance(this);
+        contentManager.getSettings().defaultHlsAudioBitrateEstimation = DemoParams.defaultHlsAudioBitrateEstimation;
+        contentManager.getSettings().applicationName = "MyApplication";
+        contentManager.getSettings().maxConcurrentDownloads = 4;
+        contentManager.getSettings().createNoMediaFileInDownloadsDir = true;
 
-        final ContentManager.Settings settings = contentManager.getSettings();
-        settings.defaultHlsAudioBitrateEstimation = DemoParams.defaultHlsAudioBitrateEstimation;
-        settings.applicationName = "MyApplication";
-        settings.maxConcurrentDownloads = 4;
-        settings.createNoMediaFileInDownloadsDir = true;
         contentManager.addDownloadStateListener(cmListener);
 
         try {
-            contentManager.start(new ContentManager.OnStartedListener() {
-                @Override
-                public void onStarted() {
-                    for (DownloadItem item : contentManager.getDownloads(DownloadState.values())) {
-                        itemStateChanged(item);
-                    }
-
-                    setListAdapter(itemArrayAdapter);
+            contentManager.start(() -> {
+                for (DownloadItem item : contentManager.getDownloads(DownloadState.values())) {
+                    itemStateChanged(item);
                 }
+
+                setListAdapter(itemArrayAdapter);
             });
         } catch (IOException e) {
             e.printStackTrace();
@@ -556,82 +577,65 @@ public class MainActivity extends ListActivity {
         }
 
         localAssetsManager = new LocalAssetsManager(context);
-        
-        findViewById(R.id.download_control).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String[] actions = {"Start service", "Stop service"};
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Download Action")
-                        .setItems(actions, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                switch (which) {
-                                    case 0:
-                                        try {
-                                            contentManager.start(new ContentManager.OnStartedListener() {
-                                                @Override
-                                                public void onStarted() {
-                                                    toast("Service started");
-                                                }
-                                            });
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
-                                        break;
-                                    case 1:
-                                        contentManager.stop();
-                                        break;
-                                }
 
-                            }
-                        }).show();
-            }
+        findViewById(R.id.download_control).setOnClickListener(v -> {
+            String[] actions = {"Start service", "Stop service"};
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Download Action")
+                    .setItems(actions, (dialog, which) -> {
+                        switch (which) {
+                            case 0:
+                                try {
+                                    contentManager.start(() -> toast("Service started"));
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                break;
+                            case 1:
+                                contentManager.stop();
+                                break;
+                        }
+
+                    }).show();
         });
-        
-        findViewById(R.id.player_control).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String[] actions = {"Play", "Pause", "Seek -60", "Seek -15", "Seek +15", "Seek +60", "Select audio", "Select text"};
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Player Action")
-                        .setItems(actions, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (player == null) {
-                                    return;
-                                }
-                                switch (which) {
-                                    case 0:
-                                        player.play();
-                                        break;
-                                    case 1:
-                                        player.pause();
-                                        break;
-                                    case 2:
-                                        player.seekTo(player.getCurrentPosition() - 60000);
-                                        break;
-                                    case 3:
-                                        player.seekTo(player.getCurrentPosition() - 15000);
-                                        break;
-                                    case 4:
-                                        player.seekTo(player.getCurrentPosition() + 15000);
-                                        break;
-                                    case 5:
-                                        player.seekTo(player.getCurrentPosition() + 60000);
-                                        break;
-                                    case 6:
-                                        selectPlayerTrack(true);
-                                        break;
-                                    case 7:
-                                        selectPlayerTrack(false);
-                                        break;
 
-                                }
-                            }
-                        }).show();
-                        
-            }
+        findViewById(R.id.player_control).setOnClickListener(v -> {
+            String[] actions = {"Play", "Pause", "Seek -60", "Seek -15", "Seek +15", "Seek +60", "Select audio", "Select text"};
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Player Action")
+                    .setItems(actions, (dialog, which) -> {
+                        if (player == null) {
+                            return;
+                        }
+                        switch (which) {
+                            case 0:
+                                player.play();
+                                break;
+                            case 1:
+                                player.pause();
+                                break;
+                            case 2:
+                                player.seekTo(player.getCurrentPosition() - 60000);
+                                break;
+                            case 3:
+                                player.seekTo(player.getCurrentPosition() - 15000);
+                                break;
+                            case 4:
+                                player.seekTo(player.getCurrentPosition() + 15000);
+                                break;
+                            case 5:
+                                player.seekTo(player.getCurrentPosition() + 60000);
+                                break;
+                            case 6:
+                                selectPlayerTrack(true);
+                                break;
+                            case 7:
+                                selectPlayerTrack(false);
+                                break;
+
+                        }
+                    }).show();
+
         });
     }
 
@@ -665,24 +669,16 @@ public class MainActivity extends ListActivity {
 
         new AlertDialog.Builder(context)
                 .setTitle("Select track")
-                .setSingleChoiceItems(trackTitles.toArray(new String[trackTitles.size()]), selected[0], new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        selected[0] = i;
-                    }
-                })
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        if (selected[0] >= 0) {
-                            player.changeTrack(trackIds.get(selected[0]));
-                        }
+                .setSingleChoiceItems(trackTitles.toArray(new String[0]), selected[0], (dialogInterface, i) -> selected[0] = i)
+                .setPositiveButton("OK", (dialogInterface, i) -> {
+                    if (selected[0] >= 0) {
+                        player.changeTrack(trackIds.get(selected[0]));
                     }
                 }).show();
     }
 
     void addAndLoad(Item item) {
-        DownloadItem downloadItem = null;
+        DownloadItem downloadItem;
         try {
             downloadItem = contentManager.createItem(item.getId(), item.getUrl());
             downloadItem.loadMetadata();
@@ -702,7 +698,7 @@ public class MainActivity extends ListActivity {
         final Item item = (Item) adapter.getItem(position);
         Log.d(TAG, "Clicked " + item);
 
-        DownloadState state = null;
+        //DownloadState state = null;
 
         if (!contentManager.isStarted()) {
             return;
@@ -719,45 +715,42 @@ public class MainActivity extends ListActivity {
 
         new AlertDialog.Builder(this)
                 .setTitle(item.toString())
-                .setItems(actionNames, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Action action = actions[i];
-                        Log.d(TAG, "" + action);
-                        switch (action) {
+                .setItems(actionNames, (dialogInterface, i) -> {
+                    Action action = actions[i];
+                    Log.d(TAG, "" + action);
+                    switch (action) {
 
-                            case add:
-                                addAndLoad(item);
-                                break;
-                            case start:
-                                contentManager.findItem(item.getId()).startDownload();
-                                break;
-                            case remove:
-                                contentManager.removeItem(item.getId());
-                                item.downloadedSize = 0;
-                                item.estimatedSize = 0;
-                                item.downloadState = null;
-                                notifyDataSetChanged();
-                                break;
-                            case pause:
-                                contentManager.findItem(item.getId()).pauseDownload();
-                                break;
-                            case register:
-                                registerAsset(item);
-                                break;
-                            case checkStatus:
-                                checkStatus(item);
-                                break;
-                            case unregister:
-                                unregisterAsset(item);
-                                break;
-                            case playOffline:
-                                playDownloadedItem(item);
-                                break;
-                            case playOnline:
-                                playOnlineItem(item);
-                                break;
-                        }
+                        case add:
+                            addAndLoad(item);
+                            break;
+                        case start:
+                            contentManager.findItem(item.getId()).startDownload();
+                            break;
+                        case remove:
+                            contentManager.removeItem(item.getId());
+                            item.downloadedSize = 0;
+                            item.estimatedSize = 0;
+                            item.downloadState = null;
+                            notifyDataSetChanged();
+                            break;
+                        case pause:
+                            contentManager.findItem(item.getId()).pauseDownload();
+                            break;
+                        case register:
+                            registerAsset(item);
+                            break;
+                        case checkStatus:
+                            checkStatus(item);
+                            break;
+                        case unregister:
+                            unregisterAsset(item);
+                            break;
+                        case playOffline:
+                            playDownloadedItem(item);
+                            break;
+                        case playOnline:
+                            playOnlineItem(item);
+                            break;
                     }
                 })
                 .setCancelable(true)
@@ -771,17 +764,12 @@ public class MainActivity extends ListActivity {
             return;
         }
         String absolutePath = localFile.getAbsolutePath();
-        localAssetsManager.checkAssetStatus(absolutePath, item.getId(), new LocalAssetsManager.AssetStatusListener() {
-            @Override
-            public void onStatus(String localAssetPath, long expiryTimeSeconds, long availableTimeSeconds, boolean isRegistered) {
-                toast("" + expiryTimeSeconds +  " " + availableTimeSeconds);
-            }
-        });
+        localAssetsManager.checkAssetStatus(absolutePath, item.getId(), (localAssetPath, expiryTimeSeconds, availableTimeSeconds, isRegistered) -> toast("" + expiryTimeSeconds +  " " + availableTimeSeconds));
 
     }
 
     private void playOnlineItem(Item item) {
-        
+
         playItem(item.getId(), item.getMediaSource(), PKMediaEntry.MediaEntryType.Vod);
     }
 
@@ -794,6 +782,7 @@ public class MainActivity extends ListActivity {
             public void onRegistered(String localAssetPath) {
                 item.drmRegistered = true;
                 notifyDataSetChanged();
+                toast("item:" + item.getId() + " Registered");
             }
 
             @Override
@@ -802,7 +791,7 @@ public class MainActivity extends ListActivity {
             }
         });
     }
-    
+
     private void unregisterAsset(final Item item) {
 
 
@@ -812,22 +801,15 @@ public class MainActivity extends ListActivity {
             return;
         }
         final String localAssetPath = localFile.getAbsolutePath();
-        localAssetsManager.unregisterAsset(localAssetPath, item.getId(), new LocalAssetsManager.AssetRemovalListener() {
-            @Override
-            public void onRemoved(String localAssetPath) {
-                item.drmRegistered = false;
-                notifyDataSetChanged();
-            }
+        localAssetsManager.unregisterAsset(localAssetPath, item.getId(), localAssetPath1 -> {
+            item.drmRegistered = false;
+            notifyDataSetChanged();
+            toast("item:" + item.getId() + " Unregistered");
         });
     }
 
     private void toast(final String text) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(context, text, Toast.LENGTH_LONG).show();
-            }
-        });
+        runOnUiThread(() -> Toast.makeText(context, text, Toast.LENGTH_LONG).show());
     }
 
     private void playDownloadedItem(Item item) {
@@ -841,9 +823,7 @@ public class MainActivity extends ListActivity {
     private void playItem(String itemId, PKMediaSource mediaSource, PKMediaEntry.MediaEntryType type) {
         PKMediaEntry entry = new PKMediaEntry().setId(itemId).setMediaType(type).setSources(Collections.singletonList(mediaSource));
 
-
         setupPlayer();
-
 
         player.prepare(new PKMediaConfig().setMediaEntry(entry));
         player.play();
@@ -862,58 +842,41 @@ public class MainActivity extends ListActivity {
 
     private void addPlayerEventListeners() {
 
-        player.addEventListener(new PKEvent.Listener() {
-            @Override
-            public void onEvent(PKEvent event) {
+        player.addListener(this, PlayerEvent.tracksAvailable, event -> {
+            PKTracks tracksInfo = event.tracksInfo;
+            audioTracks = tracksInfo.getAudioTracks();
+            textTracks = tracksInfo.getTextTracks();
 
-                PlayerEvent pe = (PlayerEvent) event;
-
-                switch (pe.type) {
-                    case TRACKS_AVAILABLE:
-                        PKTracks tracksInfo = ((PlayerEvent.TracksAvailable) pe).tracksInfo;
-                        audioTracks = tracksInfo.getAudioTracks();
-                        textTracks = tracksInfo.getTextTracks();
-
-                        if (currentAudioTrack == null && !audioTracks.isEmpty()) {
-                            currentAudioTrack = audioTracks.get(tracksInfo.getDefaultAudioTrackIndex());
-                        }
-                        if (currentTextTrack != null && !textTracks.isEmpty()) {
-                            currentTextTrack = textTracks.get(tracksInfo.getDefaultTextTrackIndex());
-                        }
-                        break;
-                    case AUDIO_TRACK_CHANGED:
-                        currentAudioTrack = ((PlayerEvent.AudioTrackChanged) pe).newTrack;
-                        Log.d(TAG, "currentAudioTrack: " + currentAudioTrack.getUniqueId() + " " + currentAudioTrack.getLanguage());
-                        break;
-                    case TEXT_TRACK_CHANGED:
-                        currentTextTrack = ((PlayerEvent.TextTrackChanged) pe).newTrack;
-                        Log.d(TAG, "currentTextTrack: " + currentTextTrack);
-                        break;
-                }
+            if (currentAudioTrack == null && !audioTracks.isEmpty()) {
+                currentAudioTrack = audioTracks.get(tracksInfo.getDefaultAudioTrackIndex());
             }
-        }, PlayerEvent.Type.TRACKS_AVAILABLE, PlayerEvent.Type.AUDIO_TRACK_CHANGED, PlayerEvent.Type.TEXT_TRACK_CHANGED);
+            if (currentTextTrack != null && !textTracks.isEmpty()) {
+                currentTextTrack = textTracks.get(tracksInfo.getDefaultTextTrackIndex());
+            }
+        });
+
+        player.addListener(this, PlayerEvent.audioTrackChanged, event -> {
+            currentAudioTrack = event.newTrack;
+            Log.d(TAG, "currentAudioTrack: " + currentAudioTrack.getUniqueId() + " " + currentAudioTrack.getLanguage());
+        });
+
+        player.addListener(this, PlayerEvent.textTrackChanged, event -> {
+            currentTextTrack = event.newTrack;
+            Log.d(TAG, "currentTextTrack: " + currentTextTrack);
+        });
     }
 
     private void loadTestItems(final ArrayAdapter<Item> itemAdapter) {
 
-        MediaSupport.initializeDrm(this, new MediaSupport.DrmInitCallback() {
-            @Override
-            public void onDrmInitComplete(Set<PKDrmParams.Scheme> supportedDrmSchemes, boolean provisionPerformed, Exception provisionError) {
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        List<Item> items = ItemLoader.loadItems();
-                        itemAdapter.addAll(items);
-                        for (final Item item : items) {
-                            if (item != null) {
-                                itemMap.put(item.getId(), item);
-                            }
-                        }
-                    }
-                });
+        initializeDrm(this, (supportedDrmSchemes, provisionPerformed, provisionError) -> runOnUiThread(() -> {
+            List<Item> items = ItemLoader.loadItems();
+            itemAdapter.addAll(items);
+            for (final Item item : items) {
+                if (item != null) {
+                    itemMap.put(item.getId(), item);
+                }
             }
-        });
+        }));
     }
 
     public boolean isNetworkAvailable() {
