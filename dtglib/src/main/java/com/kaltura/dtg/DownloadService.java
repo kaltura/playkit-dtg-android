@@ -31,7 +31,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static android.os.SystemClock.elapsedRealtime;
 
@@ -47,7 +51,7 @@ public class DownloadService extends Service {
     private boolean started;
     private boolean stopping;
     private DownloadStateListener downloadStateListener;
-    private ExecutorService executorService;
+    private PausableThreadPoolExecutor executorService;
     private final ItemFutureMap futureMap = new ItemFutureMap();
     private Handler listenerHandler = null;
 
@@ -229,9 +233,13 @@ public class DownloadService extends Service {
 
     private void pauseItemDownload(String itemId) {
         if (itemId != null) {
+            executorService.pause();
             futureMap.cancelItem(itemId);
+            executorService.resume();
         } else {
+            executorService.pause();
             futureMap.cancelAll();
+            executorService.resume();
         }
         // Maybe add PAUSE_ALL with executorService.purge(); and remove futures
     }
@@ -281,7 +289,7 @@ public class DownloadService extends Service {
 
         startHandlerThreads();
 
-        executorService = Executors.newFixedThreadPool(settings.maxConcurrentDownloads);
+        executorService = new PausableThreadPoolExecutor(settings.maxConcurrentDownloads);
 
         started = true;
     }
@@ -660,12 +668,16 @@ public class DownloadService extends Service {
                 return null;
             }
         };
-        return new FutureTask<Void>(callable) {
+        final FutureTask<Void> futureTask = new FutureTask<Void>(callable) {
             @Override
             protected void done() {
                 futureMap.remove(itemId, this);
             }
         };
+
+        task.setFutureId(System.identityHashCode(futureTask));
+
+        return futureTask;
     }
 
     void setSettings(ContentManager.Settings settings) {

@@ -30,6 +30,7 @@ public class DownloadTask {
 
     private int retryCount = 0;
     private ContentManager.Settings downloadSettings;
+    private int futureId;   // only used for debugging purposes
 
     public DownloadTask(Uri url, File targetFile, int order) {
         this.url = url;
@@ -116,6 +117,8 @@ public class DownloadTask {
         State stopReason = null;
         Exception stopError = null;
 
+        boolean interruptedBetweenCycles = false;
+
         int progressReportBytes = 0;
         try {
             conn = Utils.openConnection(uri);
@@ -144,6 +147,11 @@ public class DownloadTask {
             int progressReportCounter = 0;
 
             while (true) {
+                if (Thread.interrupted()) {
+                    interruptedBetweenCycles = true;
+                    break;
+                }
+
                 byteCount = inputStream.read(buffer);
 
                 progressReportCounter++;
@@ -166,7 +174,12 @@ public class DownloadTask {
                 }
             }
 
-            stopReason = State.COMPLETED;
+            if (interruptedBetweenCycles) {
+//                Log.d(TAG, "Task " + taskId + " interrupted between read cycles: " + futureId);
+                reportProgress(State.STOPPED, 0, null);
+            } else {
+                stopReason = State.COMPLETED;
+            }
 
         } catch (SocketTimeoutException e) {
             // Not a fatal error -- consider retry.
@@ -180,7 +193,7 @@ public class DownloadTask {
 
         } catch (InterruptedIOException e) {
             // Not an error -- task is cancelled.
-//            Log.d(TAG, "Task " + taskId + " interrupted");
+//            Log.d(TAG, "Task " + taskId + " interrupted: " + futureId);
             stopReason = State.STOPPED;
 
         } catch (IOException e) {
@@ -234,6 +247,10 @@ public class DownloadTask {
 
     void setDownloadSettings(ContentManager.Settings downloadSettings) {
         this.downloadSettings = downloadSettings;
+    }
+
+    public void setFutureId(int futureId) {
+        this.futureId = futureId;
     }
 
     enum State {
