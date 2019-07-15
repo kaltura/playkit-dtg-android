@@ -1,7 +1,7 @@
 package com.kaltura.dtg.imp;
 
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.kaltura.dtg.DownloadItem;
 

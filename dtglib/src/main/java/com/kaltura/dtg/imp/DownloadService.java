@@ -9,8 +9,9 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;

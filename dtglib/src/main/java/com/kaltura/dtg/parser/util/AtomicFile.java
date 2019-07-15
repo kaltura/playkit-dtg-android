@@ -15,7 +15,7 @@
  */
 package com.kaltura.dtg.parser.util;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;

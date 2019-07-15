@@ -15,7 +15,7 @@
  */
 package com.kaltura.dtg.parser.extractor.mp4;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import com.kaltura.dtg.parser.C;

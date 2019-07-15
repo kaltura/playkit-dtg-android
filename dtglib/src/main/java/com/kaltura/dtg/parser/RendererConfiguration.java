@@ -15,7 +15,7 @@
  */
 package com.kaltura.dtg.parser;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 /**
  * The configuration of a {@link Renderer}.

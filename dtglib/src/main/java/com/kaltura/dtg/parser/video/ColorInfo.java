@@ -17,7 +17,7 @@ package com.kaltura.dtg.parser.video;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import com.kaltura.dtg.parser.C;
 import com.kaltura.dtg.parser.Format;
 import com.kaltura.dtg.parser.util.Util;

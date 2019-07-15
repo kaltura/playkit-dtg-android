@@ -15,7 +15,7 @@
  */
 package com.kaltura.dtg.parser.extractor.ts;
 
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 
 import com.kaltura.dtg.parser.C;
 import com.kaltura.dtg.parser.Format;
