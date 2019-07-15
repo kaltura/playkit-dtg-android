@@ -4,7 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 
-import com.kaltura.android.exoplayer2.Format;
+import com.kaltura.android.exoparser.Format;
 import com.kaltura.dtg.dash.DashTrack;
 import com.kaltura.dtg.hls.HlsAsset;
 
