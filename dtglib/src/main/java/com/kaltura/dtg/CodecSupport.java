@@ -7,8 +7,8 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.kaltura.android.exoplayer2.Format;
-import com.kaltura.android.exoplayer2.util.MimeTypes;
+import com.kaltura.dtg.exoparser.Format;
+import com.kaltura.dtg.exoparser.util.MimeTypes;
 import com.kaltura.dtg.DownloadItem.TrackType;
 
 import java.util.HashMap;
