@@ -18,7 +18,7 @@ package com.kaltura.dtg.exoparser.audio;
 import android.media.AudioTimestamp;
 import android.media.AudioTrack;
 import android.os.SystemClock;
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 
 import com.kaltura.dtg.exoparser.C;
 import com.kaltura.dtg.exoparser.util.Assertions;

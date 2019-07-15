@@ -17,7 +17,7 @@ package com.kaltura.dtg.exoparser.util;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 /**
  * An interface through which system clocks can be read and {@link HandlerWrapper}s created. The

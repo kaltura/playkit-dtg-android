@@ -21,7 +21,7 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 
 import com.kaltura.dtg.exoparser.util.Util;
 

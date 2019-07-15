@@ -16,7 +16,7 @@
 package com.kaltura.dtg.exoparser.audio;
 
 import android.annotation.TargetApi;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.kaltura.dtg.exoparser.C;
 

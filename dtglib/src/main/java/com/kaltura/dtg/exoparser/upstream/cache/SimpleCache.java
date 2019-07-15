@@ -16,7 +16,7 @@
 package com.kaltura.dtg.exoparser.upstream.cache;
 
 import android.os.ConditionVariable;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.kaltura.dtg.exoparser.C;
