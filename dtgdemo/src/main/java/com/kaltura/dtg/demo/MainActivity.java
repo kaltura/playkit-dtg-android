@@ -324,6 +324,7 @@ public class MainActivity extends ListActivity {
 
     private DownloadStateListener cmListener = new DownloadStateListener() {
 
+        private long lastReportedProgress;
         long start;
 
         @Override
