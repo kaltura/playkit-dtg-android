@@ -1,19 +1,19 @@
 package com.kaltura.dtg.dash;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
-import com.kaltura.android.exoplayer2.C;
-import com.kaltura.android.exoplayer2.Format;
-import com.kaltura.android.exoplayer2.source.dash.manifest.AdaptationSet;
-import com.kaltura.android.exoplayer2.source.dash.manifest.DashManifest;
-import com.kaltura.android.exoplayer2.source.dash.manifest.DashManifestParser;
-import com.kaltura.android.exoplayer2.source.dash.manifest.Period;
-import com.kaltura.android.exoplayer2.source.dash.manifest.RangedUri;
-import com.kaltura.android.exoplayer2.source.dash.manifest.Representation;
+import com.kaltura.dtg.exoparser.C;
+import com.kaltura.dtg.exoparser.Format;
+import com.kaltura.dtg.exoparser.source.dash.manifest.AdaptationSet;
+import com.kaltura.dtg.exoparser.source.dash.manifest.DashManifest;
+import com.kaltura.dtg.exoparser.source.dash.manifest.DashManifestParser;
+import com.kaltura.dtg.exoparser.source.dash.manifest.Period;
+import com.kaltura.dtg.exoparser.source.dash.manifest.RangedUri;
+import com.kaltura.dtg.exoparser.source.dash.manifest.Representation;
 import com.kaltura.dtg.AbrDownloader;
 import com.kaltura.dtg.AssetFormat;
 import com.kaltura.dtg.BaseTrack;

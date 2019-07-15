@@ -8,8 +8,6 @@ before_script:
   - curl https://kaltura.github.io/fe-tools/android/license.sh | sh
 script:
   - ./gradlew dtglib:build dtgdemo:build
-after_success:
-  - ./travis-push-to-bintray.sh
 notifications:
   email:
     recipients:
