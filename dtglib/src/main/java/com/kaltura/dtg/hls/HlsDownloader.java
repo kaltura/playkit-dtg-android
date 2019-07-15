@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.kaltura.android.exoparser.ParserException;
+import com.kaltura.dtg.exoparser.ParserException;
 import com.kaltura.dtg.AbrDownloader;
 import com.kaltura.dtg.AssetFormat;
 import com.kaltura.dtg.BaseTrack;
