@@ -1,7 +1,7 @@
 package com.kaltura.dtg;
 
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.io.IOException;
 import java.util.ArrayList;

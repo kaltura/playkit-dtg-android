@@ -17,7 +17,7 @@ package com.kaltura.dtg.exoparser.drm;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.kaltura.dtg.exoparser.C;
 import com.kaltura.dtg.exoparser.util.Assertions;
