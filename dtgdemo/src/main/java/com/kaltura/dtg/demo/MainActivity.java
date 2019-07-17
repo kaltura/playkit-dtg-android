@@ -324,6 +324,7 @@ public class MainActivity extends ListActivity {
 
     private DownloadStateListener cmListener = new DownloadStateListener() {
 
+        private long lastReportedProgress;
         long start;
 
         @Override
@@ -334,13 +335,18 @@ public class MainActivity extends ListActivity {
 
         @Override
         public void onProgressChange(DownloadItem item, long downloadedBytes) {
-            itemStateChanged(item);
+            final long now = SystemClock.elapsedRealtime();
+            if (now - lastReportedProgress > 200) {
+                itemStateChanged(item);
+                lastReportedProgress = now;
+            }
         }
 
         @Override
         public void onDownloadStart(DownloadItem item) {
             start = SystemClock.elapsedRealtime();
             itemStateChanged(item);
+
         }
 
         @Override

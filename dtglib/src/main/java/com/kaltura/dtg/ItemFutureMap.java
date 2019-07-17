@@ -36,6 +36,7 @@ class ItemFutureMap {
         if (count > 0) {
             futureList = new LinkedHashSet<>(futureList);   // iterate over a copied list
             for (Future future : futureList) {
+//                Log.d(TAG, "cancelItem: " + itemId + ": " + System.identityHashCode(future));
                 future.cancel(true);
             }
         }
