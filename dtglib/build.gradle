@@ -2,8 +2,6 @@ apply plugin: 'com.android.library'
 apply from: '../version.gradle'
 apply from: 'bintray.gradle'
 
-group='com.github.kaltura'
-
 android {
     compileSdkVersion 28
     defaultConfig {
