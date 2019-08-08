@@ -6,11 +6,11 @@ try {
 
     publish {
         artifactId = 'dtglib'
-        description = 'DTG: Kaltura Download-To-Go'
+        desc = 'DTG: Kaltura Download-To-Go'
         repoName = 'android'
         userOrg = 'kaltura'
         groupId = 'com.kaltura.dtg'
-        version = dtglibVersion
+        publishVersion = dtglibVersion
         autoPublish = true
         licences = ['AGPL-3.0']
     }

@@ -29,14 +29,14 @@ tasks.withType(Javadoc) {
     options.addBooleanOption('Xdoclint:none', true)
 }
 
-dependencies {
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-}
-
 // build a jar with source files
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
+}
+
+dependencies {
+    implementation 'androidx.annotation:annotation:1.1.0'
 }
 
 artifacts {
