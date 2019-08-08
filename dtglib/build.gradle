@@ -1,6 +1,6 @@
-apply plugin: 'com.android.library'
-apply from: '../version.gradle'
 apply from: 'bintray.gradle'
+apply from: '../version.gradle'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 28
