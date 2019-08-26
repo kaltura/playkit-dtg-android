@@ -2,6 +2,8 @@ package com.kaltura.dtg;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -130,7 +132,8 @@ public class ContentManagerImp extends ContentManager {
         this.sessionId = UUID.randomUUID().toString();
         this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
         this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
-        if (serviceProxy != null) {
+
+        if (started) {
             // Call the onStarted callback even if it has already been started
             if (onStartedListener != null) {
                 onStartedListener.onStarted();
@@ -138,11 +141,13 @@ public class ContentManagerImp extends ContentManager {
             return;
         }
 
-        serviceProxy = new ServiceProxy(context, settings.copy());
-        serviceProxy.setDownloadStateListener(downloadStateRelay);
-        serviceProxy.start(new OnStartedListener() {
-            @Override
-            public void onStarted() {
+        synchronized (this) {
+            if (serviceProxy == null) {
+                serviceProxy = new ServiceProxy(context, settings.copy());
+                serviceProxy.setDownloadStateListener(downloadStateRelay);
+            }
+
+            serviceProxy.start(() -> {
                 started = true;
                 if (autoResumeItemsInProgress) {
                     // Resume all downloads that were in progress on stop.
@@ -155,8 +160,8 @@ public class ContentManagerImp extends ContentManager {
                 if (onStartedListener != null) {
                     onStartedListener.onStarted();
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override

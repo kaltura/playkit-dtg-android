@@ -549,6 +549,7 @@ public class DownloadService extends Service {
         DownloadItemImp item = itemCache.get(itemId);
         // If item already exists, return null.
         if (item != null) {
+            Log.e(TAG, "createItem: already exists");
             return null;    // don't create, DON'T return db item.
         }
 
