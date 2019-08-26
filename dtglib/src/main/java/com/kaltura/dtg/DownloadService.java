@@ -57,18 +57,9 @@ public class DownloadService extends Service {
 
     private ItemCache itemCache = new ItemCache();
 
-    private final DownloadTask.Listener mDownloadTaskListener = new DownloadTask.Listener() {
-
-        @Override
-        public void onTaskProgress(final DownloadTask task, final DownloadTask.State newState, final int newBytes, final Exception stopError) {
-            if (taskProgressHandler.getLooper().getThread().isAlive()) {
-                taskProgressHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        DownloadService.this.onTaskProgress(task, newState, newBytes, stopError);
-                    }
-                });
-            }
+    private final DownloadTask.Listener mDownloadTaskListener = (task, newState, newBytes, stopError) -> {
+        if (taskProgressHandler.getLooper().getThread().isAlive()) {
+            taskProgressHandler.post(() -> DownloadService.this.onTaskProgress(task, newState, newBytes, stopError));
         }
     };
 
@@ -158,19 +149,9 @@ public class DownloadService extends Service {
             database.setDownloadFinishTime(itemId);
 
             itemCache.updateItemState(item, DownloadState.COMPLETED);
-            listenerHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    downloadStateListener.onDownloadComplete(item);
-                }
-            });
+            listenerHandler.post(() -> downloadStateListener.onDownloadComplete(item));
         } else {
-            listenerHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    downloadStateListener.onProgressChange(item, totalBytes);
-                }
-            });
+            listenerHandler.post(() -> downloadStateListener.onProgressChange(item, totalBytes));
         }
     }
 
@@ -178,12 +159,7 @@ public class DownloadService extends Service {
         itemCache.updateItemState(item, DownloadState.FAILED);
 
         futureMap.cancelItem(item.getItemId());
-        listenerHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                downloadStateListener.onDownloadFailure(item, stopError);
-            }
-        });
+        listenerHandler.post(() -> downloadStateListener.onDownloadFailure(item, stopError));
     }
 
     @Override
@@ -324,21 +300,18 @@ public class DownloadService extends Service {
     void loadItemMetadata(final DownloadItemImp item) {
         assertStarted();
 
-        AsyncTask.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    newDownload(item);
-                    itemCache.updateItemState(item, DownloadState.INFO_LOADED);
-                    updateItemInfoInDB(item,
-                            Database.COL_ITEM_ESTIMATED_SIZE,
-                            Database.COL_ITEM_PLAYBACK_PATH);
-                    downloadStateListener.onDownloadMetadata(item, null);
+        AsyncTask.execute(() -> {
+            try {
+                newDownload(item);
+                itemCache.updateItemState(item, DownloadState.INFO_LOADED);
+                updateItemInfoInDB(item,
+                        Database.COL_ITEM_ESTIMATED_SIZE,
+                        Database.COL_ITEM_PLAYBACK_PATH);
+                downloadStateListener.onDownloadMetadata(item, null);
 
-                } catch (IOException e) {
-                    Log.e(TAG, "Failed to download metadata for " + item.getItemId(), e);
-                    downloadStateListener.onDownloadMetadata(item, e);
-                }
+            } catch (IOException e) {
+                Log.e(TAG, "Failed to download metadata for " + item.getItemId(), e);
+                downloadStateListener.onDownloadMetadata(item, e);
             }
         });
     }
@@ -424,12 +397,7 @@ public class DownloadService extends Service {
 
         itemCache.updateItemState(item, DownloadState.IN_PROGRESS);
 
-        listenerHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                downloadStateListener.onDownloadStart(item);
-            }
-        });
+        listenerHandler.post(() -> downloadStateListener.onDownloadStart(item));
 
         // Read download tasks from db
         ArrayList<DownloadTask> chunksToDownload = database.readPendingDownloadTasksFromDB(item.getItemId());
@@ -437,12 +405,7 @@ public class DownloadService extends Service {
         if (chunksToDownload.isEmpty()) {
             itemCache.updateItemState(item, DownloadState.COMPLETED);
 
-            listenerHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    downloadStateListener.onDownloadComplete(item);
-                }
-            });
+            listenerHandler.post(() -> downloadStateListener.onDownloadComplete(item));
 
         } else {
 
@@ -473,12 +436,7 @@ public class DownloadService extends Service {
 
                 itemCache.updateItemState(item, DownloadState.PAUSED);
 
-                listenerHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        downloadStateListener.onDownloadPause(item);
-                    }
-                });
+                listenerHandler.post(() -> downloadStateListener.onDownloadPause(item));
             }
         }
     }
@@ -641,28 +599,25 @@ public class DownloadService extends Service {
     private FutureTask futureTask(final String itemId, final DownloadTask task) {
         task.setListener(mDownloadTaskListener);
         task.setDownloadSettings(settings);
-        Callable<Void> callable = new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                while (true) {
-                    try {
-                        if (Storage.isLowDiskSpace(settings.freeDiskSpaceRequiredBytes)) {
-                            final DownloadItemImp item = itemCache.get(itemId);
-                            if (item != null) {
-                                cancelItemWithError(item, new Utils.LowDiskSpaceException());
-                            }
-                            return null;
+        Callable<Void> callable = () -> {
+            while (true) {
+                try {
+                    if (Storage.isLowDiskSpace(settings.freeDiskSpaceRequiredBytes)) {
+                        final DownloadItemImp item = itemCache.get(itemId);
+                        if (item != null) {
+                            cancelItemWithError(item, new Utils.LowDiskSpaceException());
                         }
-                        task.download();
-                        break;
-                    } catch (HttpRetryException e) {
-                        Log.d(TAG, "Task should be retried");
-                        Thread.sleep(2000);
-                        // continue
+                        return null;
                     }
+                    task.download();
+                    break;
+                } catch (HttpRetryException e) {
+                    Log.d(TAG, "Task should be retried");
+                    Thread.sleep(2000);
+                    // continue
                 }
-                return null;
             }
+            return null;
         };
         final FutureTask<Void> futureTask = new FutureTask<Void>(callable) {
             @Override
