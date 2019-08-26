@@ -54,6 +54,7 @@ public interface DownloadItem {
 
         Comparator<Track> heightComparator = (lhs, rhs) -> lhs.getHeight() - rhs.getHeight();
 
+        Comparator<Track> widthComparator = (lhs, rhs) -> lhs.getWidth() - rhs.getWidth();
 
         TrackType getType();
 
