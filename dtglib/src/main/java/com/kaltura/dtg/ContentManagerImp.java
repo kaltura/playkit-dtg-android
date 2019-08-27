@@ -2,8 +2,6 @@ package com.kaltura.dtg;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -20,61 +18,60 @@ public class ContentManagerImp extends ContentManager {
 
     private static ContentManager sInstance;
     private final HashSet<DownloadStateListener> stateListeners = new HashSet<>();
+
+    interface Post {
+        void post(DownloadStateListener listener);
+    }
+
+    private void postToListeners(Post event) {
+        // Safe iteration
+        for (DownloadStateListener listener : new HashSet<>(stateListeners)) {
+            if (listener != null) {
+                event.post(listener);
+            }
+        }
+    }
+
     private final DownloadStateListener downloadStateRelay = new DownloadStateListener() {
 
         // Pass the state to all listeners.
 
         @Override
         public void onDownloadComplete(DownloadItem item) {
-            for (DownloadStateListener stateListener : stateListeners) {
-                stateListener.onDownloadComplete(item);
-            }
+            postToListeners(L -> L.onDownloadComplete(item));
         }
 
         @Override
         public void onProgressChange(DownloadItem item, long downloadedBytes) {
-            for (DownloadStateListener stateListener : stateListeners) {
-                stateListener.onProgressChange(item, downloadedBytes);
-            }
+            postToListeners(L -> L.onProgressChange(item, downloadedBytes));
         }
 
         @Override
         public void onDownloadStart(DownloadItem item) {
-            for (DownloadStateListener stateListener : stateListeners) {
-                stateListener.onDownloadStart(item);
-            }
+            postToListeners(L -> L.onDownloadStart(item));
         }
 
         @Override
         public void onDownloadPause(DownloadItem item) {
-            for (DownloadStateListener stateListener : stateListeners) {
-                stateListener.onDownloadPause(item);
-            }
+            postToListeners(L -> L.onDownloadPause(item));
         }
 
         @Override
         public void onDownloadFailure(DownloadItem item, Exception error) {
-            for (DownloadStateListener stateListener : stateListeners) {
-                stateListener.onDownloadFailure(item, error);
-            }
+            postToListeners(L -> L.onDownloadFailure(item, error));
         }
 
         @Override
         public void onDownloadMetadata(DownloadItem item, Exception error) {
-            for (DownloadStateListener stateListener : stateListeners) {
-                stateListener.onDownloadMetadata(item, error);
-            }
+            postToListeners(L -> L.onDownloadMetadata(item, error));
         }
 
         @Override
         public void onTracksAvailable(DownloadItem item, DownloadItem.TrackSelector trackSelector) {
-            for (DownloadStateListener stateListener : stateListeners) {
-                stateListener.onTracksAvailable(item, trackSelector);
-            }
+            postToListeners(L -> L.onTracksAvailable(item, trackSelector));
         }
     };
 
-    private int maxConcurrentDownloads;
     private final Context context;
     private String sessionId;
     private String applicationName;
