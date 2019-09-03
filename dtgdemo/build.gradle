@@ -30,7 +30,7 @@ repositories {
 dependencies {
     implementation project(':dtglib')
 
-    implementation 'com.kaltura.playkit:playkit:3.5.0'
+    implementation 'com.kaltura.playkit:playkit:4.1.0'
 
     implementation 'androidx.appcompat:appcompat:1.0.0',{
         exclude group: 'com.android.support', module: 'support-v4'
