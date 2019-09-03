@@ -27,8 +27,10 @@ import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadState;
 import com.kaltura.dtg.DownloadStateListener;
 import com.kaltura.netkit.connect.response.ResultElement;
+import com.kaltura.netkit.utils.SessionProvider;
 import com.kaltura.playkit.LocalAssetsManager;
 import com.kaltura.playkit.PKDrmParams;
+import com.kaltura.playkit.PKEvent;
 import com.kaltura.playkit.PKMediaConfig;
 import com.kaltura.playkit.PKMediaEntry;
 import com.kaltura.playkit.PKMediaFormat;
@@ -36,14 +38,14 @@ import com.kaltura.playkit.PKMediaSource;
 import com.kaltura.playkit.PlayKitManager;
 import com.kaltura.playkit.Player;
 import com.kaltura.playkit.PlayerEvent;
-import com.kaltura.playkit.api.ovp.SimpleOvpSessionProvider;
-import com.kaltura.playkit.mediaproviders.base.OnMediaLoadCompletion;
-import com.kaltura.playkit.mediaproviders.ovp.KalturaOvpMediaProvider;
 import com.kaltura.playkit.player.AudioTrack;
 import com.kaltura.playkit.player.BaseTrack;
 import com.kaltura.playkit.player.MediaSupport;
 import com.kaltura.playkit.player.PKTracks;
 import com.kaltura.playkit.player.TextTrack;
+import com.kaltura.playkit.providers.api.SimpleSessionProvider;
+import com.kaltura.playkit.providers.base.OnMediaLoadCompletion;
+import com.kaltura.playkit.providers.ovp.KalturaOvpMediaProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +63,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 class DemoParams {
-//    static int forceReducedLicenseDurationSeconds = 600;
+    //    static int forceReducedLicenseDurationSeconds = 600;
     static int forceReducedLicenseDurationSeconds = 0;
 
 
@@ -91,7 +93,7 @@ class ItemLoader {
     }
 
     private static List<Item> loadOVPItems(int partnerId, String... entries) {
-        SimpleOvpSessionProvider sessionProvider = new SimpleOvpSessionProvider("https://cdnapisec.kaltura.com", partnerId, null);
+        SessionProvider sessionProvider = new SimpleSessionProvider("https://cdnapisec.kaltura.com", partnerId, null);
         CountDownLatch latch = new CountDownLatch(entries.length);
         final List<Item> items = new ArrayList<>();
 
@@ -179,7 +181,7 @@ class ItemLoader {
 //                "<CONTENT-URL>",
 //                "<LICENCE-URL>"
 //        ));
-        
+
         return items;
     }
 
@@ -202,12 +204,12 @@ class Item {
         this.mediaSource = new PKMediaSource().setId(id).setUrl(url);
         this.name = id;
     }
-    
+
     Item(PKMediaSource mediaSource, String name) {
         this.mediaSource = mediaSource;
         this.name = name;
     }
-    
+
     Item(String id, String name, PKMediaFormat format, PKDrmParams.Scheme scheme, String url, String licenseUrl) {
         this.mediaSource = new PKMediaSource()
                 .setId(id)
@@ -220,7 +222,7 @@ class Item {
     boolean isDrmRegistered() {
         return drmRegistered;
     }
-    
+
     boolean isDrmProtected() {
         return mediaSource.hasDrmParams();
     }
@@ -233,7 +235,7 @@ class Item {
         } else {
             drmState = "C";
         }
-        
+
         String progress;
         if (estimatedSize > 0) {
             float percentComplete = 100f * downloadedSize / estimatedSize;
@@ -241,7 +243,7 @@ class Item {
         } else {
             progress = "-?-";
         }
-        
+
         return String.format(Locale.ENGLISH, "[%s] %s -- %s -- DRM:%s", progress, getId(), downloadState, drmState);
     }
 
@@ -260,7 +262,7 @@ class Item {
 
 
 public class MainActivity extends ListActivity {
-    
+
     private static final String TAG = "MainActivity";
     private ContentManager contentManager;
     private LocalAssetsManager localAssetsManager;
@@ -435,7 +437,7 @@ public class MainActivity extends ListActivity {
             notifyDataSetChanged();
         }
     }
-    
+
     private void notifyDataSetChanged() {
         getListView().post(new Runnable() {
             @Override
@@ -460,7 +462,7 @@ public class MainActivity extends ListActivity {
             if (item.downloadState == null) {
                 return new Action[] {add, unregister, playOnline};
             }
-            
+
             switch (item.downloadState) {
                 case NEW:
                     return new Action[] {remove, checkStatus, unregister, playOnline};
@@ -485,7 +487,7 @@ public class MainActivity extends ListActivity {
             }
             throw new IllegalStateException();
         }
-        
+
         static String[] strings(Action[] actions) {
             List<String> stringActions = new ArrayList<>();
             for (Action action : actions) {
@@ -547,7 +549,7 @@ public class MainActivity extends ListActivity {
         }
 
         localAssetsManager = new LocalAssetsManager(context);
-        
+
         findViewById(R.id.download_control).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -579,7 +581,7 @@ public class MainActivity extends ListActivity {
                         }).show();
             }
         });
-        
+
         findViewById(R.id.player_control).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -621,7 +623,7 @@ public class MainActivity extends ListActivity {
                                 }
                             }
                         }).show();
-                        
+
             }
         });
     }
@@ -772,7 +774,7 @@ public class MainActivity extends ListActivity {
     }
 
     private void playOnlineItem(Item item) {
-        
+
         playItem(item.getId(), item.getMediaSource(), PKMediaEntry.MediaEntryType.Vod);
     }
 
@@ -793,7 +795,7 @@ public class MainActivity extends ListActivity {
             }
         });
     }
-    
+
     private void unregisterAsset(final Item item) {
 
 
@@ -895,7 +897,9 @@ public class MainActivity extends ListActivity {
                     @Override
                     public void run() {
                         List<Item> items = ItemLoader.loadItems();
-                        itemAdapter.addAll(items);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                            itemAdapter.addAll(items);
+                        }
                         for (final Item item : items) {
                             if (item != null) {
                                 itemMap.put(item.getId(), item);
