@@ -2,7 +2,7 @@ package com.kaltura.dtg;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.kaltura.dtg.exoparser.Format;
 import com.kaltura.dtg.dash.DashTrack;

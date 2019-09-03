@@ -18,7 +18,7 @@ package com.kaltura.dtg.exoparser.util;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Looper;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 /**
  * The standard implementation of {@link Clock}.

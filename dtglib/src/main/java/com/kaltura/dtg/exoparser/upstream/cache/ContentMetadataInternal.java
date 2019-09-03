@@ -16,7 +16,7 @@
 package com.kaltura.dtg.exoparser.upstream.cache;
 
 import android.net.Uri;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.kaltura.dtg.exoparser.C;
 
