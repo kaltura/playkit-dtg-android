@@ -2,7 +2,7 @@ package com.kaltura.dtg.dash;
 
 import android.database.Cursor;
 
-import com.kaltura.android.exoplayer2.Format;
+import com.kaltura.dtg.exoparser.Format;
 import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.Utils;
