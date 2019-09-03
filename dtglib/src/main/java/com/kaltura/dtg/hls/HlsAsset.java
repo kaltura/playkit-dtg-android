@@ -70,6 +70,7 @@ public class HlsAsset {
         private static final String EXTRA_MASTER_FIRST_LINE = "masterFirstLine";
         private static final String EXTRA_MASTER_LAST_LINE = "masterLastLine";
         private static final String EXTRA_TRACK_URL = "url";
+        private final String audioGroupId;
 
         long durationMs;
         String url;
@@ -83,10 +84,12 @@ public class HlsAsset {
             this.url = Utils.resolveUrl(masterUrl, variant.url);
             this.firstMasterLine = variant.firstLineNum;
             this.lastMasterLine = variant.lastLineNum;
+            this.audioGroupId = variant.audioGroupId;
         }
 
         public Track(Cursor cursor) {
             super(cursor);
+            audioGroupId = null;
         }
 
         public void parse(byte[] bytes) throws IOException {
@@ -138,6 +141,11 @@ public class HlsAsset {
         @Override
         public int hashCode() {
             return Utils.hash(super.hashCode(), durationMs, url, firstMasterLine);
+        }
+
+        @Override
+        public String getAudioGroupId() {
+            return audioGroupId;
         }
     }
 

@@ -58,15 +58,16 @@ public interface DownloadItem {
 
         TrackType getType();
 
-        String getLanguage();
+        String getLanguage();       // AUDIO and TEXT
 
-        long getBitrate();
+        long getBitrate();          // AUDIO (dash) and VIDEO (dash, hls)
 
-        // Only applicable to VIDEO tracks.
-        int getWidth();
+        int getWidth();             // Only applicable to VIDEO tracks.
 
-        int getHeight();
+        int getHeight();            // Only applicable to VIDEO tracks.
 
-        String getCodecs();
+        String getCodecs();         // AUDIO and VIDEO
+
+        String getAudioGroupId();   // Only applicable to HLS (audio and video)
     }
 }

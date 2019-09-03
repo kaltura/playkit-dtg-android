@@ -290,7 +290,7 @@ public final class HlsPlaylistParser {
 //        if (variantUrls.add(line)) {
           Format format = Format.createVideoContainerFormat(Integer.toString(variants.size()),
               MimeTypes.APPLICATION_M3U8, null, codecs, bitrate, width, height, frameRate, null, 0);
-          variants.add(new HlsMasterPlaylist.HlsUrl(line, format, firstLineNum, lineNum));
+          variants.add(new HlsMasterPlaylist.HlsUrl(line, format, firstLineNum, lineNum, audioGroupId));
 //        }
       }
     }
@@ -314,13 +314,13 @@ public final class HlsPlaylistParser {
           if (uri == null) {
             muxedAudioFormat = format;
           } else {
-            audios.add(new HlsMasterPlaylist.HlsUrl(uri, format, lineNum, 0));
+            audios.add(new HlsMasterPlaylist.HlsUrl(uri, format, lineNum, 0, groupId));
           }
           break;
         case TYPE_SUBTITLES:
           format = Format.createTextContainerFormat(id, MimeTypes.APPLICATION_M3U8,
               MimeTypes.TEXT_VTT, null, Format.NO_VALUE, selectionFlags, language);
-          subtitles.add(new HlsMasterPlaylist.HlsUrl(uri, format, lineNum, 0));
+          subtitles.add(new HlsMasterPlaylist.HlsUrl(uri, format, lineNum, 0, groupId));
           break;
         case TYPE_CLOSED_CAPTIONS:
           String instreamId = parseStringAttr(line, REGEX_INSTREAM_ID);
