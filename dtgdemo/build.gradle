@@ -1,12 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-
+    compileSdkVersion 28
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
     defaultConfig {
         applicationId "com.kaltura.dtg.demo"
         minSdkVersion 17
-        targetSdkVersion 26
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }
@@ -30,8 +33,13 @@ repositories {
 dependencies {
     implementation project(':dtglib')
 
-    implementation 'com.kaltura.playkit:playkit:3.5.0'
+    implementation 'com.kaltura.playkit:playkit:4.1.0'
 
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation 'com.android.support:support-v4:26.1.0'
+    implementation 'com.kaltura.playkit:playkitproviders:4.1.0'
+
+    implementation 'com.google.android.gms:play-services-basement:15.0.1'
+
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+
+    implementation 'androidx.annotation:annotation:1.1.0'
 }

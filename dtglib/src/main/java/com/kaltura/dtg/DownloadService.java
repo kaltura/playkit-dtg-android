@@ -9,7 +9,8 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import com.kaltura.dtg.DownloadItem.TrackType;
@@ -392,7 +393,7 @@ public class DownloadService extends Service {
 
     void addDownloadTasksToDB(DownloadItemImp item, List<DownloadTask> tasks) {
 
-        // Filter-out things that are already 
+        // Filter-out things that are already
 
         database.addDownloadTasksToDB(item, tasks);
     }

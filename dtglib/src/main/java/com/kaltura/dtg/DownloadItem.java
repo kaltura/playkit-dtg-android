@@ -1,6 +1,6 @@
 package com.kaltura.dtg;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.Comparator;
 import java.util.List;
