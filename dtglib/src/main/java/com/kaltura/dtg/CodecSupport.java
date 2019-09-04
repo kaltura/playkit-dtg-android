@@ -15,8 +15,8 @@ import com.kaltura.dtg.DownloadItem.TrackType;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class CodecSupport {
@@ -24,6 +24,9 @@ public class CodecSupport {
     private static final String TAG = "CodecSupport";
 
     private static final Set<String> softwareCodecs, hardwareCodecs;
+
+    private static boolean deviceIsEmulator = Build.PRODUCT.equals("sdk") || Build.PRODUCT.startsWith("sdk_") || Build.PRODUCT.endsWith("_sdk");
+
 
     static {
         Set<String> hardware = new HashSet<>();
@@ -50,12 +53,19 @@ public class CodecSupport {
                 isHardware = !name.startsWith("OMX.google.");
             }
 
+            final List<String> supportedCodecs = Arrays.asList(codecInfo.getSupportedTypes());
             final Set<String> set = isHardware ? hardware : software;
-            set.addAll(Arrays.asList(codecInfo.getSupportedTypes()));
+            set.addAll(supportedCodecs);
         }
     }
 
     public static boolean hasDecoder(String codec, boolean isMimeType, boolean allowSoftware) {
+
+        if (deviceIsEmulator) {
+            // Emulators have no hardware codecs, but we still need to play.
+            allowSoftware = true;
+        }
+
         final String mimeType = isMimeType ? codec : MimeTypes.getMediaMimeType(codec);
         if (hardwareCodecs.contains(mimeType)) {
             return true;
