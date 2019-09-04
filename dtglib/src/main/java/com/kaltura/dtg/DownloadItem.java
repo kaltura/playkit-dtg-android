@@ -29,6 +29,8 @@ public interface DownloadItem {
 
     TrackSelector getTrackSelector();
 
+    AssetFormat getAssetFormat();
+
     enum TrackType {
         VIDEO, AUDIO, TEXT
     }
