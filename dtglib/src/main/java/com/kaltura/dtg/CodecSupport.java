@@ -2,17 +2,18 @@ package com.kaltura.dtg;
 
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.kaltura.dtg.DownloadItem.TrackType;
 import com.kaltura.dtg.exoparser.Format;
 import com.kaltura.dtg.exoparser.util.MimeTypes;
-import com.kaltura.dtg.DownloadItem.TrackType;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -39,12 +40,29 @@ public class CodecSupport {
     }
 
     private static void populateCodecSupport(Set<String> hardware, Set<String> software) {
-        for (int i = 0, n = MediaCodecList.getCodecCount(); i < n; i++) {
-            final MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
-            final String name = codecInfo.getName();
-            if (codecInfo.isEncoder()) {
-                continue;
+
+        ArrayList<MediaCodecInfo> decoders = new ArrayList<>();
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
+            MediaCodecInfo[] codecInfos = mediaCodecList.getCodecInfos();
+
+            for (MediaCodecInfo codecInfo : codecInfos) {
+                if (!codecInfo.isEncoder()) {
+                    decoders.add(codecInfo);
+                }
             }
+        } else {
+            for (int i = 0, n = MediaCodecList.getCodecCount(); i < n; i++) {
+                final MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
+                if (!codecInfo.isEncoder()) {
+                    decoders.add(codecInfo);
+                }
+            }
+        }
+
+        for (MediaCodecInfo codecInfo : decoders) {
+            final String name = codecInfo.getName();
 
             final boolean isHardware;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
