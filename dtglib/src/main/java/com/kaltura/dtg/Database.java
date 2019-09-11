@@ -245,27 +245,24 @@ class Database {
     synchronized void addDownloadTasksToDB(final DownloadItem item, final List<DownloadTask> downloadTasks) {
         trace("addDownloadTasksToDB", item.getItemId(), downloadTasks.size());
 
-        doTransaction(new Transaction() {
-            @Override
-            public boolean execute(SQLiteDatabase db) {
-                ContentValues values = new ContentValues();
-                for (DownloadTask task : downloadTasks) {
-                    values.put(COL_ITEM_ID, item.getItemId());
-                    values.put(COL_FILE_URL, task.url.toString());
-                    values.put(COL_TARGET_FILE, relativeExtFilesPath(task.targetFile));
-                    values.put(COL_TRACK_REL_ID, task.trackRelativeId);
-                    values.put(COL_FILE_ORDER, task.order);
-                    try {
-                        long rowid = db.insertWithOnConflict(TBL_DOWNLOAD_FILES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
-                        if (rowid <= 0) {
+        doTransaction(db -> {
+            ContentValues values = new ContentValues();
+            for (DownloadTask task : downloadTasks) {
+                values.put(COL_ITEM_ID, item.getItemId());
+                values.put(COL_FILE_URL, task.url.toString());
+                values.put(COL_TARGET_FILE, relativeExtFilesPath(task.targetFile));
+                values.put(COL_TRACK_REL_ID, task.trackRelativeId);
+                values.put(COL_FILE_ORDER, task.order);
+                try {
+                    long rowid = db.insertWithOnConflict(TBL_DOWNLOAD_FILES, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                    if (rowid <= 0) {
 //                            Log.d(TAG, "Warning: task not added:" + task.targetFile);
-                        }
-                    } catch (SQLException e) {
-                        Log.e(TAG, "Failed to INSERT task: " + task.targetFile, e);
                     }
+                } catch (SQLException e) {
+                    Log.e(TAG, "Failed to INSERT task: " + task.targetFile, e);
                 }
-                return true;
             }
+            return true;
         });
     }
 
@@ -325,17 +322,14 @@ class Database {
     synchronized void markTaskAsComplete(final DownloadTask downloadTask) {
         trace("markTaskAsComplete", downloadTask.itemId, downloadTask.taskId);
 
-        doTransaction(new Transaction() {
-            @Override
-            public boolean execute(SQLiteDatabase db) {
-                ContentValues values = new ContentValues();
-                values.put(COL_FILE_COMPLETE, 1);
+        doTransaction(db -> {
+            ContentValues values = new ContentValues();
+            values.put(COL_FILE_COMPLETE, 1);
 
-                db.updateWithOnConflict(TBL_DOWNLOAD_FILES, values, COL_TARGET_FILE + "==?",
-                        new String[]{relativeExtFilesPath(downloadTask.targetFile)},
-                        SQLiteDatabase.CONFLICT_IGNORE);
-                return true;
-            }
+            db.updateWithOnConflict(TBL_DOWNLOAD_FILES, values, COL_TARGET_FILE + "==?",
+                    new String[]{relativeExtFilesPath(downloadTask.targetFile)},
+                    SQLiteDatabase.CONFLICT_IGNORE);
+            return true;
         });
 
         trace("markTaskAsComplete done", downloadTask.itemId, downloadTask.taskId);
@@ -367,20 +361,17 @@ class Database {
     synchronized void addItemToDB(final DownloadItemImp item, final File itemDataDir) {
         trace("addItemToDB", item.getItemId());
 
-        doTransaction(new Transaction() {
-            @Override
-            public boolean execute(SQLiteDatabase db) {
-                ContentValues values = new ContentValues(5);
-                values.put(COL_ITEM_ID, item.getItemId());
-                values.put(COL_CONTENT_URL, item.getContentURL());
-                values.put(COL_ITEM_ADD_TIME, item.getAddedTime());
-                values.put(COL_ITEM_STATE, item.getState().name());
-                values.put(COL_ITEM_DATA_DIR, itemDataDir.getAbsolutePath());
-                values.put(COL_ITEM_PLAYBACK_PATH, item.getPlaybackPath());
-                values.put(COL_ITEM_DURATION, item.getDurationMS());
-                db.insert(TBL_ITEMS, null, values);
-                return true;
-            }
+        doTransaction(db -> {
+            ContentValues values = new ContentValues(5);
+            values.put(COL_ITEM_ID, item.getItemId());
+            values.put(COL_CONTENT_URL, item.getContentURL());
+            values.put(COL_ITEM_ADD_TIME, item.getAddedTime());
+            values.put(COL_ITEM_STATE, item.getState().name());
+            values.put(COL_ITEM_DATA_DIR, itemDataDir.getAbsolutePath());
+            values.put(COL_ITEM_PLAYBACK_PATH, item.getPlaybackPath());
+            values.put(COL_ITEM_DURATION, item.getDurationMS());
+            db.insert(TBL_ITEMS, null, values);
+            return true;
         });
     }
 
@@ -388,76 +379,61 @@ class Database {
 
         trace("removeItemFromDB", itemId);
 
-        doTransaction(new Transaction() {
-            @Override
-            public boolean execute(SQLiteDatabase db) {
-                db.delete(TBL_ITEMS, COL_ITEM_ID + "=?", new String[]{itemId});
+        doTransaction(db -> {
+            db.delete(TBL_ITEMS, COL_ITEM_ID + "=?", new String[]{itemId});
 
-                // There's an "on delete cascade" between TBL_ITEMS and TBL_DOWNLOAD_FILES,
-                // but it wasn't active in the previous schema.
-                db.delete(TBL_DOWNLOAD_FILES, COL_ITEM_ID + "=?", new String[]{itemId});
-                return true;
-            }
+            // There's an "on delete cascade" between TBL_ITEMS and TBL_DOWNLOAD_FILES,
+            // but it wasn't active in the previous schema.
+            db.delete(TBL_DOWNLOAD_FILES, COL_ITEM_ID + "=?", new String[]{itemId});
+            return true;
         });
     }
 
     synchronized void updateItemState(final String itemId, final DownloadState itemState) {
         trace("updateItemState", itemId, itemState);
 
-        doTransaction(new Transaction() {
-            @Override
-            public boolean execute(SQLiteDatabase db) {
-                ContentValues values = new ContentValues();
-                values.put(COL_ITEM_STATE, itemState.name());
+        doTransaction(db -> {
+            ContentValues values = new ContentValues();
+            values.put(COL_ITEM_STATE, itemState.name());
 
-                db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
+            db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
 
-                return true;
-            }
+            return true;
         });
     }
 
     synchronized void setDownloadFinishTime(final String itemId) {
         trace("setDownloadFinishTime", itemId);
 
-        doTransaction(new Transaction() {
-            @Override
-            public boolean execute(SQLiteDatabase db) {
-                ContentValues values = new ContentValues();
-                values.put(COL_ITEM_FINISH_TIME, System.currentTimeMillis());
+        doTransaction(db -> {
+            ContentValues values = new ContentValues();
+            values.put(COL_ITEM_FINISH_TIME, System.currentTimeMillis());
 
-                int res = db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
+            int res = db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
 
-                return res > 0;
-            }
+            return res > 0;
         });
     }
 
     synchronized void setEstimatedSize(final String itemId, final long estimatedSizeBytes) {
         trace("setEstimatedSize", itemId);
 
-        doTransaction(new Transaction() {
-            @Override
-            public boolean execute(SQLiteDatabase db) {
-                ContentValues values = new ContentValues();
-                values.put(COL_ITEM_ESTIMATED_SIZE, estimatedSizeBytes);
-                db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
-                return true;
-            }
+        doTransaction(db -> {
+            ContentValues values = new ContentValues();
+            values.put(COL_ITEM_ESTIMATED_SIZE, estimatedSizeBytes);
+            db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
+            return true;
         });
     }
 
     synchronized void updateDownloadedFileSize(final String itemId, final long downloadedFileSize) {
         trace("updateDownloadedFileSize", itemId);
 
-        doTransaction(new Transaction() {
-            @Override
-            public boolean execute(SQLiteDatabase db) {
-                ContentValues values = new ContentValues();
-                values.put(COL_ITEM_DOWNLOADED_SIZE, downloadedFileSize);
-                db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
-                return true;
-            }
+        doTransaction(db -> {
+            ContentValues values = new ContentValues();
+            values.put(COL_ITEM_DOWNLOADED_SIZE, downloadedFileSize);
+            db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
+            return true;
         });
     }
 
@@ -498,47 +474,44 @@ class Database {
         if (columns == null || columns.length == 0) {
             throw new IllegalArgumentException("columns.length must be >0");
         }
-        doTransaction(new Transaction() {
-            @Override
-            public boolean execute(SQLiteDatabase db) {
-                ContentValues values = new ContentValues(columns.length);
-                for (String column : columns) {
-                    switch (column) {
-                        case COL_ITEM_ADD_TIME:
-                            values.put(COL_ITEM_ADD_TIME, item.getAddedTime());
-                            break;
-                        case COL_ITEM_STATE:
-                            values.put(COL_ITEM_STATE, item.getState().name());
-                            break;
-                        case COL_ITEM_ESTIMATED_SIZE:
-                            values.put(COL_ITEM_ESTIMATED_SIZE, item.getEstimatedSizeBytes());
-                            break;
-                        case COL_ITEM_DOWNLOADED_SIZE:
-                            values.put(COL_ITEM_DOWNLOADED_SIZE, item.getDownloadedSizeBytes());
-                            break;
-                        case COL_ITEM_PLAYBACK_PATH:
-                            values.put(COL_ITEM_PLAYBACK_PATH, item.getPlaybackPath());
-                            break;
-                        case COL_ITEM_DATA_DIR:
-                            values.put(COL_ITEM_DATA_DIR, item.getDataDir());
-                            break;
-                        case COL_ITEM_DURATION:
-                            values.put(COL_ITEM_DURATION, item.getDurationMS());
-                            break;
+        doTransaction(db -> {
+            ContentValues values = new ContentValues(columns.length);
+            for (String column : columns) {
+                switch (column) {
+                    case COL_ITEM_ADD_TIME:
+                        values.put(COL_ITEM_ADD_TIME, item.getAddedTime());
+                        break;
+                    case COL_ITEM_STATE:
+                        values.put(COL_ITEM_STATE, item.getState().name());
+                        break;
+                    case COL_ITEM_ESTIMATED_SIZE:
+                        values.put(COL_ITEM_ESTIMATED_SIZE, item.getEstimatedSizeBytes());
+                        break;
+                    case COL_ITEM_DOWNLOADED_SIZE:
+                        values.put(COL_ITEM_DOWNLOADED_SIZE, item.getDownloadedSizeBytes());
+                        break;
+                    case COL_ITEM_PLAYBACK_PATH:
+                        values.put(COL_ITEM_PLAYBACK_PATH, item.getPlaybackPath());
+                        break;
+                    case COL_ITEM_DATA_DIR:
+                        values.put(COL_ITEM_DATA_DIR, item.getDataDir());
+                        break;
+                    case COL_ITEM_DURATION:
+                        values.put(COL_ITEM_DURATION, item.getDurationMS());
+                        break;
 
-                        // invalid -- can't change those. 
-                        case COL_ITEM_ID:
-                        case COL_CONTENT_URL:
-                            return false;   // fail the transaction
-                    }
+                    // invalid -- can't change those.
+                    case COL_ITEM_ID:
+                    case COL_CONTENT_URL:
+                        return false;   // fail the transaction
                 }
-                if (values.size() == 0) {
-                    Log.e(TAG, "No values; columns=" + Arrays.toString(columns));
-                    return false;
-                }
-                db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
-                return true;
             }
+            if (values.size() == 0) {
+                Log.e(TAG, "No values; columns=" + Arrays.toString(columns));
+                return false;
+            }
+            db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
+            return true;
         });
         trace("updateItemInfo done", itemId, columns);
     }
@@ -651,31 +624,28 @@ class Database {
     synchronized void addTracks(final DownloadItemImp item, final List<BaseTrack> availableTracks, final List<BaseTrack> selectedTracks) {
         trace("addTracks", item.getItemId(), availableTracks.size(), selectedTracks.size());
 
-        doTransaction(new Transaction() {
-            @Override
-            public boolean execute(SQLiteDatabase db) {
+        doTransaction(db -> {
 
-                for (BaseTrack track : availableTracks) {
-                    ContentValues values = track.toContentValues();
-                    values.put(COL_ITEM_ID, item.getItemId());
-                    values.put(COL_TRACK_STATE, BaseTrack.TrackState.NOT_SELECTED.name());
-                    try {
-                        db.insertOrThrow(TBL_TRACK, null, values);
-                    } catch (SQLiteConstraintException e) {
-                        Log.w(TAG, "Insert failed", e);
-                        Log.w(TAG, "execute: itemId=" + item.getItemId() + " rel=" + track.getRelativeId());
-                    }
+            for (BaseTrack track : availableTracks) {
+                ContentValues values = track.toContentValues();
+                values.put(COL_ITEM_ID, item.getItemId());
+                values.put(COL_TRACK_STATE, BaseTrack.TrackState.NOT_SELECTED.name());
+                try {
+                    db.insertOrThrow(TBL_TRACK, null, values);
+                } catch (SQLiteConstraintException e) {
+                    Log.w(TAG, "Insert failed", e);
+                    Log.w(TAG, "execute: itemId=" + item.getItemId() + " rel=" + track.getRelativeId());
                 }
-
-                for (BaseTrack track : selectedTracks) {
-                    ContentValues values = new ContentValues();
-                    values.put(COL_TRACK_STATE, BaseTrack.TrackState.SELECTED.name());
-                    db.update(TBL_TRACK, values, COL_ITEM_ID + "=? AND " + COL_TRACK_REL_ID + "=?",
-                            strings(item.getItemId(), track.getRelativeId()));
-                }
-
-                return true;
             }
+
+            for (BaseTrack track : selectedTracks) {
+                ContentValues values = new ContentValues();
+                values.put(COL_TRACK_STATE, BaseTrack.TrackState.SELECTED.name());
+                db.update(TBL_TRACK, values, COL_ITEM_ID + "=? AND " + COL_TRACK_REL_ID + "=?",
+                        strings(item.getItemId(), track.getRelativeId()));
+            }
+
+            return true;
         });
     }
 
@@ -724,25 +694,22 @@ class Database {
     synchronized void updateTracksState(final String itemId, final List<BaseTrack> tracks, final BaseTrack.TrackState newState) {
         trace("updateTracksState", itemId, tracks.size(), newState);
 
-        doTransaction(new Transaction() {
-            @Override
-            public boolean execute(SQLiteDatabase db) {
+        doTransaction(db -> {
 
-                ContentValues values = new ContentValues();
-                values.put(COL_TRACK_STATE, newState.name());
+            ContentValues values = new ContentValues();
+            values.put(COL_TRACK_STATE, newState.name());
 
-                for (BaseTrack track : tracks) {
-                    final String whereClause = COL_ITEM_ID + "=? AND " + COL_TRACK_REL_ID + "=?";
-                    final String[] whereArgs = strings(itemId, track.getRelativeId());
-                    db.update(TBL_TRACK, values, whereClause, whereArgs);
+            for (BaseTrack track : tracks) {
+                final String whereClause = COL_ITEM_ID + "=? AND " + COL_TRACK_REL_ID + "=?";
+                final String[] whereArgs = strings(itemId, track.getRelativeId());
+                db.update(TBL_TRACK, values, whereClause, whereArgs);
 
-                    if (newState == BaseTrack.TrackState.NOT_SELECTED) {
-                        db.delete(TBL_DOWNLOAD_FILES, whereClause, whereArgs);
-                    }
+                if (newState == BaseTrack.TrackState.NOT_SELECTED) {
+                    db.delete(TBL_DOWNLOAD_FILES, whereClause, whereArgs);
                 }
-
-                return true;
             }
+
+            return true;
         });
     }
 

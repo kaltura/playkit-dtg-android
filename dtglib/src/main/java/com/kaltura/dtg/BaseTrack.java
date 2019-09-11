@@ -26,7 +26,7 @@ public abstract class BaseTrack implements DownloadItem.Track {
     protected long bitrate;
     protected int width;
     protected int height;
-    private String codecs;
+    protected String codecs;
 
     protected BaseTrack(DownloadItem.TrackType type, Format format) {
         this.type = type;
@@ -164,6 +164,9 @@ public abstract class BaseTrack implements DownloadItem.Track {
     public long getBitrate() {
         return bitrate;
     }
+
+    @Override
+    public String getAudioGroupId() {return null;};
 
     @Override
     public int getHeight() {

@@ -39,16 +39,19 @@ public final class HlsMasterPlaylist extends HlsPlaylist {
     public final Format format;
     public final int firstLineNum;
     public final int lastLineNum;
+    public final String audioGroupId;
 
     /**
      * @param url See {@link #url}.
      * @param format See {@link #format}.
+     * @param audioGroupId
      */
-    public HlsUrl(String url, Format format, int firstLineNum, int lastLineNum) {
+    public HlsUrl(String url, Format format, int firstLineNum, int lastLineNum, String audioGroupId) {
       this.url = url;
       this.format = format;
       this.firstLineNum = firstLineNum;
       this.lastLineNum = lastLineNum;
+      this.audioGroupId = audioGroupId;
     }
   }
 

@@ -158,7 +158,8 @@ public class DownloadItemImp implements DownloadItem {
         this.trackSelector = trackSelector;
     }
 
-    AssetFormat getAssetFormat() {
+    @Override
+    public AssetFormat getAssetFormat() {
         if (playbackPath != null) {
             final AssetFormat format = AssetFormat.byFilename(playbackPath);
             if (format != null) {

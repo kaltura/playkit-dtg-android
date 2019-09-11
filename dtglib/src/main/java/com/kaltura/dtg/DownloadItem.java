@@ -29,6 +29,8 @@ public interface DownloadItem {
 
     TrackSelector getTrackSelector();
 
+    AssetFormat getAssetFormat();
+
     enum TrackType {
         VIDEO, AUDIO, TEXT
     }
@@ -50,32 +52,24 @@ public interface DownloadItem {
     }
 
     interface Track {
-        Comparator<Track> bitrateComparator = new Comparator<DownloadItem.Track>() {
-            @Override
-            public int compare(DownloadItem.Track lhs, DownloadItem.Track rhs) {
-                return (int) (lhs.getBitrate() - rhs.getBitrate());
-            }
-        };
+        Comparator<Track> bitrateComparator = (lhs, rhs) -> (int) (lhs.getBitrate() - rhs.getBitrate());
 
-        Comparator<Track> heightComparator = new Comparator<DownloadItem.Track>() {
-            @Override
-            public int compare(DownloadItem.Track lhs, DownloadItem.Track rhs) {
-                return lhs.getHeight() - rhs.getHeight();
-            }
-        };
+        Comparator<Track> heightComparator = (lhs, rhs) -> lhs.getHeight() - rhs.getHeight();
 
+        Comparator<Track> widthComparator = (lhs, rhs) -> lhs.getWidth() - rhs.getWidth();
 
         TrackType getType();
 
-        String getLanguage();
+        String getLanguage();       // AUDIO and TEXT
 
-        long getBitrate();
+        long getBitrate();          // AUDIO (dash) and VIDEO (dash, hls)
 
-        // Only applicable to VIDEO tracks.
-        int getWidth();
+        int getWidth();             // Only applicable to VIDEO tracks.
 
-        int getHeight();
+        int getHeight();            // Only applicable to VIDEO tracks.
 
-        String getCodecs();
+        String getCodecs();         // AUDIO and VIDEO
+
+        String getAudioGroupId();   // Only applicable to HLS (audio and video)
     }
 }
