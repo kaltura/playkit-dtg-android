@@ -156,10 +156,12 @@ public class DownloadService extends Service {
     }
 
     private void cancelItemWithError(@NonNull final DownloadItemImp item, final Exception stopError) {
-        itemCache.updateItemState(item, DownloadState.FAILED);
+        if (item != null) {
+            itemCache.updateItemState(item, DownloadState.FAILED);
 
-        futureMap.cancelItem(item.getItemId());
-        listenerHandler.post(() -> downloadStateListener.onDownloadFailure(item, stopError));
+            futureMap.cancelItem(item.getItemId());
+            listenerHandler.post(() -> downloadStateListener.onDownloadFailure(item, stopError));
+        }
     }
 
     @Override
@@ -228,10 +230,11 @@ public class DownloadService extends Service {
     }
 
     private void updateItemInfoInDB(DownloadItemImp item, String... columns) {
-        itemCache.updateItemInfo(item, columns);
-        if (database != null) {
-            database.updateItemInfo(item, columns);
-
+        if (item != null) {
+            itemCache.updateItemInfo(item, columns);
+            if (database != null) {
+                database.updateItemInfo(item, columns);
+            }
         }
     }
 
@@ -276,7 +279,9 @@ public class DownloadService extends Service {
         stopping = true;
 
         for (DownloadItemImp item : getDownloads(new DownloadState[]{DownloadState.IN_PROGRESS})) {
-            pauseItemDownload(item.getItemId());
+            if (item != null) {
+                pauseItemDownload(item.getItemId());
+            }
         }
 
         taskProgressHandler.getLooper().quit();
@@ -310,7 +315,11 @@ public class DownloadService extends Service {
                 downloadStateListener.onDownloadMetadata(item, null);
 
             } catch (IOException e) {
-                Log.e(TAG, "Failed to download metadata for " + item.getItemId(), e);
+                String exceptionItemId = "unknownItemId";
+                if (item != null) {
+                    exceptionItemId = item.getItemId();
+                }
+                Log.e(TAG, "Failed to download metadata for " + exceptionItemId, e);
                 downloadStateListener.onDownloadMetadata(item, e);
             }
         });
@@ -707,33 +716,36 @@ public class DownloadService extends Service {
         }
 
         private void updateItemState(DownloadItemImp item, DownloadState state) {
-            item.setState(state);
-
-            updateItemInfo(item, new String[]{Database.COL_ITEM_STATE});
+            if (item != null) {
+                item.setState(state);
+                updateItemInfo(item, new String[]{Database.COL_ITEM_STATE});
+            }
         }
 
         private void updateItemInfo(DownloadItemImp item, String[] columns) {
-            final DownloadItemImp cachedItem = cache.get(item.getItemId());
-            if (cachedItem != null) {
-                // Update cached item too
-                for (String column : columns) {
-                    switch (column) {
-                        case Database.COL_ITEM_ESTIMATED_SIZE:
-                            cachedItem.setEstimatedSizeBytes(item.getEstimatedSizeBytes());
-                            break;
-                        case Database.COL_ITEM_PLAYBACK_PATH:
-                            cachedItem.setPlaybackPath(item.getPlaybackPath());
-                            break;
-                        case Database.COL_ITEM_DOWNLOADED_SIZE:
-                            cachedItem.setDownloadedSizeBytes(item.getDownloadedSizeBytes());
-                            break;
-                        case Database.COL_ITEM_STATE:
-                            cachedItem.setState(item.getState());
-                            break;
+            if (item != null) {
+                final DownloadItemImp cachedItem = cache.get(item.getItemId());
+                if (cachedItem != null) {
+                    // Update cached item too
+                    for (String column : columns) {
+                        switch (column) {
+                            case Database.COL_ITEM_ESTIMATED_SIZE:
+                                cachedItem.setEstimatedSizeBytes(item.getEstimatedSizeBytes());
+                                break;
+                            case Database.COL_ITEM_PLAYBACK_PATH:
+                                cachedItem.setPlaybackPath(item.getPlaybackPath());
+                                break;
+                            case Database.COL_ITEM_DOWNLOADED_SIZE:
+                                cachedItem.setDownloadedSizeBytes(item.getDownloadedSizeBytes());
+                                break;
+                            case Database.COL_ITEM_STATE:
+                                cachedItem.setState(item.getState());
+                                break;
+                        }
                     }
                 }
+                database.updateItemInfo(item, columns);
             }
-            database.updateItemInfo(item, columns);
         }
     }
 }
