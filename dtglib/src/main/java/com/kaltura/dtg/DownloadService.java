@@ -234,7 +234,6 @@ public class DownloadService extends Service {
             itemCache.updateItemInfo(item, columns);
             if (database != null) {
                 database.updateItemInfo(item, columns);
-
             }
         }
     }
