@@ -618,7 +618,8 @@ public class DownloadService extends Service {
                         }
                         return null;
                     }
-                    task.download();
+
+                    task.download(settings.chunksUrlAdapter);
                     break;
                 } catch (HttpRetryException e) {
                     Log.d(TAG, "Task should be retried");

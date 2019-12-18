@@ -29,7 +29,7 @@ public class DownloadRequestParams {
          */
         DownloadRequestParams adapt(DownloadRequestParams requestParams);
 
-        void updateParams(String playSessionId);
+        default void updateParams(String playSessionId) {}
     }
 }
 
