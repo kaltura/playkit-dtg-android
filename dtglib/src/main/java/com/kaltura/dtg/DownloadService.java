@@ -253,7 +253,7 @@ public class DownloadService extends Service {
         }
     }
 
-    private void assertValidItem(String itemId, String contentURL) {
+    private void assertItemInput(String itemId, String contentURL) {
 
         if (TextUtils.isEmpty(itemId) || TextUtils.isEmpty(contentURL) || Uri.parse(contentURL).getLastPathSegment() == null) {
             throw new IllegalArgumentException("item is null or contentURL is not valid contentURL = " + contentURL);
@@ -515,7 +515,7 @@ public class DownloadService extends Service {
 
     DownloadItemImp createItem(String itemId, String contentURL) throws Utils.DirectoryNotCreatableException {
         assertStarted();
-        assertValidItem(itemId, contentURL);
+        assertItemInput(itemId, contentURL);
         // if this item was just removed, unmark it as removed.
         removedItems.remove(itemId);
 
@@ -540,7 +540,7 @@ public class DownloadService extends Service {
         Utils.mkdirsOrThrow(itemDataDir);
 
         item.setDataDir(itemDataDir.getAbsolutePath());
-        
+
         database.addItemToDB(item, itemDataDir);
 
         item.setService(this);
