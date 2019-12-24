@@ -263,7 +263,7 @@ public class DownloadService extends Service {
             itemId = item.getItemId();
         }
         if (TextUtils.isEmpty(itemId) || TextUtils.isEmpty(contentURL) || Uri.parse(contentURL).getLastPathSegment() == null) {
-            throw new IllegalStateException("item is null or contentURL is not valid contentURL = " + contentURL);
+            throw new IllegalArgumentException("item is null or contentURL is not valid contentURL = " + contentURL);
         }
     }
 
