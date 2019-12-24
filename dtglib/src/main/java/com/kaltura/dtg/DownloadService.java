@@ -540,6 +540,7 @@ public class DownloadService extends Service {
         Utils.mkdirsOrThrow(itemDataDir);
 
         item.setDataDir(itemDataDir.getAbsolutePath());
+        
         database.addItemToDB(item, itemDataDir);
 
         item.setService(this);
