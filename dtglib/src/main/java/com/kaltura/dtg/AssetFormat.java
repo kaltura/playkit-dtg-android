@@ -1,5 +1,7 @@
 package com.kaltura.dtg;
 
+import android.text.TextUtils;
+
 public enum AssetFormat {
     dash, hls, mp4, wvm, mp3, invalid;
 
@@ -22,9 +24,11 @@ public enum AssetFormat {
     }
 
     public static AssetFormat byFilename(String filename) {
-        for (AssetFormat assetFormat : valid) {
-            if (filename.endsWith(assetFormat.extension())) {
-                return assetFormat;
+        if (!TextUtils.isEmpty(filename)) {
+            for (AssetFormat assetFormat : valid) {
+                if (filename.endsWith(assetFormat.extension())) {
+                    return assetFormat;
+                }
             }
         }
         return invalid;
