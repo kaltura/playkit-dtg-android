@@ -9,6 +9,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -252,6 +253,20 @@ public class DownloadService extends Service {
         }
     }
 
+    private void assertValidItem(DownloadItemImp item) {
+
+        String contentURL = null;
+        String itemId = null;
+
+        if (item != null) {
+            contentURL = item.getContentURL();
+            itemId = item.getItemId();
+        }
+        if (TextUtils.isEmpty(itemId) || TextUtils.isEmpty(contentURL) || Uri.parse(contentURL).getLastPathSegment() == null) {
+            throw new IllegalStateException("item is null or contentURL is not valid contentURL = " + contentURL);
+        }
+    }
+
     void start() {
 
         Log.d(TAG, "start()");
@@ -304,7 +319,7 @@ public class DownloadService extends Service {
 
     void loadItemMetadata(final DownloadItemImp item) {
         assertStarted();
-
+        assertValidItem(item);
         AsyncTask.execute(() -> {
             try {
                 newDownload(item);
@@ -508,7 +523,6 @@ public class DownloadService extends Service {
 
     DownloadItemImp createItem(String itemId, String contentURL) throws Utils.DirectoryNotCreatableException {
         assertStarted();
-
         // if this item was just removed, unmark it as removed.
         removedItems.remove(itemId);
 
