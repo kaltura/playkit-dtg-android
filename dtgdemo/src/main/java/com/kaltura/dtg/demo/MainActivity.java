@@ -691,6 +691,9 @@ public class MainActivity extends ListActivity {
         } catch (IllegalArgumentException e) {
             toast("Failed to add item: " + e.toString());
             e.printStackTrace();
+        } catch (IllegalStateException e) {
+            toast("Failed to add item: " + e.toString());
+            e.printStackTrace();
         } catch (IOException e) {
             toast("Failed to add item: " + e.toString());
             e.printStackTrace();
