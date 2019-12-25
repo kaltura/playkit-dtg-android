@@ -90,7 +90,7 @@ public abstract class ContentManager {
      * @param contentURL
      * @return
      */
-    public abstract DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException, IOException;
+    public abstract DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException, IllegalArgumentException, IOException;
 
     /**
      * Remove item entirely. Deletes all files and db records.

@@ -212,8 +212,9 @@ public class ContentManagerImp extends ContentManager {
     }
 
     @Override
-    public DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException, IOException {
+    public DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException, IllegalArgumentException, IOException {
         checkIfManagerStarted();
+        assertItemInput(itemId, contentURL);
         itemId = safeItemId(itemId);
         assertProviderAndItem(itemId);
         DownloadRequestParams downloadRequestParams = adapter.adapt(new DownloadRequestParams(Uri.parse(contentURL), null));
@@ -224,6 +225,14 @@ public class ContentManagerImp extends ContentManager {
         // The only forbidden chars are null and slash
         return itemId.replace('/', '-').replace('\0', '-');
     }
+
+    private void assertItemInput(String itemId, String contentURL) {
+
+        if (TextUtils.isEmpty(itemId) || TextUtils.isEmpty(contentURL) || Uri.parse(contentURL).getLastPathSegment() == null) {
+            throw new IllegalArgumentException("item is null or contentURL is not valid contentURL = " + contentURL);
+        }
+    }
+
 
     @Override
     public void removeItem(String itemId) throws IllegalStateException {
