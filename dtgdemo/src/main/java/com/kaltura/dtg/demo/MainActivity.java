@@ -688,6 +688,12 @@ public class MainActivity extends ListActivity {
             downloadItem = contentManager.createItem(item.getId(), item.getUrl());
             downloadItem.loadMetadata();
             itemStateChanged(downloadItem);
+        } catch (IllegalArgumentException e) {
+            toast("Failed to add item: " + e.toString());
+            e.printStackTrace();
+        } catch (IllegalStateException e) {
+            toast("Failed to add item: " + e.toString());
+            e.printStackTrace();
         } catch (IOException e) {
             toast("Failed to add item: " + e.toString());
             e.printStackTrace();
