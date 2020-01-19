@@ -153,7 +153,7 @@ class ItemLoader {
         final List<Item> items = new ArrayList<>();
 
         for (int i = 0; i < entries.length; i++) {
-            items.add(null);
+            items.add(new Item("",""));
             final String mediaId = entries[i];
             final int index = i;
 
