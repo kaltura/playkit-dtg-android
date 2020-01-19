@@ -153,7 +153,7 @@ class ItemLoader {
         final List<Item> items = new ArrayList<>();
 
         for (int i = 0; i < entries.length; i++) {
-            items.add(new Item("",""));
+            items.add(null);
             final String mediaId = entries[i];
             final int index = i;
 
@@ -176,7 +176,11 @@ class ItemLoader {
                     //forceReducedLicenseDuration(source, DemoParams.forceReducedLicenseDurationSeconds);
 
                     Item item = new Item(source, mediaEntry.getName());
-                    items.set(index, item);
+                    if (items.isEmpty()) {
+                        items.add(item);
+                    } else {
+                        items.set(index, item);
+                    }
 
                 } else {
                     Log.d("LOAD", mediaId);
