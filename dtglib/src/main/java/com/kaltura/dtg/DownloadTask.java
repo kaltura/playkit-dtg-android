@@ -3,6 +3,8 @@ package com.kaltura.dtg;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -62,9 +64,17 @@ public class DownloadTask {
         return Utils.mkdirs(targetFile.getParentFile());
     }
 
-    void download() throws HttpRetryException {
+    void download(@Nullable DownloadRequestParams.Adapter chunksUrlAdapter) throws HttpRetryException {
 
         Uri uri = this.url;
+
+        if (chunksUrlAdapter != null) {
+            final DownloadRequestParams adapted = chunksUrlAdapter.adapt(new DownloadRequestParams(this.url, null));
+            if (adapted != null) {
+                uri = adapted.url;
+            }
+        }
+
         File targetFile = this.targetFile;
 //        Log.d(TAG, "Task " + taskId + ": download " + url + " to " + targetFile);
 

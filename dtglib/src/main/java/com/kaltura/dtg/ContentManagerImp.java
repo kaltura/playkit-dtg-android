@@ -79,6 +79,7 @@ public class ContentManagerImp extends ContentManager {
     private boolean started;
     private boolean autoResumeItemsInProgress = true;
     private DownloadRequestParams.Adapter adapter;
+    private DownloadRequestParams.Adapter chunksAdapter;
     private final Settings settings = new Settings();
 
     private ContentManagerImp(Context context) {
@@ -129,6 +130,7 @@ public class ContentManagerImp extends ContentManager {
         this.sessionId = UUID.randomUUID().toString();
         this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
         this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
+        this.chunksAdapter = settings.chunksUrlAdapter;
 
         if (started) {
             // Call the onStarted callback even if it has already been started
