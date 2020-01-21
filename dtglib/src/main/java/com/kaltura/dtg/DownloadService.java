@@ -9,6 +9,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -304,7 +305,6 @@ public class DownloadService extends Service {
 
     void loadItemMetadata(final DownloadItemImp item) {
         assertStarted();
-
         AsyncTask.execute(() -> {
             try {
                 newDownload(item);
@@ -508,7 +508,6 @@ public class DownloadService extends Service {
 
     DownloadItemImp createItem(String itemId, String contentURL) throws Utils.DirectoryNotCreatableException {
         assertStarted();
-
         // if this item was just removed, unmark it as removed.
         removedItems.remove(itemId);
 
