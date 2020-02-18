@@ -128,8 +128,8 @@ public class ContentManagerImp extends ContentManager {
         Storage.setup(context, settings);
 
         this.sessionId = UUID.randomUUID().toString();
-        this.applicationName = ("".equals(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
-        this.adapter = new KalturaDownloadRequestAdapter(sessionId, applicationName);
+        this.applicationName = (TextUtils.isEmpty(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
+        this.adapter = (settings.downloadRequestAdapter != null) ? settings.downloadRequestAdapter:  new KalturaDownloadRequestAdapter(sessionId, applicationName);
         this.chunksAdapter = settings.chunksUrlAdapter;
 
         if (started) {
