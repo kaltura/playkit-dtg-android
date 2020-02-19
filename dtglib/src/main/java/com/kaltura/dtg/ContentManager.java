@@ -141,6 +141,7 @@ public abstract class ContentManager {
         public boolean createNoMediaFileInDownloadsDir = true;
         public int defaultHlsAudioBitrateEstimation = 64000;
         public long freeDiskSpaceRequiredBytes = 400 * 1024 * 1024; // default 400MB
+        public DownloadRequestParams.Adapter downloadRequestAdapter;
         public DownloadRequestParams.Adapter chunksUrlAdapter;
 
         Settings copy() {

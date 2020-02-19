@@ -9,7 +9,6 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -43,7 +42,6 @@ public class DownloadService extends Service {
     private final Context context;  // allow mocking
     private final LocalBinder localBinder = new LocalBinder();
     private Database database;
-    private DownloadRequestParams.Adapter adapter;
     private boolean started;
     private boolean stopping;
     private DownloadStateListener downloadStateListener;
