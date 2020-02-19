@@ -129,7 +129,7 @@ public class ContentManagerImp extends ContentManager {
 
         this.sessionId = UUID.randomUUID().toString();
         this.applicationName = (TextUtils.isEmpty(settings.applicationName)) ? context.getPackageName() : settings.applicationName;
-        this.adapter = (settings.downloadRequestAdapter != null) ? settings.downloadRequestAdapter:  new KalturaDownloadRequestAdapter(sessionId, applicationName);
+        this.adapter = (settings.downloadRequestAdapter != null) ? settings.downloadRequestAdapter : new KalturaDownloadRequestAdapter(sessionId, applicationName);
         this.chunksAdapter = settings.chunksUrlAdapter;
 
         if (started) {
