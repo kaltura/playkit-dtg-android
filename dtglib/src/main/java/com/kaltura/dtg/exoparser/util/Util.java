@@ -299,7 +299,7 @@ public final class Util {
   public static @Nullable String normalizeLanguageCode(@Nullable String language) {
     try {
       return language == null ? null : new Locale(language).getISO3Language();
-    } catch (MissingResourceException e) {
+    } catch (MissingResourceException | NullPointerException e) {
       return toLowerInvariant(language);
     }
   }
