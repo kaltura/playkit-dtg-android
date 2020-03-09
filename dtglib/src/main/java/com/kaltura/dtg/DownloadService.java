@@ -99,10 +99,12 @@ public class DownloadService extends Service {
         }
     };
 
+    @SuppressWarnings("unused") // Called when testing, to inject a context
     public DownloadService(Context context) {
         this.context = context;
     }
 
+    @SuppressWarnings("unused") // Called by Android
     public DownloadService() {
         this.context = this;
     }
@@ -684,7 +686,11 @@ public class DownloadService extends Service {
                         }
                     }
 
-                    taskProgressHandler.postDelayed(this, 200);
+                    if (taskProgressHandler != null) {
+                        // stop() is removing this handler - can cause a crash in certain cases.
+                        // If the handler was stopped, stop (don't re-post) the task.
+                        taskProgressHandler.postDelayed(this, 200);
+                    }
                 }
             });
         }
