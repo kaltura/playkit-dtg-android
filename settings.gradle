@@ -1,1 +1,7 @@
 include ':dtglib', ':dtgdemo'
+
+//include ':playkit'
+//project(':playkit').projectDir = new File(settingsDir, '../playkit-android/playkit')
+//
+//include ':providers'
+//project(':providers').projectDir = new File('../playkit-android-providers/mediaproviders')
