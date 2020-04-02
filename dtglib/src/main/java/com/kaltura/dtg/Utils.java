@@ -144,6 +144,16 @@ public class Utils {
             conn = openConnection(uri);
             conn.setRequestMethod("GET");
             conn.connect();
+
+            int status = conn.getResponseCode();
+
+            // Only for, 301 is redirect
+            while (status == HttpURLConnection.HTTP_MOVED_PERM) {
+                conn = handleRequestRedirects(conn);
+                status = conn.getResponseCode();
+                Log.e(TAG, "Response Code = " + status + "   url:  " + conn.getURL());
+            }
+
             inputStream = conn.getInputStream();
 
             fileOutputStream = new FileOutputStream(targetFile);
@@ -171,6 +181,14 @@ public class Utils {
                 conn.disconnect();
             }
         }
+    }
+
+    private static HttpURLConnection handleRequestRedirects(HttpURLConnection conn) throws IOException {
+        String newUrl = conn.getHeaderField("Location");
+        conn = openConnection(Uri.parse(newUrl));
+        conn.setRequestMethod("GET");
+        conn.connect();
+        return conn;
     }
 
     public static byte[] downloadToFile(String url, File targetFile, int maxReturnSize) throws IOException {
