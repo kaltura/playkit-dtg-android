@@ -1,10 +1,11 @@
 package com.kaltura.dtg;
 
 import android.net.Uri;
-import androidx.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -25,6 +26,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class Utils {
     private static final String TAG = "DTGUtils";
@@ -136,59 +141,43 @@ public class Utils {
     // If file is larger than maxReturnSize, the returned array will have maxReturnSize bytes,
     // but the file will have all of them.
     public static byte[] downloadToFile(Uri uri, File targetFile, int maxReturnSize) throws IOException {
-
         InputStream inputStream = null;
         FileOutputStream fileOutputStream = null;
-        HttpURLConnection conn = null;
+        ByteArrayOutputStream byteArrayOutputStream;
+        OkHttpClient okClient;
+        Response response = null;
         try {
-            conn = openConnection(uri);
-            conn.setRequestMethod("GET");
-            conn.connect();
+            okClient = new OkHttpClient.Builder()
+                    .followSslRedirects(true)
+                    .followRedirects(true)
+                    .build();
+            Request request = new Request.Builder()
+                    .url(uri.toString())
+                    .build();
+            response = okClient.newCall(request).execute();
+            byteArrayOutputStream = new ByteArrayOutputStream(10 * 1024); // 10kb: save some realloc'
+            if (response.code() == 200 && response.body() != null) {
+                inputStream = response.body().byteStream();
+                fileOutputStream = new FileOutputStream(targetFile);
 
-            int status = conn.getResponseCode();
+                byte[] data = new byte[1024];
+                int count;
 
-            // Only for, 301 is redirect
-            while (status == HttpURLConnection.HTTP_MOVED_PERM) {
-                conn = handleRequestRedirects(conn);
-                status = conn.getResponseCode();
-                Log.e(TAG, "Response Code = " + status + "   url:  " + conn.getURL());
-            }
-
-            inputStream = conn.getInputStream();
-
-            fileOutputStream = new FileOutputStream(targetFile);
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(10 * 1024); // 10kb: save some realloc'
-
-            byte data[] = new byte[1024];
-            int count;
-
-            while ((count = inputStream.read(data)) != -1) {
-                if (count > 0) {
-                    fileOutputStream.write(data, 0, count);
-                    int allowedInBuffer = maxReturnSize - byteArrayOutputStream.size();
-                    if (allowedInBuffer > 0) {
-                        byteArrayOutputStream.write(data, 0, Math.min(allowedInBuffer, count));
+                while ((count = inputStream.read(data)) != -1) {
+                    if (count > 0) {
+                        fileOutputStream.write(data, 0, count);
+                        int allowedInBuffer = maxReturnSize - byteArrayOutputStream.size();
+                        if (allowedInBuffer > 0) {
+                            byteArrayOutputStream.write(data, 0, Math.min(allowedInBuffer, count));
+                        }
                     }
                 }
             }
-
             return byteArrayOutputStream.toByteArray();
         } finally {
             // close everything
-            safeClose(fileOutputStream);
-            safeClose(inputStream);
-            if (conn != null) {
-                conn.disconnect();
-            }
+            safeClose(fileOutputStream, inputStream, response);
         }
-    }
-
-    private static HttpURLConnection handleRequestRedirects(HttpURLConnection conn) throws IOException {
-        String newUrl = conn.getHeaderField("Location");
-        conn = openConnection(Uri.parse(newUrl));
-        conn.setRequestMethod("GET");
-        conn.connect();
-        return conn;
     }
 
     public static byte[] downloadToFile(String url, File targetFile, int maxReturnSize) throws IOException {
