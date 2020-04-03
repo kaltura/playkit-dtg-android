@@ -156,7 +156,7 @@ public class Utils {
                     .build();
             response = okClient.newCall(request).execute();
             byteArrayOutputStream = new ByteArrayOutputStream(10 * 1024); // 10kb: save some realloc'
-            if (response.code() == 200 && response.body() != null) {
+            if (response.code() == HttpURLConnection.HTTP_OK && response.body() != null) {
                 inputStream = response.body().byteStream();
                 fileOutputStream = new FileOutputStream(targetFile);
 
