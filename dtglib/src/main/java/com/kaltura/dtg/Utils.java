@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -140,7 +141,7 @@ public class Utils {
     // Download the URL to targetFile and also return the contents.
     // If file is larger than maxReturnSize, the returned array will have maxReturnSize bytes,
     // but the file will have all of them.
-    public static byte[] downloadToFile(Uri uri, File targetFile, int maxReturnSize) throws IOException {
+    public static byte[] downloadToFile(Uri uri, File targetFile, int maxReturnSize, ContentManager.Settings settings) throws IOException {
         InputStream inputStream = null;
         FileOutputStream fileOutputStream = null;
         ByteArrayOutputStream byteArrayOutputStream;
@@ -148,8 +149,10 @@ public class Utils {
         Response response = null;
         try {
             okClient = new OkHttpClient.Builder()
-                    .followSslRedirects(true)
+                    .followSslRedirects(settings.crossProtocolRedirectEnabled)
                     .followRedirects(true)
+                    .connectTimeout(settings.defaultConnectTimeoutMillies, TimeUnit.MILLISECONDS)
+                    .readTimeout(settings.defaultReadTimeoutMillies, TimeUnit.MILLISECONDS)
                     .build();
             Request request = new Request.Builder()
                     .url(uri.toString())
@@ -180,8 +183,8 @@ public class Utils {
         }
     }
 
-    public static byte[] downloadToFile(String url, File targetFile, int maxReturnSize) throws IOException {
-        return downloadToFile(Uri.parse(url), targetFile, maxReturnSize);
+    public static byte[] downloadToFile(String url, File targetFile, int maxReturnSize, ContentManager.Settings settings) throws IOException {
+        return downloadToFile(Uri.parse(url), targetFile, maxReturnSize, settings);
     }
 
     static long httpHeadGetLength(Uri uri) throws IOException {

@@ -1,18 +1,20 @@
 package com.kaltura.dtg.hls;
 
 import android.net.Uri;
-import androidx.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.kaltura.dtg.exoparser.ParserException;
+import androidx.annotation.NonNull;
+
 import com.kaltura.dtg.AbrDownloader;
 import com.kaltura.dtg.AssetFormat;
 import com.kaltura.dtg.BaseTrack;
+import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadItemImp;
 import com.kaltura.dtg.DownloadTask;
 import com.kaltura.dtg.Utils;
+import com.kaltura.dtg.exoparser.ParserException;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -37,12 +39,14 @@ public class HlsDownloader extends AbrDownloader {
     private static final String LOCAL_MASTER = "master.m3u8";
     private static final String LOCAL_MEDIA = "media.m3u8";
     private final int defaultHlsAudioBitrateEstimation;
+    private ContentManager.Settings settings;
 
     private HlsAsset hlsAsset;
 
-    public HlsDownloader(DownloadItemImp item, int defaultHlsAudioBitrateEstimation) {
+    public HlsDownloader(DownloadItemImp item, ContentManager.Settings settings) {
         super(item);
-        this.defaultHlsAudioBitrateEstimation = defaultHlsAudioBitrateEstimation;
+        this.settings = settings;
+        this.defaultHlsAudioBitrateEstimation = settings.defaultHlsAudioBitrateEstimation;
     }
 
     private static void maybeAddTask(LinkedHashSet<DownloadTask> tasks, String relativeId, File trackTargetDir, int lineNum, String type, String url, int order) {
@@ -303,7 +307,7 @@ public class HlsDownloader extends AbrDownloader {
             bytes = Utils.readFile(targetFile, MAX_MANIFEST_SIZE);
         } else {
             Utils.mkdirsOrThrow(trackTargetDir);
-            bytes = Utils.downloadToFile(track.url, targetFile, MAX_MANIFEST_SIZE);
+            bytes = Utils.downloadToFile(track.url, targetFile, MAX_MANIFEST_SIZE, settings);
         }
         track.parse(bytes);
     }
