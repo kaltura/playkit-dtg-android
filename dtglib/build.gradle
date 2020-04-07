@@ -39,7 +39,6 @@ task sourcesJar(type: Jar) {
 
 dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
-    implementation 'com.squareup.okhttp3:okhttp:3.12.8'
 }
 
 artifacts {

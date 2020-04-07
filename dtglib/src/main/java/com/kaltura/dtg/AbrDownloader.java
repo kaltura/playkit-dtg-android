@@ -75,7 +75,7 @@ public abstract class AbrDownloader {
 
     void create(DownloadService downloadService, DownloadStateListener downloadStateListener) throws IOException {
 
-        downloadManifest(downloadService.settings);
+        downloadManifest(downloadService.settings.crossProtocolRedirectEnabled);
         parseOriginManifest();
         createTracks();
 
@@ -148,9 +148,9 @@ public abstract class AbrDownloader {
 
     protected abstract void createTracks();
 
-    private void downloadManifest(ContentManager.Settings settings) throws IOException {
+    private void downloadManifest(boolean crossProtocolRedirectEnabled) throws IOException {
         File targetFile = new File(getTargetDir(), storedOriginManifestName());
-        originManifestBytes = Utils.downloadToFile(Uri.parse(manifestUrl), targetFile, MAX_MANIFEST_SIZE, settings);
+        originManifestBytes = Utils.downloadToFile(Uri.parse(manifestUrl), targetFile, MAX_MANIFEST_SIZE, crossProtocolRedirectEnabled);
     }
 
     List<BaseTrack> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {

@@ -307,7 +307,7 @@ public class HlsDownloader extends AbrDownloader {
             bytes = Utils.readFile(targetFile, MAX_MANIFEST_SIZE);
         } else {
             Utils.mkdirsOrThrow(trackTargetDir);
-            bytes = Utils.downloadToFile(track.url, targetFile, MAX_MANIFEST_SIZE, settings);
+            bytes = Utils.downloadToFile(track.url, targetFile, MAX_MANIFEST_SIZE, settings.crossProtocolRedirectEnabled);
         }
         track.parse(bytes);
     }
