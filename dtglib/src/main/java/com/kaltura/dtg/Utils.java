@@ -1,10 +1,11 @@
 package com.kaltura.dtg;
 
 import android.net.Uri;
-import androidx.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -14,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -28,6 +30,9 @@ import java.util.Set;
 
 public class Utils {
     private static final String TAG = "DTGUtils";
+    private static final int MAX_REDIRECTS = 20;
+    private static final int HTTP_STATUS_TEMPORARY_REDIRECT = 307;
+    private static final int HTTP_STATUS_PERMANENT_REDIRECT = 308;
 
     static String createTable(String name, String... colDefs) {
         StringBuilder sb = new StringBuilder();
@@ -135,8 +140,7 @@ public class Utils {
     // Download the URL to targetFile and also return the contents.
     // If file is larger than maxReturnSize, the returned array will have maxReturnSize bytes,
     // but the file will have all of them.
-    public static byte[] downloadToFile(Uri uri, File targetFile, int maxReturnSize) throws IOException {
-
+    public static byte[] downloadToFile(Uri uri, File targetFile, int maxReturnSize, boolean crossProtocolRedirectEnabled) throws IOException {
         InputStream inputStream = null;
         FileOutputStream fileOutputStream = null;
         HttpURLConnection conn = null;
@@ -144,12 +148,32 @@ public class Utils {
             conn = openConnection(uri);
             conn.setRequestMethod("GET");
             conn.connect();
+
+            if (crossProtocolRedirectEnabled) {
+                // We need to handle redirects ourselves to allow cross-protocol redirects.
+                int redirectCount = 0;
+                while (redirectCount++ <= MAX_REDIRECTS) {
+                    int responseCode = conn.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_MULT_CHOICE
+                            || responseCode == HttpURLConnection.HTTP_MOVED_PERM
+                            || responseCode == HttpURLConnection.HTTP_MOVED_TEMP
+                            || responseCode == HttpURLConnection.HTTP_SEE_OTHER
+                            || responseCode == HTTP_STATUS_TEMPORARY_REDIRECT
+                            || responseCode == HTTP_STATUS_PERMANENT_REDIRECT) {
+                        conn.disconnect();
+                        conn = handleRequestRedirects(conn);
+                    } else {
+                        break;
+                    }
+                }
+            }
+
             inputStream = conn.getInputStream();
 
             fileOutputStream = new FileOutputStream(targetFile);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(10 * 1024); // 10kb: save some realloc'
 
-            byte data[] = new byte[1024];
+            byte[] data = new byte[1024];
             int count;
 
             while ((count = inputStream.read(data)) != -1) {
@@ -165,16 +189,34 @@ public class Utils {
             return byteArrayOutputStream.toByteArray();
         } finally {
             // close everything
-            safeClose(fileOutputStream);
-            safeClose(inputStream);
+            safeClose(fileOutputStream, inputStream);
             if (conn != null) {
                 conn.disconnect();
             }
         }
     }
 
-    public static byte[] downloadToFile(String url, File targetFile, int maxReturnSize) throws IOException {
-        return downloadToFile(Uri.parse(url), targetFile, maxReturnSize);
+    private static HttpURLConnection handleRequestRedirects(HttpURLConnection conn) throws IOException {
+        String newUrl = conn.getHeaderField("Location"); // Get newUrl from location header
+        if (newUrl == null) {
+            throw new ProtocolException("Null location redirect");
+        }
+        // Form the new url.
+        URL url = new URL(conn.getURL(), newUrl);
+        // Check that the protocol of the new url is supported.
+        String protocol = url.getProtocol();
+        if (!"https".equals(protocol) && !"http".equals(protocol)) {
+            throw new ProtocolException("Unsupported protocol redirect: " + protocol);
+        }
+
+        conn = openConnection(Uri.parse(newUrl));
+        conn.setRequestMethod("GET");
+        conn.connect();
+        return conn;
+    }
+
+    public static byte[] downloadToFile(String url, File targetFile, int maxReturnSize, boolean crossProtocolRedirectEnabled) throws IOException {
+        return downloadToFile(Uri.parse(url), targetFile, maxReturnSize, crossProtocolRedirectEnabled);
     }
 
     static long httpHeadGetLength(Uri uri) throws IOException {

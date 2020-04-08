@@ -143,6 +143,7 @@ public abstract class ContentManager {
         public long freeDiskSpaceRequiredBytes = 400 * 1024 * 1024; // default 400MB
         public DownloadRequestParams.Adapter downloadRequestAdapter;
         public DownloadRequestParams.Adapter chunksUrlAdapter;
+        public boolean crossProtocolRedirectEnabled = false;
 
         Settings copy() {
             try {

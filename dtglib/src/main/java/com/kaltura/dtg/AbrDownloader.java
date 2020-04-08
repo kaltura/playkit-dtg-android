@@ -1,9 +1,10 @@
 package com.kaltura.dtg;
 
 import android.net.Uri;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.Log;
 
 import com.kaltura.dtg.DownloadItem.TrackSelector;
 import com.kaltura.dtg.DownloadItem.TrackType;
@@ -49,7 +50,7 @@ public abstract class AbrDownloader {
             case dash:
                 return new DashDownloader(item);
             case hls:
-                return new HlsDownloader(item, settings.defaultHlsAudioBitrateEstimation);
+                return new HlsDownloader(item, settings);
         }
 
         return null;
@@ -74,7 +75,7 @@ public abstract class AbrDownloader {
 
     void create(DownloadService downloadService, DownloadStateListener downloadStateListener) throws IOException {
 
-        downloadManifest();
+        downloadManifest(downloadService.settings.crossProtocolRedirectEnabled);
         parseOriginManifest();
         createTracks();
 
@@ -147,9 +148,9 @@ public abstract class AbrDownloader {
 
     protected abstract void createTracks();
 
-    private void downloadManifest() throws IOException {
+    private void downloadManifest(boolean crossProtocolRedirectEnabled) throws IOException {
         File targetFile = new File(getTargetDir(), storedOriginManifestName());
-        originManifestBytes = Utils.downloadToFile(Uri.parse(manifestUrl), targetFile, MAX_MANIFEST_SIZE);
+        originManifestBytes = Utils.downloadToFile(Uri.parse(manifestUrl), targetFile, MAX_MANIFEST_SIZE, crossProtocolRedirectEnabled);
     }
 
     List<BaseTrack> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {
