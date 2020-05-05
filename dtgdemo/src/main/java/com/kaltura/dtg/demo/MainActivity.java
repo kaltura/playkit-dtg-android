@@ -81,7 +81,7 @@ class ItemLoader {
                             return source;  // this source has at least one supported DRM scheme
                         }
                     }
-                } else {
+                } else if (format.equals(source.getMediaFormat())) {
                     return source;  // No DRM
                 }
             }
