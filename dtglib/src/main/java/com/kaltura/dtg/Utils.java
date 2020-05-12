@@ -307,7 +307,19 @@ public class Utils {
         }
 
         // resolve with baseUrl
-        final Uri trackUri = Uri.parse(baseUrl);
+        String processedBaseUrl = baseUrl;
+        String trackUriQueryString = uri.getQuery();
+
+        // If track uri has its own query string, then there's no need to append a query string from
+        // base url
+        if (trackUriQueryString != null && !trackUriQueryString.equals("")) {
+            int queryStringStartPos = baseUrl.indexOf("?");
+            if (queryStringStartPos != -1) {
+                processedBaseUrl = baseUrl.substring(0, queryStringStartPos);
+            }
+        }
+
+        final Uri trackUri = Uri.parse(processedBaseUrl);
         final List<String> pathSegments = new ArrayList<>(trackUri.getPathSegments());
         pathSegments.remove(pathSegments.size() - 1);
         final String pathWithoutLastSegment = TextUtils.join("/", pathSegments);
