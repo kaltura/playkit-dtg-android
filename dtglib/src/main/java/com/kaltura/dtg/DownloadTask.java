@@ -132,11 +132,10 @@ public class DownloadTask {
         boolean interruptedBetweenCycles = false;
 
         int progressReportBytes = 0;
-        Map<String, String> headersMap = new HashMap<>();
-        headersMap.put(ContentManagerImp.USER_AGENT_KEY, ContentManagerImp.USER_AGENT);
+
 
         try {
-            conn = Utils.openConnection(uri, headersMap);
+            conn = Utils.openConnection(uri, Utils.headersMap);
             conn.setReadTimeout(downloadSettings.httpTimeoutMillis);
             conn.setConnectTimeout(downloadSettings.httpTimeoutMillis);
             conn.setDoInput(true);

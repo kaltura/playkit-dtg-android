@@ -42,7 +42,10 @@ public class Utils {
     private static final int MAX_REDIRECTS = 20;
     private static final int HTTP_STATUS_TEMPORARY_REDIRECT = 307;
     private static final int HTTP_STATUS_PERMANENT_REDIRECT = 308;
-    private static final Map headersMap = Collections.singletonMap(ContentManagerImp.USER_AGENT_KEY, ContentManagerImp.USER_AGENT);
+
+    static final String USER_AGENT_KEY = "User-Agent";
+    static String USER_AGENT;
+    static Map headersMap;
 
     static String createTable(String name, String... colDefs) {
         StringBuilder sb = new StringBuilder();
@@ -403,6 +406,11 @@ public class Utils {
     }
 
     public static String getUserAgent(Context context) {
+
+        if (USER_AGENT != null) {
+            return USER_AGENT;
+        }
+
         String applicationName;
         try {
             String packageName = context.getPackageName();
@@ -411,7 +419,10 @@ public class Utils {
         } catch (PackageManager.NameNotFoundException e) {
             applicationName = "?";
         }
-        return  ContentManager.CLIENT_TAG + " " + applicationName + " " + System.getProperty("http.agent") + " " + Utils.getDeviceType(context);
+
+        USER_AGENT = ContentManager.CLIENT_TAG + " " + applicationName + " " + System.getProperty("http.agent") + " " + Utils.getDeviceType(context);
+        headersMap = Collections.singletonMap(USER_AGENT_KEY, USER_AGENT);
+        return USER_AGENT;
     }
 
     public static String getDeviceType(Context context) {

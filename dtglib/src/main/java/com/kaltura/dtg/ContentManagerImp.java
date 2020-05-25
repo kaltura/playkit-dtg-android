@@ -15,8 +15,6 @@ import java.util.UUID;
 
 public class ContentManagerImp extends ContentManager {
     private static final String TAG = "ContentManagerImp";
-    public static final String USER_AGENT_KEY = "User-Agent";
-    public static String  USER_AGENT = "";
 
     private static ContentManager sInstance;
     private final HashSet<DownloadStateListener> stateListeners = new HashSet<>();
@@ -92,8 +90,8 @@ public class ContentManagerImp extends ContentManager {
         if (sInstance == null) {
             synchronized (ContentManager.class) {
                 if (sInstance == null) {
+                    Utils.getUserAgent(context);
                     sInstance = new ContentManagerImp(context);
-                    USER_AGENT = Utils.getUserAgent(context);
                 }
             }
         }
