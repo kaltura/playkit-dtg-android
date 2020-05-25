@@ -14,6 +14,8 @@ import java.io.InterruptedIOException;
 import java.net.HttpRetryException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DownloadTask {
     public static final int UNKNOWN_ORDER = -1;
@@ -130,8 +132,11 @@ public class DownloadTask {
         boolean interruptedBetweenCycles = false;
 
         int progressReportBytes = 0;
+        Map<String, String> headersMap = new HashMap<>();
+        headersMap.put(ContentManagerImp.USER_AGENT_KEY, ContentManagerImp.USER_AGENT);
+
         try {
-            conn = Utils.openConnection(uri);
+            conn = Utils.openConnection(uri, headersMap);
             conn.setReadTimeout(downloadSettings.httpTimeoutMillis);
             conn.setConnectTimeout(downloadSettings.httpTimeoutMillis);
             conn.setDoInput(true);
