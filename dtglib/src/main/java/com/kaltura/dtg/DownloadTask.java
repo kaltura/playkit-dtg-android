@@ -14,8 +14,6 @@ import java.io.InterruptedIOException;
 import java.net.HttpRetryException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DownloadTask {
     public static final int UNKNOWN_ORDER = -1;
