@@ -130,6 +130,8 @@ public class DownloadTask {
         boolean interruptedBetweenCycles = false;
 
         int progressReportBytes = 0;
+
+
         try {
             conn = Utils.openConnection(uri);
             conn.setReadTimeout(downloadSettings.httpTimeoutMillis);
