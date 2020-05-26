@@ -28,7 +28,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -43,9 +42,9 @@ public class Utils {
     private static final int HTTP_STATUS_TEMPORARY_REDIRECT = 307;
     private static final int HTTP_STATUS_PERMANENT_REDIRECT = 308;
 
-    static final String USER_AGENT_KEY = "User-Agent";
-    static String USER_AGENT;
-    static Map headersMap;
+    private static final String USER_AGENT_KEY = "User-Agent";
+    private static String USER_AGENT;
+    private static Map<String, String> defaultHeaders;
 
     static String createTable(String name, String... colDefs) {
         StringBuilder sb = new StringBuilder();
@@ -159,7 +158,7 @@ public class Utils {
         HttpURLConnection conn = null;
 
         try {
-            conn = openConnection(uri, headersMap);
+            conn = openConnection(uri);
             conn.setRequestMethod("GET");
             conn.connect();
 
@@ -223,7 +222,7 @@ public class Utils {
             throw new ProtocolException("Unsupported protocol redirect: " + protocol);
         }
 
-        conn = openConnection(Uri.parse(newUrl), headersMap);
+        conn = openConnection(Uri.parse(newUrl));
         conn.setRequestMethod("GET");
 
         conn.connect();
@@ -238,7 +237,7 @@ public class Utils {
         HttpURLConnection connection = null;
 
         try {
-            connection = openConnection(uri, headersMap);
+            connection = openConnection(uri);
             connection.setRequestMethod("HEAD");
             connection.setRequestProperty("Accept-Encoding", "");
             connection.connect();
@@ -259,14 +258,14 @@ public class Utils {
         }
     }
 
-    static HttpURLConnection openConnection(Uri uri, Map<String, String> headers) throws IOException {
+    static HttpURLConnection openConnection(Uri uri) throws IOException {
         if (uri == null) {
             return null;
         }
 
         HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(uri.toString()).openConnection();
-        if (headers != null) {
-            for (Map.Entry<String, String> stringStringEntry : headers.entrySet()) {
+        if (defaultHeaders != null) {
+            for (Map.Entry<String, String> stringStringEntry : defaultHeaders.entrySet()) {
                 if (!TextUtils.isEmpty(stringStringEntry.getKey()) && stringStringEntry.getValue() != null) {
                     httpURLConnection.addRequestProperty(stringStringEntry.getKey(), stringStringEntry.getValue());
                 }
@@ -405,12 +404,17 @@ public class Utils {
         return dot >= 0 ? lastPathSegment.substring(dot + 1) : "";
     }
 
-    public static String getUserAgent(Context context) {
+    static void buildUserAgent(Context context) {
 
         if (USER_AGENT != null) {
-            return USER_AGENT;
+            return;
         }
 
+        USER_AGENT = getUserAgent(context);
+        defaultHeaders = Collections.singletonMap(USER_AGENT_KEY, USER_AGENT);
+    }
+
+    private static String getUserAgent(Context context) {
         String applicationName;
         try {
             String packageName = context.getPackageName();
@@ -420,12 +424,10 @@ public class Utils {
             applicationName = "?";
         }
 
-        USER_AGENT = ContentManager.CLIENT_TAG + " " + applicationName + " " + System.getProperty("http.agent") + " " + Utils.getDeviceType(context);
-        headersMap = Collections.singletonMap(USER_AGENT_KEY, USER_AGENT);
-        return USER_AGENT;
+        return ContentManager.CLIENT_TAG + " " + applicationName + " " + System.getProperty("http.agent") + " " + getDeviceType(context);
     }
 
-    public static String getDeviceType(Context context) {
+    private static String getDeviceType(Context context) {
         String deviceType = "Mobile";
 
         UiModeManager uiModeManager = (UiModeManager) context.getSystemService(UI_MODE_SERVICE);

@@ -133,7 +133,7 @@ public class DownloadTask {
 
 
         try {
-            conn = Utils.openConnection(uri, Utils.headersMap);
+            conn = Utils.openConnection(uri);
             conn.setReadTimeout(downloadSettings.httpTimeoutMillis);
             conn.setConnectTimeout(downloadSettings.httpTimeoutMillis);
             conn.setDoInput(true);

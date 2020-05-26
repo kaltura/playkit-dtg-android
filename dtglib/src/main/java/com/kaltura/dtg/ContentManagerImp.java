@@ -90,7 +90,7 @@ public class ContentManagerImp extends ContentManager {
         if (sInstance == null) {
             synchronized (ContentManager.class) {
                 if (sInstance == null) {
-                    Utils.getUserAgent(context);
+                    Utils.buildUserAgent(context);
                     sInstance = new ContentManagerImp(context);
                 }
             }
