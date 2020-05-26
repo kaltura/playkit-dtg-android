@@ -879,7 +879,7 @@ public class MainActivity extends ListActivity {
 
     private void loadTestItems(final ArrayAdapter<Item> itemAdapter) {
 
-        initializeDrm(this, (supportedDrmSchemes, provisionPerformed, provisionError) -> runOnUiThread(() -> {
+        initializeDrm(this, (supportedDrmSchemes, isHardwareDrmSupported, provisionPerformed, provisionError) -> runOnUiThread(() -> {
             List<Item> items = ItemLoader.loadItems();
             itemAdapter.addAll(items);
             for (final Item item : items) {

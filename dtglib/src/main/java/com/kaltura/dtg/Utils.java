@@ -1,6 +1,12 @@
 package com.kaltura.dtg;
 
+import android.app.UiModeManager;
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.net.Uri;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
@@ -28,11 +34,17 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static android.content.Context.UI_MODE_SERVICE;
+
 public class Utils {
     private static final String TAG = "DTGUtils";
     private static final int MAX_REDIRECTS = 20;
     private static final int HTTP_STATUS_TEMPORARY_REDIRECT = 307;
     private static final int HTTP_STATUS_PERMANENT_REDIRECT = 308;
+
+    private static final String USER_AGENT_KEY = "User-Agent";
+    private static String USER_AGENT;
+    private static Map<String, String> defaultHeaders;
 
     static String createTable(String name, String... colDefs) {
         StringBuilder sb = new StringBuilder();
@@ -144,6 +156,7 @@ public class Utils {
         InputStream inputStream = null;
         FileOutputStream fileOutputStream = null;
         HttpURLConnection conn = null;
+
         try {
             conn = openConnection(uri);
             conn.setRequestMethod("GET");
@@ -211,6 +224,7 @@ public class Utils {
 
         conn = openConnection(Uri.parse(newUrl));
         conn.setRequestMethod("GET");
+
         conn.connect();
         return conn;
     }
@@ -221,6 +235,7 @@ public class Utils {
 
     static long httpHeadGetLength(Uri uri) throws IOException {
         HttpURLConnection connection = null;
+
         try {
             connection = openConnection(uri);
             connection.setRequestMethod("HEAD");
@@ -247,7 +262,16 @@ public class Utils {
         if (uri == null) {
             return null;
         }
-        return (HttpURLConnection) new URL(uri.toString()).openConnection();
+
+        HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(uri.toString()).openConnection();
+        if (defaultHeaders != null) {
+            for (Map.Entry<String, String> stringStringEntry : defaultHeaders.entrySet()) {
+                if (!TextUtils.isEmpty(stringStringEntry.getKey()) && stringStringEntry.getValue() != null) {
+                    httpURLConnection.addRequestProperty(stringStringEntry.getKey(), stringStringEntry.getValue());
+                }
+            }
+        }
+        return httpURLConnection;
     }
 
     @NonNull
@@ -390,5 +414,46 @@ public class Utils {
         final int dot = lastPathSegment.lastIndexOf('.');
 
         return dot >= 0 ? lastPathSegment.substring(dot + 1) : "";
+    }
+
+    static void buildUserAgent(Context context) {
+
+        if (USER_AGENT != null) {
+            return;
+        }
+
+        USER_AGENT = getUserAgent(context);
+        defaultHeaders = Collections.singletonMap(USER_AGENT_KEY, USER_AGENT);
+    }
+
+    private static String getUserAgent(Context context) {
+        String applicationName;
+        try {
+            String packageName = context.getPackageName();
+            PackageInfo info = context.getPackageManager().getPackageInfo(packageName, 0);
+            applicationName = packageName + "/" + info.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            applicationName = "?";
+        }
+
+        return ContentManager.CLIENT_TAG + " " + applicationName + " " + System.getProperty("http.agent") + " " + getDeviceType(context);
+    }
+
+    private static String getDeviceType(Context context) {
+        String deviceType = "Mobile";
+
+        UiModeManager uiModeManager = (UiModeManager) context.getSystemService(UI_MODE_SERVICE);
+        if (uiModeManager == null) {
+            return deviceType;
+        }
+        if (uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION) {
+            deviceType = "TV";
+        } else {
+            TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            if (manager != null && manager.getPhoneType() == TelephonyManager.PHONE_TYPE_NONE) {
+                deviceType = "Tablet";
+            }
+        }
+        return deviceType;
     }
 }
