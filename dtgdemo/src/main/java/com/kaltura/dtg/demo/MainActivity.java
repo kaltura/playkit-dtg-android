@@ -564,6 +564,7 @@ public class MainActivity extends ListActivity {
         contentManager.getSettings().applicationName = "MyApplication";
         contentManager.getSettings().maxConcurrentDownloads = 4;
         contentManager.getSettings().createNoMediaFileInDownloadsDir = true;
+        contentManager.getSettings().crossProtocolRedirectEnabled = true;
 
         contentManager.addDownloadStateListener(cmListener);
 
