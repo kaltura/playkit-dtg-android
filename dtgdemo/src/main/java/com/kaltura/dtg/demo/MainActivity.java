@@ -219,6 +219,7 @@ class ItemLoader {
                 item("tears-multi-dash",    "http://cdntesting.qa.mkaltura.com/p/1091/sp/109100/playManifest/entryId/0_ttfy4uu0/protocol/http/format/mpegdash/flavorIds/0_yuv6fomw,0_i414yxdl,0_mwmzcwv0,0_g68ar3sh/a.mpd"),
                 item("tears-multi-hls",     "http://cdntesting.qa.mkaltura.com/p/1091/sp/109100/playManifest/entryId/0_ttfy4uu0/protocol/http/format/applehttp/flavorIds/0_yuv6fomw,0_i414yxdl,0_mwmzcwv0,0_g68ar3sh/a.m3u8"),
                 item("aes-hls",     "https://noamtamim.github.io/random/hls/test-enc-aes/multi.m3u8"),
+                item("crossprotocol-hls",     "https://rest-us.ott.kaltura.com/api_v3/service/assetFile/action/playManifest/partnerId/3009/assetId/548579/assetType/media/assetFileId/1199761/contextType/PLAYBACK/a.m3u8"),
                 item("apple-dolby", "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8")
         ));
 
@@ -564,6 +565,7 @@ public class MainActivity extends ListActivity {
         contentManager.getSettings().applicationName = "MyApplication";
         contentManager.getSettings().maxConcurrentDownloads = 4;
         contentManager.getSettings().createNoMediaFileInDownloadsDir = true;
+        contentManager.getSettings().crossProtocolRedirectEnabled = true;
 
         contentManager.addDownloadStateListener(cmListener);
 
