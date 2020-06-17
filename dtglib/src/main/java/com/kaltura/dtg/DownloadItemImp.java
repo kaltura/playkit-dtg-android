@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DownloadItemImp implements DownloadItem {
 
@@ -25,10 +26,12 @@ public class DownloadItemImp implements DownloadItem {
     private TrackSelector trackSelector;
     private long durationMS;
 
+    transient int totalFileCount;
+    transient final AtomicInteger pendingFileCount = new AtomicInteger(0);
+
     DownloadItemImp(String itemId, String contentURL) {
         this.itemId = itemId;
         this.contentUrl = contentURL;
-
     }
 
     @NonNull
@@ -97,6 +100,11 @@ public class DownloadItemImp implements DownloadItem {
     @Override
     public long getEstimatedSizeBytes() {
         return estimatedSizeBytes;
+    }
+
+    @Override
+    public float getEstimatedCompletionPercent() {
+        return 100f * (totalFileCount - pendingFileCount.get()) / totalFileCount;
     }
 
     public void setEstimatedSizeBytes(long bytes) {

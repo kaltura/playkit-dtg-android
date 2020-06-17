@@ -247,6 +247,7 @@ class Item {
     boolean drmRegistered;
     long estimatedSize;
     long downloadedSize;
+    float percentComplete;
 
     Item(String id, String url) {
         this.mediaSource = new PKMediaSource().setId(id).setUrl(url);
@@ -278,7 +279,7 @@ class Item {
     @NonNull
     @Override
     public String toString() {
-        String drmState ;
+        String drmState;
         if (isDrmProtected()) {
             drmState = isDrmRegistered() ? "R" : "U";
         } else {
@@ -286,14 +287,56 @@ class Item {
         }
 
         String progress;
-        if (estimatedSize > 0) {
-            float percentComplete = 100f * downloadedSize / estimatedSize;
-            progress = String.format(Locale.ENGLISH, "%.3f%% / %.3fmb", percentComplete, estimatedSize / 1024.0 / 1024);
+        if (estimatedSize > 0 && !Float.isNaN(percentComplete)) {
+            progress = String.format(Locale.ENGLISH, "%.2f%%: %.3fmb / %.3fmb", percentComplete,
+                    downloadedSize / 1024.0 / 1024, estimatedSize / 1024.0 / 1024);
         } else {
-            progress = "-?-";
+            progress = "❓";
         }
 
-        return String.format(Locale.ENGLISH, "[%s] %s -- %s -- DRM:%s", progress, getId(), downloadState, drmState);
+        return String.format(Locale.ENGLISH, "%s [%s] %s -- %s -- DRM:%s", stateSymbol(downloadState), progress, getId(), stateTitle(downloadState), drmState);
+    }
+
+    private String stateTitle(DownloadState downloadState) {
+        if (downloadState == null) {
+            return "Unknown";
+        }
+        switch (downloadState) {
+            case NEW:
+                return "New";
+            case INFO_LOADED:
+                return "Info loaded";
+            case IN_PROGRESS:
+                return "Started";
+            case PAUSED:
+                return "Paused";
+            case COMPLETED:
+                return "Completed";
+            case FAILED:
+                return "Failed";
+        }
+        return downloadState.toString();
+    }
+
+    private String stateSymbol(DownloadState downloadState) {
+        if (downloadState == null) {
+            return "🔶";
+        }
+        switch (downloadState) {
+            case NEW:
+                return "🟠";
+            case INFO_LOADED:
+                return "🟡";
+            case IN_PROGRESS:
+                return "🔵";
+            case PAUSED:
+                return "🟦";
+            case COMPLETED:
+                return "🟢";
+            case FAILED:
+                return "🔴";
+        }
+        return downloadState.toString();
     }
 
     String getId() {
@@ -476,6 +519,7 @@ public class MainActivity extends ListActivity {
             item.downloadState = downloadItem.getState();
             item.estimatedSize = downloadItem.getEstimatedSizeBytes();
             item.downloadedSize = downloadItem.getDownloadedSizeBytes();
+            item.percentComplete = downloadItem.getEstimatedCompletionPercent();
             notifyDataSetChanged();
         }
     }

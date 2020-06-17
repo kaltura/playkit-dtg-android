@@ -521,6 +521,9 @@ class Database {
                     break;
             }
         }
+        item.totalFileCount = countTotalFiles(itemId);
+        item.pendingFileCount.set(countPendingFiles(itemId, null));
+
         return item;
     }
 
@@ -552,6 +555,19 @@ class Database {
 
 
         return items;
+    }
+
+    synchronized int countTotalFiles(@NonNull String itemId) {
+        String sql = "SELECT COUNT(*) FROM " + TBL_DOWNLOAD_FILES +
+                " WHERE " + COL_ITEM_ID + " == ? " +
+                " GROUP BY " + COL_ITEM_ID;
+
+        try (Cursor cursor = database.rawQuery(sql, new String[]{itemId})) {
+            if (cursor.moveToFirst()) {
+                return cursor.getInt(0);
+            }
+            return 0;
+        }
     }
 
     synchronized int countPendingFiles(String itemId, @Nullable String trackId) {
