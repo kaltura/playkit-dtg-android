@@ -40,7 +40,7 @@ public abstract class AbrDownloader {
     protected AbrDownloader(DownloadItemImp item) {
         this.item = item;
         this.targetDir = new File(item.getDataDir());
-        setDownloadTasks(new LinkedHashSet<DownloadTask>());
+        setDownloadTasks(new LinkedHashSet<>());
         this.manifestUrl = item.getContentURL();
     }
 
@@ -125,8 +125,8 @@ public abstract class AbrDownloader {
         this.loadStoredOriginManifest();
         this.parseOriginManifest();
 
-        this.setSelectedTracksMap(new HashMap<DownloadItem.TrackType, List<BaseTrack>>());
-        this.setAvailableTracksMap(new HashMap<DownloadItem.TrackType, List<BaseTrack>>());
+        this.setSelectedTracksMap(new HashMap<>());
+        this.setAvailableTracksMap(new HashMap<>());
         Map<DownloadItem.TrackType, List<BaseTrack>> originalSelectedTracks = new HashMap<>();
 
         for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
@@ -186,9 +186,12 @@ public abstract class AbrDownloader {
         Map<DownloadItem.TrackType, List<BaseTrack>> tracksToUnselect = new HashMap<>();
         for (DownloadItem.TrackType trackType : DownloadItem.TrackType.values()) {
             List<BaseTrack> unselect = new ArrayList<>();
-            for (BaseTrack track : trackUpdatingData.originalSelectedTracks.get(trackType)) {
-                if (!getSelectedTracksByType(trackType).contains(track)) {
-                    unselect.add(track);
+            final List<BaseTrack> baseTracks = trackUpdatingData.originalSelectedTracks.get(trackType);
+            if (baseTracks != null) {
+                for (BaseTrack track : baseTracks) {
+                    if (!getSelectedTracksByType(trackType).contains(track)) {
+                        unselect.add(track);
+                    }
                 }
             }
 
@@ -246,14 +249,14 @@ public abstract class AbrDownloader {
 
         // Video: select best track.
         List<BaseTrack> availableVideoTracks = availableTracks.get(TrackType.VIDEO);
-        if (availableVideoTracks.size() > 0) {
+        if (availableVideoTracks != null && availableVideoTracks.size() > 0) {
             BaseTrack selectedVideoTrack = Collections.max(availableVideoTracks, DownloadItem.Track.bitrateComparator);
             selectedTracks.put(TrackType.VIDEO, Collections.singletonList(selectedVideoTrack));
         }
 
         // Audio: X=(language of first track); select best track with language==X.
         List<BaseTrack> availableAudioTracks = availableTracks.get(TrackType.AUDIO);
-        if (availableAudioTracks.size() > 0) {
+        if (availableAudioTracks != null && availableAudioTracks.size() > 0) {
             String firstAudioLang = availableAudioTracks.get(0).getLanguage();
             List<BaseTrack> tracks;
             if (firstAudioLang != null) {
@@ -268,7 +271,7 @@ public abstract class AbrDownloader {
 
         // Text: select first track.
         List<BaseTrack> availableTextTracks = availableTracks.get(TrackType.TEXT);
-        if (availableTextTracks.size() > 0) {
+        if (availableTextTracks != null && availableTextTracks.size() > 0) {
             BaseTrack selectedTextTrack = availableTextTracks.get(0);
             selectedTracks.put(TrackType.TEXT, Collections.singletonList(selectedTextTrack));
         }
@@ -297,7 +300,8 @@ public abstract class AbrDownloader {
     }
 
     List<BaseTrack> getAvailableTracksByType(TrackType type) {
-        return Collections.unmodifiableList(availableTracks.get(type));
+        final List<BaseTrack> list = availableTracks.get(type);
+        return list != null ? Collections.unmodifiableList(list) : Collections.emptyList();
     }
 
     protected void setItemDurationMS(long itemDurationMS) {

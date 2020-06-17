@@ -157,12 +157,10 @@ public class DownloadService extends Service {
     }
 
     private void cancelItemWithError(@NonNull final DownloadItemImp item, final Exception stopError) {
-        if (item != null) {
-            itemCache.updateItemState(item, DownloadState.FAILED);
+        itemCache.updateItemState(item, DownloadState.FAILED);
 
-            futureMap.cancelItem(item.getItemId());
-            listenerHandler.post(() -> downloadStateListener.onDownloadFailure(item, stopError));
-        }
+        futureMap.cancelItem(item.getItemId());
+        listenerHandler.post(() -> downloadStateListener.onDownloadFailure(item, stopError));
     }
 
     @Override
@@ -224,7 +222,7 @@ public class DownloadService extends Service {
         }
         for (DownloadTask task : chunks) {
             task.itemId = itemId;
-            FutureTask future = futureTask(itemId, task);
+            FutureTask<Void> future = futureTask(itemId, task);
             executorService.execute(future);
             futureMap.add(itemId, future);
         }
@@ -604,7 +602,7 @@ public class DownloadService extends Service {
         return database.countPendingFiles(itemId, null);
     }
 
-    private FutureTask futureTask(final String itemId, final DownloadTask task) {
+    private FutureTask<Void> futureTask(final String itemId, final DownloadTask task) {
         task.setListener(mDownloadTaskListener);
         task.setDownloadSettings(settings);
         Callable<Void> callable = () -> {
@@ -628,16 +626,13 @@ public class DownloadService extends Service {
             }
             return null;
         };
-        final FutureTask<Void> futureTask = new FutureTask<Void>(callable) {
+
+        return new FutureTask<Void>(callable) {
             @Override
             protected void done() {
                 futureMap.remove(itemId, this);
             }
         };
-
-        task.setFutureId(System.identityHashCode(futureTask));
-
-        return futureTask;
     }
 
     void setSettings(ContentManager.Settings settings) {
@@ -656,7 +651,7 @@ public class DownloadService extends Service {
 
     private class ItemCache {
         private Map<String, DownloadItemImp> cache = new ConcurrentHashMap<>();
-        private Set<String> dbFlushNeeded = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+        private Set<String> dbFlushNeeded = Collections.newSetFromMap(new ConcurrentHashMap<>());
         private Map<String, Long> itemLastUseTime = new ConcurrentHashMap<>();
 
         private void markDirty(String itemId) {

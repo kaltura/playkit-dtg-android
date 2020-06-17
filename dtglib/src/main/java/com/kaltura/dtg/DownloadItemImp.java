@@ -1,5 +1,6 @@
 package com.kaltura.dtg;
 
+import androidx.annotation.NonNull;
 import android.net.Uri;
 import android.util.Log;
 
@@ -30,6 +31,7 @@ public class DownloadItemImp implements DownloadItem {
 
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "<" + getClass().getName() + " itemId=" + getItemId() + " contentUrl=" + getContentURL() +
@@ -168,10 +170,7 @@ public class DownloadItemImp implements DownloadItem {
         }
 
         if (contentUrl != null) {
-            final AssetFormat format = AssetFormat.byFilename(Uri.parse(contentUrl).getLastPathSegment());
-            if (format != null) {
-                return format;
-            }
+            return AssetFormat.byFilename(Uri.parse(contentUrl).getLastPathSegment());
         }
 
         return null;

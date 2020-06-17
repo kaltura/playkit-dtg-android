@@ -83,7 +83,7 @@ public class DashDownloader extends AbrDownloader {
     @Override
     protected void createDownloadTasks() {
 
-        setDownloadTasks(new LinkedHashSet<DownloadTask>());
+        setDownloadTasks(new LinkedHashSet<>());
 
         List<BaseTrack> trackList = getSelectedTracksFlat();
         for (BaseTrack bt : trackList) {
@@ -164,9 +164,9 @@ public class DashDownloader extends AbrDownloader {
 
         List<AdaptationSet> adaptationSets = currentPeriod.adaptationSets;
 
-        setAvailableTracksMap(new HashMap<DownloadItem.TrackType, List<BaseTrack>>());
+        setAvailableTracksMap(new HashMap<>());
         for (DownloadItem.TrackType type : DownloadItem.TrackType.values()) {
-            setAvailableTracksByType(type, new ArrayList<BaseTrack>(1));
+            setAvailableTracksByType(type, new ArrayList<>(1));
         }
 
         ListIterator<AdaptationSet> itAdaptations = adaptationSets.listIterator();
@@ -199,15 +199,17 @@ public class DashDownloader extends AbrDownloader {
                     continue;
                 }
 
-
                 DashTrack track = new DashTrack(type, format, adaptationIndex, representationIndex);
                 track.setHeight(format.height);
                 track.setWidth(format.width);
-                availableTracks.get(type).add(track);
+
+                final List<BaseTrack> trackList = availableTracks.get(type);
+                if (trackList != null) {
+                    trackList.add(track);
+                }
             }
         }
     }
-
 }
 
 
