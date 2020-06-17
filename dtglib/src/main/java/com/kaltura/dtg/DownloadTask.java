@@ -3,6 +3,7 @@ package com.kaltura.dtg;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
@@ -32,7 +33,6 @@ public class DownloadTask {
 
     private int retryCount = 0;
     private ContentManager.Settings downloadSettings;
-    private int futureId;   // only used for debugging purposes
 
     public DownloadTask(Uri url, File targetFile, int order) {
         this.url = url;
@@ -40,11 +40,6 @@ public class DownloadTask {
         this.taskId = Utils.md5Hex(targetFile.getAbsolutePath());
         this.order = order;
     }
-
-    DownloadTask(String url, String targetFile, int order) {
-        this(Uri.parse(url), new File(targetFile), order);
-    }
-
 
     public void setTrackRelativeId(String trackRelativeId) {
         this.trackRelativeId = trackRelativeId;
@@ -55,13 +50,19 @@ public class DownloadTask {
     }
 
 
+    @NonNull
     @Override
     public String toString() {
         return "<DownloadTask id='" + taskId + "' url='" + url + "' target='" + targetFile + "'>";
     }
 
     private boolean createParentDir(File targetFile) {
-        return Utils.mkdirs(targetFile.getParentFile());
+        final File parentFile = targetFile.getParentFile();
+        if (parentFile != null) {
+            return Utils.mkdirs(parentFile);
+        }
+        Log.e(TAG, "createParentDir: parentFile is null");
+        return false;
     }
 
     void download(@Nullable DownloadRequestParams.Adapter chunksUrlAdapter) throws HttpRetryException {
@@ -259,10 +260,6 @@ public class DownloadTask {
 
     void setDownloadSettings(ContentManager.Settings downloadSettings) {
         this.downloadSettings = downloadSettings;
-    }
-
-    public void setFutureId(int futureId) {
-        this.futureId = futureId;
     }
 
     enum State {

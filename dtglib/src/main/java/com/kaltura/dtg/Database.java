@@ -303,7 +303,10 @@ class Database {
         final Uri uri = Uri.parse(file);
 
         if (TextUtils.equals(uri.getScheme(), EXTFILES_SCHEME)) {
-            return new File(externalFilesDir, uri.getPath());
+            final String path = uri.getPath();
+            if (path != null) {
+                return new File(externalFilesDir, path);
+            }
         }
 
         throw new IllegalArgumentException("Can't resolve filename " + file);
@@ -389,19 +392,6 @@ class Database {
         });
     }
 
-    synchronized void updateItemState(final String itemId, final DownloadState itemState) {
-        trace("updateItemState", itemId, itemState);
-
-        doTransaction(db -> {
-            ContentValues values = new ContentValues();
-            values.put(COL_ITEM_STATE, itemState.name());
-
-            db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
-
-            return true;
-        });
-    }
-
     synchronized void setDownloadFinishTime(final String itemId) {
         trace("setDownloadFinishTime", itemId);
 
@@ -415,35 +405,9 @@ class Database {
         });
     }
 
-    synchronized void setEstimatedSize(final String itemId, final long estimatedSizeBytes) {
-        trace("setEstimatedSize", itemId);
-
-        doTransaction(db -> {
-            ContentValues values = new ContentValues();
-            values.put(COL_ITEM_ESTIMATED_SIZE, estimatedSizeBytes);
-            db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
-            return true;
-        });
-    }
-
-    synchronized void updateDownloadedFileSize(final String itemId, final long downloadedFileSize) {
-        trace("updateDownloadedFileSize", itemId);
-
-        doTransaction(db -> {
-            ContentValues values = new ContentValues();
-            values.put(COL_ITEM_DOWNLOADED_SIZE, downloadedFileSize);
-            db.update(TBL_ITEMS, values, COL_ITEM_ID + "==?", new String[]{itemId});
-            return true;
-        });
-    }
-
     // If itemId is null, sum all items.
     long getEstimatedItemSize(@Nullable String itemId) {
         return getItemColumnLong(itemId, COL_ITEM_ESTIMATED_SIZE);
-    }
-
-    long getDownloadedItemSize(@Nullable String itemId) {
-        return getItemColumnLong(itemId, COL_ITEM_DOWNLOADED_SIZE);
     }
 
     // If itemId is null, sum all items.
@@ -563,7 +527,7 @@ class Database {
     synchronized ArrayList<DownloadItemImp> readItemsFromDB(DownloadState[] states) {
         trace("readItemsFromDB", (Object) states);
 
-        String stateNames[] = new String[states.length];
+        String[] stateNames = new String[states.length];
         for (int i = 0; i < states.length; i++) {
             stateNames[i] = states[i].name();
         }
@@ -672,7 +636,7 @@ class Database {
             }
 
             String selection = TextUtils.join("=? AND ", selectionCols) + "=?";
-            String[] selectionArgsArray = selectionArgs.toArray(new String[selectionArgs.size()]);
+            String[] selectionArgsArray = selectionArgs.toArray(new String[0]);
             cursor = database.query(TBL_TRACK,
                     BaseTrack.REQUIRED_DB_FIELDS,
                     selection,

@@ -72,31 +72,16 @@ public class Utils {
         return str;
     }
 
-    private static long dirSize(File dir) {
-
-        if (dir.exists()) {
-            long result = 0;
-            File[] fileList = dir.listFiles();
-            for (File aFileList : fileList) {
-                // Recursive call if it's a directory
-                if (aFileList.isDirectory()) {
-                    result += dirSize(aFileList);
-                } else {
-                    // Sum the file size in bytes
-                    result += aFileList.length();
-                }
-            }
-            return result; // return the file size
-        }
-        return 0;
-    }
-
     static void deleteRecursive(File fileOrDirectory) {
         if (fileOrDirectory.isDirectory()) {
-            for (File child : fileOrDirectory.listFiles()) {
-                deleteRecursive(child);
+            final File[] files = fileOrDirectory.listFiles();
+            if (files != null) {
+                for (File child : files) {
+                    deleteRecursive(child);
+                }
             }
         }
+        //noinspection ResultOfMethodCallIgnored
         fileOrDirectory.delete();
     }
 
@@ -277,7 +262,7 @@ public class Utils {
     @NonNull
     private static ByteArrayOutputStream fullyReadInputStream(InputStream inputStream, int byteLimit) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        byte data[] = new byte[1024];
+        byte[] data = new byte[1024];
         int count;
 
         try {
@@ -352,10 +337,6 @@ public class Utils {
     public static byte[] readFile(File file, int byteLimit) throws IOException {
         FileInputStream inputStream = new FileInputStream(file);
         return fullyReadInputStream(inputStream, byteLimit).toByteArray();
-    }
-
-    public static long estimateTrackSize(int trackBitrate, long durationMS) {
-        return trackBitrate * durationMS / 1000 / 8;    // first multiply, then divide
     }
 
     public static Set<Integer> makeRange(int first, int last) {
