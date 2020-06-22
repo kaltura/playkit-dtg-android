@@ -104,7 +104,17 @@ public class DownloadItemImp implements DownloadItem {
 
     @Override
     public float getEstimatedCompletionPercent() {
-        return 100f * (totalFileCount - pendingFileCount.get()) / totalFileCount;
+        if (totalFileCount > 0) {
+            return 100f * (totalFileCount - pendingFileCount.get()) / totalFileCount;
+        }
+
+        // If the item is COMPLETED (and not in this session), we may not have the number of files.
+        if (state == DownloadState.COMPLETED) {
+            return 100;
+        }
+
+        // If we don't have the size for any other reason (like NEW), assume zero.
+        return 0;
     }
 
     public void setEstimatedSizeBytes(long bytes) {

@@ -287,7 +287,7 @@ class Item {
         }
 
         String progress;
-        if (estimatedSize > 0 && !Float.isNaN(percentComplete)) {
+        if (estimatedSize > 0) {
             progress = String.format(Locale.ENGLISH, "%.2f%%: %.3fmb / %.3fmb", percentComplete,
                     downloadedSize / 1024.0 / 1024, estimatedSize / 1024.0 / 1024);
         } else {
