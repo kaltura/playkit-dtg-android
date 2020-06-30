@@ -14,6 +14,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 26
         versionName dtglibVersion  // defined in version.gradle
+        multiDexEnabled  true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     
