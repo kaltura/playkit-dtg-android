@@ -17,6 +17,8 @@ public interface DownloadItem {
 
     long getEstimatedSizeBytes();
 
+    float getEstimatedCompletionPercent();
+
     long getDownloadedSizeBytes();
 
     DownloadState getState();
