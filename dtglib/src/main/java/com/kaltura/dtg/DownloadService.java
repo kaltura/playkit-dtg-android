@@ -132,7 +132,7 @@ public class DownloadService extends Service {
         int pendingCount = -1;
         if (newState == DownloadTask.State.COMPLETED) {
             database.markTaskAsComplete(task);
-            pendingCount = countPendingFiles(itemId, null);
+            pendingCount = item.pendingFileCount.decrementAndGet();
             Log.i(TAG, "Pending tasks for item: " + pendingCount + "; finished " + task.url.getLastPathSegment());
         }
 
@@ -467,7 +467,8 @@ public class DownloadService extends Service {
         assertStarted();
 
         if (item != null) {
-            int countPendingFiles = countPendingFiles(item.getItemId());
+            int countPendingFiles = database.countPendingFiles(item.getItemId(), null);
+            item.pendingFileCount.set(countPendingFiles);
             if (countPendingFiles > 0) {
 
                 pauseItemDownload(item.getItemId());
@@ -631,10 +632,6 @@ public class DownloadService extends Service {
 
     int countPendingFiles(String itemId, @Nullable BaseTrack track) {
         return database.countPendingFiles(itemId, track != null ? track.getRelativeId() : null);
-    }
-
-    private int countPendingFiles(String itemId) {
-        return database.countPendingFiles(itemId, null);
     }
 
     private FutureTask<Void> futureTask(final String itemId, final DownloadTask task) {
