@@ -48,6 +48,7 @@ public class DownloadService extends Service {
     private PausableThreadPoolExecutor executorService;
     private final ItemFutureMap futureMap = new ItemFutureMap();
     private Handler listenerHandler = null;
+    private ConcurrentHashMap<String, DownloadTask.State> fireStatusEventMap = new ConcurrentHashMap<>();
 
     private Handler taskProgressHandler = null;
     ContentManager.Settings settings;
@@ -137,8 +138,9 @@ public class DownloadService extends Service {
 
         if (newState == DownloadTask.State.ERROR) {
             Log.d(TAG, "Task has failed; cancelling item " + itemId + " offending URL: " + task.url);
-
-            cancelItemWithError(item, stopError);
+            if (!checkEventIsfired(itemId, newState)) {
+                cancelItemWithError(item, stopError);
+            }
             return;
         }
 
@@ -153,6 +155,34 @@ public class DownloadService extends Service {
             listenerHandler.post(() -> downloadStateListener.onDownloadComplete(item));
         } else {
             listenerHandler.post(() -> downloadStateListener.onProgressChange(item, totalBytes));
+        }
+    }
+
+    /**
+     * Checks if event has been fired of not for a state wrt to itemId
+     * @param itemId unique ItemId of downloading content
+     * @param state state to be checked
+     * @return True if event has already been fired else return False
+     */
+    private boolean checkEventIsfired(String itemId, DownloadTask.State state) {
+        DownloadTask.State existingState = fireStatusEventMap.get(itemId);
+        if (existingState != null && existingState == state) {
+            return true; // Event has been fired already
+        } else {
+            fireStatusEventMap.put(itemId, state);
+            return false; // First time, Event should be fired
+        }
+    }
+
+    private void removeItemFromStatusEventMap(String itemId) {
+        if (!fireStatusEventMap.isEmpty() && itemId != null) {
+            fireStatusEventMap.remove(itemId);
+        }
+    }
+
+    private void clearStatusEventMap() {
+        if (!fireStatusEventMap.isEmpty()) {
+            fireStatusEventMap.clear();
         }
     }
 
@@ -390,6 +420,7 @@ public class DownloadService extends Service {
 
     DownloadState startDownload(@NonNull final DownloadItemImp item) {
         assertStarted();
+        removeItemFromStatusEventMap(item.getItemId());
 
         if (Storage.isLowDiskSpace(settings.freeDiskSpaceRequiredBytes)) {
             cancelItemWithError(item, new Utils.LowDiskSpaceException());
@@ -464,6 +495,7 @@ public class DownloadService extends Service {
             return;
         }
 
+        removeItemFromStatusEventMap(item.getItemId());
 
         pauseDownload(item);
 
@@ -533,6 +565,8 @@ public class DownloadService extends Service {
 
         database.addItemToDB(item, itemDataDir);
 
+        removeItemFromStatusEventMap(item.getItemId());
+
         item.setService(this);
         return item;
     }
@@ -578,6 +612,7 @@ public class DownloadService extends Service {
             listener = noopListener;
         }
         downloadStateListener = listener;
+        clearStatusEventMap();
     }
 
     long getEstimatedItemSize(String itemId) {
