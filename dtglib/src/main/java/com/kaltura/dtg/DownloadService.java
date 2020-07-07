@@ -180,7 +180,7 @@ public class DownloadService extends Service {
         }
     }
 
-    private void clearStatusEventMap() {
+    void clearStatusEventMap() {
         if (!fireStatusEventMap.isEmpty()) {
             fireStatusEventMap.clear();
         }
@@ -613,7 +613,6 @@ public class DownloadService extends Service {
             listener = noopListener;
         }
         downloadStateListener = listener;
-        clearStatusEventMap();
     }
 
     long getEstimatedItemSize(String itemId) {
