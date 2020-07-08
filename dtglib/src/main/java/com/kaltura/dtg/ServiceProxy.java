@@ -66,7 +66,7 @@ class ServiceProxy {
             Log.d(TAG, "Not started");
             return;
         }
-        clearDownloadServiceEventMap();
+        clearServiceStateEventMap();
         context.unbindService(serviceConnection);
         // DownloadService.onUnbind() will call stop().
     }
@@ -121,9 +121,9 @@ class ServiceProxy {
     /**
      * Clear download service event map
      */
-    public void clearDownloadServiceEventMap() {
+    public void clearServiceStateEventMap() {
         if (service != null) {
-            service.clearStatusEventMap();
+            service.clearStateEventMap();
         }
     }
 

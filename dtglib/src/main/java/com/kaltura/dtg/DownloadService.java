@@ -48,7 +48,7 @@ public class DownloadService extends Service {
     private PausableThreadPoolExecutor executorService;
     private final ItemFutureMap futureMap = new ItemFutureMap();
     private Handler listenerHandler = null;
-    private ConcurrentHashMap<String, DownloadTask.State> fireStatusEventMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, DownloadTask.State> firedEventStateMap = new ConcurrentHashMap<>();
 
     private Handler taskProgressHandler = null;
     ContentManager.Settings settings;
@@ -165,24 +165,24 @@ public class DownloadService extends Service {
      * @return True if event has already been fired else return False
      */
     private boolean checkEventIsfired(String itemId, DownloadTask.State state) {
-        DownloadTask.State existingState = fireStatusEventMap.get(itemId);
+        DownloadTask.State existingState = firedEventStateMap.get(itemId);
         if (existingState != null && existingState == state) {
             return true; // Event has been fired already
         } else {
-            fireStatusEventMap.put(itemId, state);
+            firedEventStateMap.put(itemId, state);
             return false; // First time, Event should be fired
         }
     }
 
-    private void removeItemFromStatusEventMap(String itemId) {
-        if (!fireStatusEventMap.isEmpty() && itemId != null) {
-            fireStatusEventMap.remove(itemId);
+    private void removeItemFromEventStateMap(String itemId) {
+        if (!firedEventStateMap.isEmpty() && itemId != null) {
+            firedEventStateMap.remove(itemId);
         }
     }
 
-    void clearStatusEventMap() {
-        if (!fireStatusEventMap.isEmpty()) {
-            fireStatusEventMap.clear();
+    void clearStateEventMap() {
+        if (!firedEventStateMap.isEmpty()) {
+            firedEventStateMap.clear();
         }
     }
 
@@ -420,7 +420,7 @@ public class DownloadService extends Service {
 
     DownloadState startDownload(@NonNull final DownloadItemImp item) {
         assertStarted();
-        removeItemFromStatusEventMap(item.getItemId());
+        removeItemFromEventStateMap(item.getItemId());
 
         if (Storage.isLowDiskSpace(settings.freeDiskSpaceRequiredBytes)) {
             cancelItemWithError(item, new Utils.LowDiskSpaceException());
@@ -496,7 +496,7 @@ public class DownloadService extends Service {
             return;
         }
 
-        removeItemFromStatusEventMap(item.getItemId());
+        removeItemFromEventStateMap(item.getItemId());
 
         pauseDownload(item);
 
@@ -566,7 +566,7 @@ public class DownloadService extends Service {
 
         database.addItemToDB(item, itemDataDir);
 
-        removeItemFromStatusEventMap(item.getItemId());
+        removeItemFromEventStateMap(item.getItemId());
 
         item.setService(this);
         return item;
