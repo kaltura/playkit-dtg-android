@@ -159,7 +159,7 @@ public class DownloadService extends Service {
     }
 
     /**
-     * Checks if event has been fired of not for a state wrt to itemId
+     * Checks if event has been fired or not for a state with respect to itemId [Currently observing only DownloadTask.State.ERROR]
      * @param itemId unique ItemId of downloading content
      * @param state state to be checked
      * @return True if event has already been fired else return False
