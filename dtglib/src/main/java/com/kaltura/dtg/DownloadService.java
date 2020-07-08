@@ -180,7 +180,7 @@ public class DownloadService extends Service {
         }
     }
 
-    void clearStateEventMap() {
+    void clearEventStateMap() {
         if (!firedEventStateMap.isEmpty()) {
             firedEventStateMap.clear();
         }

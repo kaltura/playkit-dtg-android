@@ -145,7 +145,7 @@ public class ContentManagerImp extends ContentManager {
             if (serviceProxy == null) {
                 serviceProxy = new ServiceProxy(context, settings.copy());
                 serviceProxy.setDownloadStateListener(downloadStateRelay);
-                serviceProxy.clearServiceStateEventMap();
+                serviceProxy.clearServiceEventStateMap();
             }
 
             serviceProxy.start(() -> {
