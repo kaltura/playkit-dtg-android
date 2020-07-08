@@ -121,7 +121,7 @@ class ServiceProxy {
     /**
      * Clear download service event map
      */
-    public void clearServiceEventStateMap() {
+    void clearServiceEventStateMap() {
         if (service != null) {
             service.clearEventStateMap();
         }
