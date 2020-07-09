@@ -942,4 +942,13 @@ public class MainActivity extends ListActivity {
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (contentManager != null) {
+            contentManager.removeDownloadStateListener(cmListener);
+            contentManager.stop();
+        }
+    }
 }
