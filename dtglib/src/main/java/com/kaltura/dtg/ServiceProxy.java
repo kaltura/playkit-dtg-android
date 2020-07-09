@@ -119,7 +119,7 @@ class ServiceProxy {
     }
 
     /**
-     * Clear download service event map
+     * Clear download service event state map
      */
     void clearServiceEventStateMap() {
         if (service != null) {
