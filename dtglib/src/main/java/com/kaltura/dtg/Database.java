@@ -480,7 +480,7 @@ class Database {
         trace("updateItemInfo done", itemId, columns);
     }
 
-    private DownloadItemImp readItem(Cursor cursor) {
+    synchronized private DownloadItemImp readItem(Cursor cursor) {
 
         String[] columns = cursor.getColumnNames();
 
