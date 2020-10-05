@@ -226,7 +226,7 @@ public final class C {
   public static final int STREAM_TYPE_DEFAULT = STREAM_TYPE_MUSIC;
 
   /**
-   * Content types for {@link com.google.android.exoplayer2.audio.AudioAttributes}.
+   * Content types for {@link com.kaltura.android.exoplayer2.audio.AudioAttributes}.
    */
   @Retention(RetentionPolicy.SOURCE)
   @IntDef({CONTENT_TYPE_MOVIE, CONTENT_TYPE_MUSIC, CONTENT_TYPE_SONIFICATION, CONTENT_TYPE_SPEECH,
@@ -257,7 +257,7 @@ public final class C {
       android.media.AudioAttributes.CONTENT_TYPE_UNKNOWN;
 
   /**
-   * Flags for {@link com.google.android.exoplayer2.audio.AudioAttributes}.
+   * Flags for {@link com.kaltura.android.exoplayer2.audio.AudioAttributes}.
    * <p>
    * Note that {@code FLAG_HW_AV_SYNC} is not available because the player takes care of setting the
    * flag when tunneling is enabled via a track selector.
@@ -272,7 +272,7 @@ public final class C {
       android.media.AudioAttributes.FLAG_AUDIBILITY_ENFORCED;
 
   /**
-   * Usage types for {@link com.google.android.exoplayer2.audio.AudioAttributes}.
+   * Usage types for {@link com.kaltura.android.exoplayer2.audio.AudioAttributes}.
    */
   @Retention(RetentionPolicy.SOURCE)
   @IntDef({USAGE_ALARM, USAGE_ASSISTANCE_ACCESSIBILITY, USAGE_ASSISTANCE_NAVIGATION_GUIDANCE,
