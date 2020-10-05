@@ -523,7 +523,7 @@ class Database {
         }
         item.totalFileCount = countTotalFiles(itemId);
         int countPendingFiles = countPendingFiles(itemId, null);
-        Log.d(TAG, "readItem: itemId = " + itemId + " totalFileCount = " + item.totalFileCount + " countPendingFiles = " + countPendingFiles);
+        //Log.d(TAG, "readItem: itemId = " + itemId + " totalFileCount = " + item.totalFileCount + " countPendingFiles = " + countPendingFiles);
         item.pendingFileCount.set(countPendingFiles);
 
         return item;
