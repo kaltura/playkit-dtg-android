@@ -480,7 +480,7 @@ class Database {
         trace("updateItemInfo done", itemId, columns);
     }
 
-    private DownloadItemImp readItem(Cursor cursor) {
+    synchronized private DownloadItemImp readItem(Cursor cursor) {
 
         String[] columns = cursor.getColumnNames();
 
@@ -522,7 +522,9 @@ class Database {
             }
         }
         item.totalFileCount = countTotalFiles(itemId);
-        item.pendingFileCount.set(countPendingFiles(itemId, null));
+        int countPendingFiles = countPendingFiles(itemId, null);
+        //Log.d(TAG, "readItem: itemId = " + itemId + " totalFileCount = " + item.totalFileCount + " countPendingFiles = " + countPendingFiles);
+        item.pendingFileCount.set(countPendingFiles);
 
         return item;
     }

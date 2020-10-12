@@ -25,7 +25,7 @@ import com.kaltura.dtg.exoparser.C;
  * {@link android.media.AudioTrack}.
  * <p>
  * To set the audio attributes, create an instance using the {@link Builder} and either pass it to
- * {@link com.google.android.exoplayer2.SimpleExoPlayer#setAudioAttributes(AudioAttributes)} or
+ * {@link com.kaltura.android.exoplayer2.SimpleExoPlayer#setAudioAttributes(AudioAttributes)} or
  * send a message of type {@link C#MSG_SET_AUDIO_ATTRIBUTES} to the audio renderers.
  * <p>
  * This class is based on {@link android.media.AudioAttributes}, but can be used on all supported

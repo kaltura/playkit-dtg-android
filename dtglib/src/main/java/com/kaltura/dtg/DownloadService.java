@@ -132,8 +132,14 @@ public class DownloadService extends Service {
         int pendingCount = -1;
         if (newState == DownloadTask.State.COMPLETED) {
             database.markTaskAsComplete(task);
-            pendingCount = item.pendingFileCount.decrementAndGet();
-            Log.i(TAG, "Pending tasks for item: " + pendingCount + "; finished " + task.url.getLastPathSegment());
+            if (item.pendingFileCount.get() == 0) {
+                Log.e(TAG, "onTaskProgress Pending tasks for item: countPendingFiles(itemId, null) == 0");
+                item.pendingFileCount.set(countPendingFiles(itemId, null));
+            }
+            if (item.pendingFileCount.get() > 0) {
+                pendingCount = item.pendingFileCount.decrementAndGet();
+            }
+            Log.d(TAG, "onTaskProgress Pending tasks for item: " + pendingCount + "; finished " + task.url.getLastPathSegment());
         }
 
         if (newState == DownloadTask.State.ERROR) {
