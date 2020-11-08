@@ -10,6 +10,7 @@ android {
         versionName dtglibVersion  // defined in version.gradle
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
     
     buildTypes {
         release {
