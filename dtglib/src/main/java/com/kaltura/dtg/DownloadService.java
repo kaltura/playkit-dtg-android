@@ -426,6 +426,11 @@ public class DownloadService extends Service {
 
     DownloadState startDownload(@NonNull final DownloadItemImp item) {
         assertStarted();
+
+        if (removedItems.contains(item.getItemId())) {
+            throw new IllegalStateException("Can't start download on deleted item");
+        }
+
         removeItemFromEventStateMap(item.getItemId());
 
         if (Storage.isLowDiskSpace(settings.freeDiskSpaceRequiredBytes)) {
