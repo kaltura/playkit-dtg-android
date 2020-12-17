@@ -9,8 +9,6 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -19,6 +17,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.gms.security.ProviderInstaller;
 import com.kaltura.dtg.ContentManager;
@@ -38,10 +39,10 @@ import com.kaltura.playkit.player.AudioTrack;
 import com.kaltura.playkit.player.BaseTrack;
 import com.kaltura.playkit.player.PKTracks;
 import com.kaltura.playkit.player.TextTrack;
+import com.kaltura.playkit.providers.api.SimpleSessionProvider;
 import com.kaltura.playkit.providers.api.phoenix.APIDefines;
 import com.kaltura.playkit.providers.ott.PhoenixMediaProvider;
 import com.kaltura.playkit.providers.ovp.KalturaOvpMediaProvider;
-import com.kaltura.playkit.providers.api.SimpleSessionProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +58,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.kaltura.playkit.player.MediaSupport.*;
+import static com.kaltura.playkit.player.MediaSupport.initializeDrm;
 
 class DemoParams {
     //    static int forceReducedLicenseDurationSeconds = 600;
@@ -207,7 +208,7 @@ class ItemLoader {
         // Using OVP provider for simplicity
 //        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx"));
         // Using Phoenix provider for simplicity
-        items.addAll(loadOTTItems("https://api-preprod.ott.kaltura.com/v5_1_0/api_v3/", 198, "",  "Mobile_Devices_Main_HD_Dash", "480989"));
+        //  items.addAll(loadOTTItems("https://api-preprod.ott.kaltura.com/v5_1_0/api_v3/", 198, "",  "Mobile_Devices_Main_HD_Dash", "480989"));
 
         // For simple cases (no DRM), no need for MediaSource.
         //noinspection CollectionAddAllCanBeReplacedWithConstructor
@@ -410,8 +411,11 @@ public class MainActivity extends ListActivity {
             itemStateChanged(item);
 
             if (error != null) {
+                Log.e(TAG, " onDownloadMetadata" + error.toString());
                 toast(error.toString());
                 return;
+            } else {
+                Log.e(TAG, " onDownloadMetadata event came" + item.getItemId());
             }
 
             final List<DownloadItem.Track> tracks = new ArrayList<>();
@@ -733,6 +737,13 @@ public class MainActivity extends ListActivity {
         try {
             downloadItem = contentManager.createItem(item.getId(), item.getUrl());
             downloadItem.loadMetadata();
+            // new Handler().postDelayed(() -> downloadItem.cancelMetadata(item.getId()), 500);
+            //downloadItem.cancelMetadata(item.getId());
+            Log.i(TAG, "ITEM ADDED: " + item.getId());
+
+//            if (item.getId().equals("sintel-short-dash")) {
+//                new Handler().postDelayed(() -> downloadItem.cancelMetadata(item.getId()), 400);
+//            }
             itemStateChanged(downloadItem);
         } catch (IllegalArgumentException e) {
             toast("Failed to add item: " + e.toString());
@@ -746,13 +757,18 @@ public class MainActivity extends ListActivity {
         }
     }
 
-
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
 
         ListAdapter adapter = l.getAdapter();
         final Item item = (Item) adapter.getItem(position);
+//        final Item item1 = (Item) adapter.getItem(position+1);
+//        final Item item2 = (Item) adapter.getItem(position+2);
+//        final Item item3 = (Item) adapter.getItem(position+3);
+//        final Item item4 = (Item) adapter.getItem(position+4);
+//        final Item item5 = (Item) adapter.getItem(position+5);
+//        final Item item6 = (Item) adapter.getItem(position+6);
         Log.d(TAG, "Clicked " + item);
 
         //DownloadState state = null;
@@ -779,6 +795,12 @@ public class MainActivity extends ListActivity {
 
                         case add:
                             addAndLoad(item);
+//                            addAndLoad(item1);
+//                            addAndLoad(item2);
+//                            addAndLoad(item3);
+//                            addAndLoad(item4);
+//                            addAndLoad(item5);
+//                            addAndLoad(item6);
                             break;
                         case start:
                             contentManager.findItem(item.getId()).startDownload();

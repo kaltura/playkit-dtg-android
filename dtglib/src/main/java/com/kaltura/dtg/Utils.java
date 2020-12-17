@@ -141,6 +141,7 @@ public class Utils {
         InputStream inputStream = null;
         FileOutputStream fileOutputStream = null;
         HttpURLConnection conn = null;
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(10 * 1024); // 10kb: save some realloc'
 
         try {
             conn = openConnection(uri);
@@ -169,7 +170,6 @@ public class Utils {
             inputStream = conn.getInputStream();
 
             fileOutputStream = new FileOutputStream(targetFile);
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(10 * 1024); // 10kb: save some realloc'
 
             byte[] data = new byte[1024];
             int count;
@@ -183,8 +183,6 @@ public class Utils {
                     }
                 }
             }
-
-            return byteArrayOutputStream.toByteArray();
         } finally {
             // close everything
             safeClose(fileOutputStream, inputStream);
@@ -192,6 +190,7 @@ public class Utils {
                 conn.disconnect();
             }
         }
+        return byteArrayOutputStream.toByteArray();
     }
 
     private static HttpURLConnection handleRequestRedirects(HttpURLConnection conn) throws IOException {
