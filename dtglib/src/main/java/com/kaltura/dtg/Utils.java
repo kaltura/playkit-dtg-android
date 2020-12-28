@@ -316,12 +316,22 @@ public class Utils {
         }
 
         // resolve with baseUrl
-        final Uri trackUri = Uri.parse(baseUrl);
+        Uri trackUri = Uri.parse(baseUrl);
+        String uriQueryParam = uri.getEncodedQuery();
+        String trackUriQueryParam = trackUri.getEncodedQuery();
+        if (!TextUtils.isEmpty(uriQueryParam) && !TextUtils.isEmpty(trackUriQueryParam)) {
+            trackUri = removeQueryParam(trackUri);
+        }
+
         final List<String> pathSegments = new ArrayList<>(trackUri.getPathSegments());
         pathSegments.remove(pathSegments.size() - 1);
         final String pathWithoutLastSegment = TextUtils.join("/", pathSegments);
         uri = trackUri.buildUpon().encodedPath(pathWithoutLastSegment).appendEncodedPath(maybeRelative).build();
         return uri.toString();
+    }
+
+    private static Uri removeQueryParam(Uri trackUri) {
+        return trackUri.buildUpon().clearQuery().build();
     }
 
     public static boolean mkdirs(File dir) {
