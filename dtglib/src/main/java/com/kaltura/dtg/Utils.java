@@ -330,8 +330,8 @@ public class Utils {
         return uri.toString();
     }
 
-    private static Uri removeQueryParam(Uri trackUri) {
-        return trackUri.buildUpon().clearQuery().build();
+    private static Uri removeQueryParam(Uri uri) {
+        return uri.buildUpon().clearQuery().build();
     }
 
     public static boolean mkdirs(File dir) {
