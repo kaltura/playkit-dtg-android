@@ -307,27 +307,28 @@ public class Utils {
     }
 
     public static String resolveUrl(String baseUrl, String maybeRelative) {
-        if (maybeRelative == null) {
+        if (maybeRelative == null || baseUrl == null) {
             return null;
         }
-        Uri uri = Uri.parse(maybeRelative);
-        if (uri.isAbsolute()) {
+        Uri maybeRelativeUri = Uri.parse(maybeRelative);
+        if (maybeRelativeUri.isAbsolute()) {
             return maybeRelative;
         }
 
         // resolve with baseUrl
-        Uri trackUri = Uri.parse(baseUrl);
-        String uriQueryParam = uri.getEncodedQuery();
-        String trackUriQueryParam = trackUri.getEncodedQuery();
-        if (!TextUtils.isEmpty(uriQueryParam) && !TextUtils.isEmpty(trackUriQueryParam)) {
-            trackUri = removeQueryParam(trackUri);
+        Uri baseUrlUri = Uri.parse(baseUrl);
+        String baseUriQueryParam = baseUrlUri.getEncodedQuery();
+        String maybeRelativeQueryParam = maybeRelativeUri.getEncodedQuery();
+
+        if (!TextUtils.isEmpty(maybeRelativeQueryParam) && !TextUtils.isEmpty(baseUriQueryParam)) {
+            baseUrlUri = removeQueryParam(baseUrlUri);
         }
 
-        final List<String> pathSegments = new ArrayList<>(trackUri.getPathSegments());
+        final List<String> pathSegments = new ArrayList<>(baseUrlUri.getPathSegments());
         pathSegments.remove(pathSegments.size() - 1);
         final String pathWithoutLastSegment = TextUtils.join("/", pathSegments);
-        uri = trackUri.buildUpon().encodedPath(pathWithoutLastSegment).appendEncodedPath(maybeRelative).build();
-        return uri.toString();
+        maybeRelativeUri = baseUrlUri.buildUpon().encodedPath(pathWithoutLastSegment).appendEncodedPath(maybeRelative).build();
+        return maybeRelativeUri.toString();
     }
 
     private static Uri removeQueryParam(Uri uri) {
