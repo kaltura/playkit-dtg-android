@@ -365,7 +365,7 @@ public class DownloadService extends Service {
         if (item != null) {
             if (metaDataDownloadExecutorService != null && metaDataDownloadMap.containsKey(item.getItemId())) {
                 MetaDataFutureMap metaDataFutureMap = metaDataDownloadMap.get(item.getItemId());
-                boolean taskRemoved = metaDataFutureMap.getFuture().cancel(true);
+                boolean taskRemoved = metaDataFutureMap != null && metaDataFutureMap.getFuture().cancel(true);
                 if (taskRemoved) {
                     metaDataDownloadExecutorService.purge();
                     metaDataFutureMap.setCancelled(true);
@@ -378,7 +378,7 @@ public class DownloadService extends Service {
     }
 
     /**
-     * Class Dedicated to load the metadata for an item.
+     * Runnable dedicated to load the metadata for an item for ExecutorService
      */
     private class LoadMetaData implements Runnable {
 
@@ -392,7 +392,8 @@ public class DownloadService extends Service {
         public void run() {
             try {
                 newDownload(item);
-                if (!Thread.currentThread().isInterrupted() || !metaDataDownloadMap.get(item.getItemId()).isCancelled()) {
+                MetaDataFutureMap metaDataFutureMap = metaDataDownloadMap.get(item.getItemId());
+                if (!Thread.currentThread().isInterrupted() || (metaDataFutureMap != null && !metaDataFutureMap.isCancelled())) {
                     itemCache.updateItemState(item, DownloadState.INFO_LOADED);
                     updateItemInfoInDB(item,
                             Database.COL_ITEM_ESTIMATED_SIZE,
@@ -400,19 +401,18 @@ public class DownloadService extends Service {
                     downloadStateListener.onDownloadMetadata(item, null);
                 }
             } catch (IOException exception) {
-                String exceptionItemId = "unknownItemId";
                 if (item != null) {
-                    exceptionItemId = item.getItemId();
-                }
-                if (Thread.currentThread().isInterrupted() || exception instanceof InterruptedIOException || metaDataDownloadMap.get(item.getItemId()).isCancelled()) {
-                    //Log.d(TAG, "Item Id: " + exceptionItemId);
-                    //Log.d(TAG, "Excection: " + exception.fillInStackTrace());
-                } else {
-                    Log.e(TAG, "IOException Failed to download metadata for " + exceptionItemId, exception);
-                    downloadStateListener.onDownloadMetadata(item, exception);
+                    String exceptionItemId = item.getItemId();
+                    MetaDataFutureMap metaDataFutureMap = metaDataDownloadMap.get(exceptionItemId);
+                    if (Thread.currentThread().isInterrupted() || exception instanceof InterruptedIOException || (metaDataFutureMap != null && !metaDataFutureMap.isCancelled())) {
+                        Log.d(TAG, "Thread interrupted for Item: " + exceptionItemId);
+                    } else {
+                        Log.e(TAG, "IOException Failed to download metadata for " + exceptionItemId, exception);
+                        downloadStateListener.onDownloadMetadata(item, exception);
+                    }
                 }
             }
-            // Clear the map once the queue is empty
+            // Clear the map once the ExecutorService queue is empty
             if (metaDataDownloadExecutorService.getQueue().isEmpty()) {
                 metaDataDownloadMap.clear();
             }
