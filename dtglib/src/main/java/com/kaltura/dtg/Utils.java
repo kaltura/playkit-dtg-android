@@ -137,7 +137,7 @@ public class Utils {
     // Download the URL to targetFile and also return the contents.
     // If file is larger than maxReturnSize, the returned array will have maxReturnSize bytes,
     // but the file will have all of them.
-    public static byte[] downloadToFile(Uri uri, File targetFile, int maxReturnSize, boolean crossProtocolRedirectEnabled) throws IOException {
+    public static byte[] downloadToFile(Uri uri, Map<String,String> headers, File targetFile, int maxReturnSize, boolean crossProtocolRedirectEnabled) throws IOException {
         InputStream inputStream = null;
         FileOutputStream fileOutputStream = null;
         HttpURLConnection conn = null;
@@ -145,6 +145,11 @@ public class Utils {
         try {
             conn = openConnection(uri);
             conn.setRequestMethod("GET");
+            if (headers != null && !headers.isEmpty()) {
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    conn.setRequestProperty(entry.getKey(), entry.getValue());
+                }
+            }
             conn.connect();
 
             if (crossProtocolRedirectEnabled) {
@@ -214,17 +219,22 @@ public class Utils {
         return conn;
     }
 
-    public static byte[] downloadToFile(String url, File targetFile, int maxReturnSize, boolean crossProtocolRedirectEnabled) throws IOException {
-        return downloadToFile(Uri.parse(url), targetFile, maxReturnSize, crossProtocolRedirectEnabled);
+    public static byte[] downloadToFile(String url, Map<String,String> headers, File targetFile, int maxReturnSize, boolean crossProtocolRedirectEnabled) throws IOException {
+        return downloadToFile(Uri.parse(url), headers, targetFile, maxReturnSize, crossProtocolRedirectEnabled);
     }
 
-    static long httpHeadGetLength(Uri uri) throws IOException {
+    static long httpHeadGetLength(Uri uri, Map<String, String> headers) throws IOException {
         HttpURLConnection connection = null;
 
         try {
             connection = openConnection(uri);
             connection.setRequestMethod("HEAD");
             connection.setRequestProperty("Accept-Encoding", "");
+            if (headers != null && !headers.isEmpty()) {
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    connection.setRequestProperty(entry.getKey(), entry.getValue());
+                }
+            }
             connection.connect();
             int responseCode = connection.getResponseCode();
             if (responseCode >= 400) {

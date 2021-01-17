@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
+import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.exoparser.C;
 import com.kaltura.dtg.exoparser.Format;
 import com.kaltura.dtg.exoparser.source.dash.manifest.AdaptationSet;
@@ -41,8 +42,9 @@ public class DashDownloader extends AbrDownloader {
 
     private Period currentPeriod;
 
-    public DashDownloader(DownloadItemImp item) {
-        super(item);
+
+    public DashDownloader(DownloadItemImp item, ContentManager.Settings settings) {
+        super(item, settings);
     }
 
     private static void createLocalManifest(List<BaseTrack> tracks, byte[] originManifestBytes, File targetDir) throws IOException {

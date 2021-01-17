@@ -12,6 +12,7 @@ import com.kaltura.dtg.BaseTrack;
 import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
 import com.kaltura.dtg.DownloadItemImp;
+import com.kaltura.dtg.DownloadRequestParams;
 import com.kaltura.dtg.DownloadTask;
 import com.kaltura.dtg.Utils;
 import com.kaltura.dtg.exoparser.ParserException;
@@ -39,13 +40,11 @@ public class HlsDownloader extends AbrDownloader {
     private static final String LOCAL_MASTER = "master.m3u8";
     private static final String LOCAL_MEDIA = "media.m3u8";
     private final int defaultHlsAudioBitrateEstimation;
-    private ContentManager.Settings settings;
 
     private HlsAsset hlsAsset;
 
     public HlsDownloader(DownloadItemImp item, ContentManager.Settings settings) {
-        super(item);
-        this.settings = settings;
+        super(item, settings);
         this.defaultHlsAudioBitrateEstimation = settings.defaultHlsAudioBitrateEstimation;
     }
 
@@ -306,8 +305,13 @@ public class HlsDownloader extends AbrDownloader {
             // Read stored track playlist
             bytes = Utils.readFile(targetFile, MAX_MANIFEST_SIZE);
         } else {
+            Map<String,String> headers = null;
             Utils.mkdirsOrThrow(trackTargetDir);
-            bytes = Utils.downloadToFile(track.url, targetFile, MAX_MANIFEST_SIZE, settings.crossProtocolRedirectEnabled);
+            if (settings.downloadRequestAdapter != null) {
+                DownloadRequestParams downloadRequestParams = settings.downloadRequestAdapter.adapt(new DownloadRequestParams(Uri.parse(manifestUrl), null));
+                headers = downloadRequestParams != null ? downloadRequestParams.headers : null;
+            }
+            bytes = Utils.downloadToFile(track.url, headers, targetFile, MAX_MANIFEST_SIZE, settings.crossProtocolRedirectEnabled);
         }
         track.parse(bytes);
     }
