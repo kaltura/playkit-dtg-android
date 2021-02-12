@@ -145,8 +145,8 @@ public class DownloadItemImp implements DownloadItem {
     }
 
     @Override
-    public void cancelMetadata(String itemId) {
-        service.cancelMetadata(itemId);
+    public void cancelMetadataLoading(String itemId) {
+        service.cancelMetadataLoading(itemId);
     }
 
     @Override

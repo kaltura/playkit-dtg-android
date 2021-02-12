@@ -360,7 +360,7 @@ public class DownloadService extends Service {
      * Cancel the In progress or queued Item while downloading the Metadata
      * @param itemId Item to be deleted
      */
-    void cancelMetadata(String itemId) {
+    void cancelMetadataLoading(String itemId) {
         DownloadItemImp item = findItem(itemId);
         if (item != null) {
             if (metaDataDownloadExecutorService != null && metaDataDownloadMap.containsKey(item.getItemId())) {

@@ -25,7 +25,7 @@ public interface DownloadItem {
 
     void loadMetadata();
 
-    void cancelMetadata(String itemId);
+    void cancelMetadataLoading(String itemId);
 
     void pauseDownload();
 
