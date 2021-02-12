@@ -628,6 +628,7 @@ public class MainActivity extends ListActivity {
         }
 
         localAssetsManager = new LocalAssetsManager(context);
+        //localAssetsManager.forceWidevineL3Playback(true);
 
         findViewById(R.id.download_control).setOnClickListener(v -> {
             String[] actions = {"Start service", "Stop service"};
@@ -892,6 +893,7 @@ public class MainActivity extends ListActivity {
             addPlayerEventListeners();
             ViewGroup playerRoot = findViewById(R.id.player_root);
             playerRoot.addView(player.getView());
+            //player.getSettings().forceWidevineL3Playback(true);
         } else {
             player.stop();
         }
