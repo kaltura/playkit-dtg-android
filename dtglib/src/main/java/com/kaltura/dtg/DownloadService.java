@@ -373,7 +373,7 @@ public class DownloadService extends Service {
                 }
             }
         } else {
-            Log.w(TAG, "Ignoring cancelMetadata as it can not be done on invalid item.");
+            Log.w(TAG, "Ignoring cancelMetadata loading as it can not be done on invalid item.");
         }
     }
 
