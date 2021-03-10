@@ -183,7 +183,7 @@ public class Utils {
                     }
                 }
             }
-
+            
             return byteArrayOutputStream.toByteArray();
         } finally {
             // close everything

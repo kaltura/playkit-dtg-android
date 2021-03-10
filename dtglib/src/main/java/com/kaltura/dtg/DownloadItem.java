@@ -25,6 +25,8 @@ public interface DownloadItem {
 
     void loadMetadata();
 
+    void cancelMetadataLoading(String itemId);
+
     void pauseDownload();
 
     long getAddedTime();
