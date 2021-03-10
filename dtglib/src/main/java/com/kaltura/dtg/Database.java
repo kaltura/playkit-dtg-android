@@ -9,10 +9,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.os.SystemClock;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -259,7 +260,11 @@ class Database {
 //                            Log.d(TAG, "Warning: task not added:" + task.targetFile);
                     }
                 } catch (SQLException e) {
-                    Log.e(TAG, "Failed to INSERT task: " + task.targetFile, e);
+                    if (!Thread.currentThread().isInterrupted()) {
+                        Log.e(TAG, "Failed to INSERT task: " + task.targetFile, e);
+                    } else {
+                        //Log.d(TAG, "Thread Interrupted in Database addDownloadTasksToDB");
+                    }
                 }
             }
             return true;
@@ -615,8 +620,12 @@ class Database {
                 try {
                     db.insertOrThrow(TBL_TRACK, null, values);
                 } catch (SQLiteConstraintException e) {
-                    Log.w(TAG, "Insert failed", e);
-                    Log.w(TAG, "execute: itemId=" + item.getItemId() + " rel=" + track.getRelativeId());
+                    if (!Thread.currentThread().isInterrupted()) {
+                        Log.w(TAG, "Insert failed", e);
+                        Log.w(TAG, "execute: itemId=" + item.getItemId() + " rel=" + track.getRelativeId());
+                    } else {
+                        //Log.d(TAG, "Thread Interrupted in Database addTracks");
+                    }
                 }
             }
 

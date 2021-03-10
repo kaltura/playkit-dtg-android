@@ -4,8 +4,8 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -18,6 +18,7 @@ import com.kaltura.dtg.DownloadItem.TrackType;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.net.HttpRetryException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,7 +30,10 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static android.os.SystemClock.elapsedRealtime;
@@ -46,9 +50,11 @@ public class DownloadService extends Service {
     private boolean stopping;
     private DownloadStateListener downloadStateListener;
     private PausableThreadPoolExecutor executorService;
+    private ThreadPoolExecutor metaDataDownloadExecutorService;
     private final ItemFutureMap futureMap = new ItemFutureMap();
     private Handler listenerHandler = null;
     private ConcurrentHashMap<String, DownloadTask.State> firedEventStateMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, MetaDataFutureMap> metaDataDownloadMap = new ConcurrentHashMap<>();
 
     private Handler taskProgressHandler = null;
     ContentManager.Settings settings;
@@ -321,6 +327,12 @@ public class DownloadService extends Service {
 
         taskProgressHandler.getLooper().quit();
 
+        if (metaDataDownloadExecutorService != null) {
+            metaDataDownloadExecutorService.shutdownNow();
+        }
+
+        metaDataDownloadMap.clear();
+
         executorService.shutdownNow();
         try {
             executorService.awaitTermination(10, TimeUnit.SECONDS);
@@ -340,24 +352,94 @@ public class DownloadService extends Service {
     void loadItemMetadata(final DownloadItemImp item) {
 
         assertStarted();
-        AsyncTask.execute(() -> {
+        metaDataDownloadExecutorService = getLoadMetaThreadPool();
+        Future<?> futureTask = metaDataDownloadExecutorService.submit(new LoadMetaData(item));
+        metaDataDownloadMap.put(item.getItemId(), new MetaDataFutureMap(futureTask, false));
+    }
+
+    /**
+     * Cancel the In progress or queued Item while downloading the Metadata
+     * @param itemId Item to be deleted
+     */
+    void cancelMetadataLoading(String itemId) {
+        DownloadItemImp item = findItem(itemId);
+        if (item != null) {
+            if (metaDataDownloadExecutorService != null && metaDataDownloadMap.containsKey(item.getItemId())) {
+                MetaDataFutureMap metaDataFutureMap = metaDataDownloadMap.get(item.getItemId());
+                boolean taskRemoved = metaDataFutureMap != null && metaDataFutureMap.getFuture().cancel(true);
+                if (taskRemoved) {
+                    metaDataDownloadExecutorService.purge();
+                    metaDataFutureMap.setCancelled(true);
+                    removeItemAfterMetaDataCancel(item);
+                }
+            }
+        } else {
+            Log.w(TAG, "Can't cancel metadata loading as it can not be done on invalid item.");
+        }
+    }
+
+    /**
+     * Runnable dedicated to load the metadata for an item for ExecutorService
+     */
+    private class LoadMetaData implements Runnable {
+
+        DownloadItemImp item;
+
+        LoadMetaData(DownloadItemImp item) {
+            this.item = item;
+        }
+
+        @Override
+        public void run() {
             try {
                 newDownload(item);
-                itemCache.updateItemState(item, DownloadState.INFO_LOADED);
-                updateItemInfoInDB(item,
-                        Database.COL_ITEM_ESTIMATED_SIZE,
-                        Database.COL_ITEM_PLAYBACK_PATH);
-                downloadStateListener.onDownloadMetadata(item, null);
-
-            } catch (IOException e) {
-                String exceptionItemId = "unknownItemId";
-                if (item != null) {
-                    exceptionItemId = item.getItemId();
+                MetaDataFutureMap metaDataFutureMap = metaDataDownloadMap.get(item.getItemId());
+                if (!Thread.currentThread().isInterrupted() || (metaDataFutureMap != null && !metaDataFutureMap.isCancelled())) {
+                    itemCache.updateItemState(item, DownloadState.INFO_LOADED);
+                    updateItemInfoInDB(item,
+                            Database.COL_ITEM_ESTIMATED_SIZE,
+                            Database.COL_ITEM_PLAYBACK_PATH);
+                    downloadStateListener.onDownloadMetadata(item, null);
                 }
-                Log.e(TAG, "Failed to download metadata for " + exceptionItemId, e);
-                downloadStateListener.onDownloadMetadata(item, e);
+            } catch (IOException exception) {
+                if (item != null) {
+                    String exceptionItemId = item.getItemId();
+                    MetaDataFutureMap metaDataFutureMap = metaDataDownloadMap.get(exceptionItemId);
+                    if (Thread.currentThread().isInterrupted() || exception instanceof InterruptedIOException || (metaDataFutureMap != null && !metaDataFutureMap.isCancelled())) {
+                        Log.d(TAG, "Thread interrupted for Item: " + exceptionItemId);
+                    } else {
+                        Log.e(TAG, "IOException Failed to download metadata for " + exceptionItemId, exception);
+                        downloadStateListener.onDownloadMetadata(item, exception);
+                    }
+                }
             }
-        });
+            // Clear the map once the ExecutorService queue is empty
+            if (metaDataDownloadExecutorService.getQueue().isEmpty()) {
+                metaDataDownloadMap.clear();
+            }
+        }
+    }
+
+    /**
+     * Single Threaded threadPoolExecutor
+     * @return instance of ThreadPool
+     */
+    private ThreadPoolExecutor getLoadMetaThreadPool() {
+        if (metaDataDownloadExecutorService == null) {
+            metaDataDownloadExecutorService = new ThreadPoolExecutor(1, 1,
+                    0L, TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<Runnable>());
+        }
+        return metaDataDownloadExecutorService;
+    }
+
+    /**
+     * Remove the Item from map, cache, file and DB
+     * @param item Item to be deleted
+     */
+    private void removeItemAfterMetaDataCancel(DownloadItemImp item) {
+        metaDataDownloadMap.remove(item.getItemId());
+        removeItem(item);
     }
 
     private File getItemDataDir(String itemId) {
@@ -432,6 +514,11 @@ public class DownloadService extends Service {
 
     DownloadState startDownload(@NonNull final DownloadItemImp item) {
         assertStarted();
+
+        if (removedItems.contains(item.getItemId())) {
+            throw new IllegalStateException("Can't start download on deleted item");
+        }
+
         removeItemFromEventStateMap(item.getItemId());
 
         if (Storage.isLowDiskSpace(settings.freeDiskSpaceRequiredBytes)) {
