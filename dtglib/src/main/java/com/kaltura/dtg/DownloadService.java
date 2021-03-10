@@ -350,6 +350,7 @@ public class DownloadService extends Service {
     }
 
     void loadItemMetadata(final DownloadItemImp item) {
+
         assertStarted();
         metaDataDownloadExecutorService = getLoadMetaThreadPool();
         Future<?> futureTask = metaDataDownloadExecutorService.submit(new LoadMetaData(item));
@@ -482,8 +483,13 @@ public class DownloadService extends Service {
             contentURL = contentURL.replaceFirst("widevine", "http");
         }
         Uri url = Uri.parse(contentURL);
+        Map<String,String> headers = null;
+        if (settings.chunksUrlAdapter != null) {
+            DownloadRequestParams downloadRequestParams = settings.chunksUrlAdapter.adapt(new DownloadRequestParams(url, null));
+            headers = downloadRequestParams != null ? downloadRequestParams.headers : null;
+        }
 
-        long length = Utils.httpHeadGetLength(url);
+        long length = Utils.httpHeadGetLength(url, headers);
 
         String fileNameFullPath = Utils.getHashedFileName(url.getPath());
         File targetFile = new File(item.getDataDir(), fileNameFullPath);

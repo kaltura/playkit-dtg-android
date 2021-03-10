@@ -15,6 +15,7 @@ import java.io.InterruptedIOException;
 import java.net.HttpRetryException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
+import java.util.Map;
 
 public class DownloadTask {
     public static final int UNKNOWN_ORDER = -1;
@@ -68,11 +69,12 @@ public class DownloadTask {
     void download(@Nullable DownloadRequestParams.Adapter chunksUrlAdapter) throws HttpRetryException {
 
         Uri uri = this.url;
-
+        Map<String,String> headers = null;
         if (chunksUrlAdapter != null) {
             final DownloadRequestParams adapted = chunksUrlAdapter.adapt(new DownloadRequestParams(this.url, null));
             if (adapted != null) {
                 uri = adapted.url;
+                headers = adapted.headers;
             }
         }
 
@@ -93,7 +95,7 @@ public class DownloadTask {
         // If file is already downloaded, make sure it's not larger than the remote.
         if (localFileSize > 0) {
             try {
-                long remoteFileSize = Utils.httpHeadGetLength(uri);
+                long remoteFileSize = Utils.httpHeadGetLength(uri, headers);
 
                 // finish before even starting, if file is already complete.
                 if (localFileSize == remoteFileSize) {
@@ -138,7 +140,11 @@ public class DownloadTask {
             conn.setReadTimeout(downloadSettings.httpTimeoutMillis);
             conn.setConnectTimeout(downloadSettings.httpTimeoutMillis);
             conn.setDoInput(true);
-
+            if (headers != null && !headers.isEmpty()) {
+                for (Map.Entry<String, String> entry : headers.entrySet()) {
+                    conn.setRequestProperty(entry.getKey(), entry.getValue());
+                }
+            }
             if (localFileSize > 0) {
                 // Resume
                 conn.setRequestProperty("Range", "Bytes=" + localFileSize + "-");

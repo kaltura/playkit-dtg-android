@@ -25,6 +25,7 @@ public abstract class AbrDownloader {
     protected static final int MAX_MANIFEST_SIZE = 10 * 1024 * 1024;
     private static final String TAG = "AbrDownloader";
     private final DownloadItemImp item;
+    protected final ContentManager.Settings settings;
     protected final String manifestUrl;
     protected byte[] originManifestBytes;
     protected boolean trackSelectionApplied;
@@ -37,8 +38,9 @@ public abstract class AbrDownloader {
     protected TrackUpdatingData trackUpdatingData;    // only used in update mode
     protected Mode mode = Mode.create;
 
-    protected AbrDownloader(DownloadItemImp item) {
+    protected AbrDownloader(DownloadItemImp item, ContentManager.Settings settings ) {
         this.item = item;
+        this.settings = settings;
         this.targetDir = new File(item.getDataDir());
         setDownloadTasks(new LinkedHashSet<>());
         this.manifestUrl = item.getContentURL();
@@ -46,9 +48,10 @@ public abstract class AbrDownloader {
 
     static AbrDownloader newDownloader(DownloadItemImp item, ContentManager.Settings settings) {
         String fileName = Uri.parse(item.getContentURL()).getLastPathSegment();
+
         switch (AssetFormat.byFilename(fileName)) {
             case dash:
-                return new DashDownloader(item);
+                return new DashDownloader(item, settings);
             case hls:
                 return new HlsDownloader(item, settings);
         }
@@ -149,8 +152,13 @@ public abstract class AbrDownloader {
     protected abstract void createTracks();
 
     private void downloadManifest(boolean crossProtocolRedirectEnabled) throws IOException {
+        Map<String,String> headers = null;
+        if (settings.downloadRequestAdapter != null) {
+            DownloadRequestParams downloadRequestParams = settings.downloadRequestAdapter.adapt(new DownloadRequestParams(Uri.parse(manifestUrl), null));
+            headers = downloadRequestParams != null ? downloadRequestParams.headers : null;
+        }
         File targetFile = new File(getTargetDir(), storedOriginManifestName());
-        originManifestBytes = Utils.downloadToFile(Uri.parse(manifestUrl), targetFile, MAX_MANIFEST_SIZE, crossProtocolRedirectEnabled);
+        originManifestBytes = Utils.downloadToFile(Uri.parse(manifestUrl), headers, targetFile, MAX_MANIFEST_SIZE, crossProtocolRedirectEnabled);
     }
 
     List<BaseTrack> getDownloadedTracks(@NonNull DownloadItem.TrackType type) {
