@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.google.android.gms.security.ProviderInstaller;
 import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadRequestParams;
 import com.kaltura.dtg.DownloadState;
 import com.kaltura.dtg.DownloadStateListener;
 import com.kaltura.playkit.LocalAssetsManager;
@@ -31,6 +32,7 @@ import com.kaltura.playkit.PKMediaConfig;
 import com.kaltura.playkit.PKMediaEntry;
 import com.kaltura.playkit.PKMediaFormat;
 import com.kaltura.playkit.PKMediaSource;
+import com.kaltura.playkit.PKRequestParams;
 import com.kaltura.playkit.PlayKitManager;
 import com.kaltura.playkit.Player;
 import com.kaltura.playkit.PlayerEvent;
@@ -160,7 +162,8 @@ class ItemLoader {
             new PhoenixMediaProvider()
                     .setSessionProvider(sessionProvider)
                     .setAssetId(mediaId)
-                    .setProtocol(PhoenixMediaProvider.HttpProtocol.Https)
+                    .setProtocol(PhoenixMediaProvider.HttpProtocol.All)
+                    //.setProtocol(PhoenixMediaProvider.HttpProtocol.Https)
                     .setContextType(APIDefines.PlaybackContextType.Playback)
                     .setAssetType(APIDefines.KalturaAssetType.Media)
                     .setFormats(format).load(response -> {
@@ -207,7 +210,15 @@ class ItemLoader {
         // Using OVP provider for simplicity
 //        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx"));
         // Using Phoenix provider for simplicity
-        items.addAll(loadOTTItems("https://api-preprod.ott.kaltura.com/v5_1_0/api_v3/", 198, "",  "Mobile_Devices_Main_HD_Dash", "480989"));
+
+        List<Item> ottList = getOTTMedias();
+        if (ottList != null && !ottList.isEmpty()) {
+            for (Item item : ottList) {
+                if (item != null && !TextUtils.isEmpty(item.getUrl())) {
+                    items.add(item);
+                }
+            }
+        }
 
         // For simple cases (no DRM), no need for MediaSource.
         //noinspection CollectionAddAllCanBeReplacedWithConstructor
@@ -231,6 +242,10 @@ class ItemLoader {
 //        ));
 
         return items;
+    }
+
+    private static List<Item> getOTTMedias() {
+        return loadOTTItems("https://rest-us.ott.kaltura.com/v4_5/api_v3/", 3009, "",  "Mobile_Main", "548576");
     }
 
     @NonNull
@@ -611,8 +626,26 @@ public class MainActivity extends ListActivity {
         contentManager.getSettings().createNoMediaFileInDownloadsDir = true;
         contentManager.getSettings().crossProtocolRedirectEnabled = true;
 
-        contentManager.addDownloadStateListener(cmListener);
+//// for adding headers on manifest
+//        Map<String,String> headers = new HashMap<>();
+//        headers.put("aaa", "bbb");
+//        headers.put("ccc","ddd");
+//        MediaRequestAdapter mediaAdapter = new MediaRequestAdapter();
+//        mediaAdapter.customHeaders1 = headers;
+//        contentManager.getSettings().downloadRequestAdapter = mediaAdapter;
+//
+//
 
+//// for adding headers on chunks
+//        Map<String,String> chunkheaders = new HashMap<>();
+//        chunkheaders.put("zzz", "xxx");
+//        chunkheaders.put("www","vvv");
+//        ChunkRequestAdapter chunkAdapter = new ChunkRequestAdapter();
+//        chunkAdapter.customHeaders2 = chunkheaders;
+//        contentManager.getSettings().chunksUrlAdapter = chunkAdapter;
+
+        contentManager.addDownloadStateListener(cmListener);
+        
         try {
             contentManager.start(() -> {
                 for (DownloadItem item : contentManager.getDownloads(DownloadState.values())) {
@@ -628,6 +661,13 @@ public class MainActivity extends ListActivity {
         }
 
         localAssetsManager = new LocalAssetsManager(context);
+
+// for adding headers on license url
+//        String customAdapterData = "PEtleU9TQXV0aGVudGljYXRpb25YTUw+PERhdGE+PEdlbmVyYXRpb25UaW1lPjIwMjAtMTAtMDUgMDc6MjM6MTAuNzU3PC9HZW5lcmF0aW9uVGltZT48RXhwaXJhdGlvblRpbWU+MjAyMC0xMC0wNyAwNzoyMzoxMC43NTc8L0V4cGlyYXRpb25UaW1lPjxVbmlxdWVJZD5hYzg3N2RjZmFjZDE0NjM3YWQyYjI2ODNhMTVkMmRhZjwvVW5pcXVlSWQ+PFJTQVB1YktleUlkPmIxOWQ0MjJkODkwNjQ0ZDUxMTJkMDg0NjljMmU1OTQ2PC9SU0FQdWJLZXlJZD48V2lkZXZpbmVQb2xpY3kgZmxfQ2FuUGxheT0idHJ1ZSIgZmxfQ2FuUGVyc2lzdD0idHJ1ZSI+PExpY2Vuc2VEdXJhdGlvbj4xNzI4MDA8L0xpY2Vuc2VEdXJhdGlvbj48UGxheWJhY2tEdXJhdGlvbj4xNzI4MDA8L1BsYXliYWNrRHVyYXRpb24+PC9XaWRldmluZVBvbGljeT48V2lkZXZpbmVDb250ZW50S2V5U3BlYyBUcmFja1R5cGU9IkhEIj48U2VjdXJpdHlMZXZlbD4xPC9TZWN1cml0eUxldmVsPjwvV2lkZXZpbmVDb250ZW50S2V5U3BlYz48RmFpclBsYXlQb2xpY3kgcGVyc2lzdGVudD0idHJ1ZSI+PFBlcnNpc3RlbmNlU2Vjb25kcz4xNzI4MDA8L1BlcnNpc3RlbmNlU2Vjb25kcz48L0ZhaXJQbGF5UG9saWN5PjxMaWNlbnNlIHR5cGU9InNpbXBsZSI+PFBvbGljeT48SWQ+YzRkZjNjMDUtNTk3NC00YWMwLThlZDktYTk5ZTAyMGU0ZDNiPC9JZD48L1BvbGljeT48UGxheT48SWQ+YzY1ZDhiN2EtYTkyZi00MDBhLTkyNzctYjE4YWVkYmEzODI3PC9JZD48L1BsYXk+PC9MaWNlbnNlPjxQb2xpY3kgaWQ9ImM0ZGYzYzA1LTU5NzQtNGFjMC04ZWQ5LWE5OWUwMjBlNGQzYiIgcGVyc2lzdGVudD0idHJ1ZSI+PEV4cGlyYXRpb25BZnRlckZpcnN0UGxheT4xNzI4MDA8L0V4cGlyYXRpb25BZnRlckZpcnN0UGxheT48TWluaW11bVNlY3VyaXR5TGV2ZWw+MjAwMDwvTWluaW11bVNlY3VyaXR5TGV2ZWw+PC9Qb2xpY3k+PFBsYXkgaWQ9ImM2NWQ4YjdhLWE5MmYtNDAwYS05Mjc3LWIxOGFlZGJhMzgyNyI+PE91dHB1dFByb3RlY3Rpb25zPjxPUEw+PENvbXByZXNzZWREaWdpdGFsQXVkaW8+MzAwPC9Db21wcmVzc2VkRGlnaXRhbEF1ZGlvPjxVbmNvbXByZXNzZWREaWdpdGFsQXVkaW8+MzAwPC9VbmNvbXByZXNzZWREaWdpdGFsQXVkaW8+PENvbXByZXNzZWREaWdpdGFsVmlkZW8+NTAwPC9Db21wcmVzc2VkRGlnaXRhbFZpZGVvPjxVbmNvbXByZXNzZWREaWdpdGFsVmlkZW8+MzAwPC9VbmNvbXByZXNzZWREaWdpdGFsVmlkZW8+PEFuYWxvZ1ZpZGVvPjIwMDwvQW5hbG9nVmlkZW8+PC9PUEw+PC9PdXRwdXRQcm90ZWN0aW9ucz48RW5hYmxlcnM+PElkPjc4NjYyN2Q4LWMyYTYtNDRiZS04Zjg4LTA4YWUyNTViMDFhNzwvSWQ+PElkPmQ2ODUwMzBiLTBmNGYtNDNhNi1iYmFkLTM1NmYxZWEwMDQ5YTwvSWQ+PElkPjAwMmY5NzcyLTM4YTAtNDNlNS05Zjc5LTBmNjM2MWRjYzYyYTwvSWQ+PC9FbmFibGVycz48L1BsYXk+PC9EYXRhPjxTaWduYXR1cmU+UTJMSmhmWjRMeGNNdmlKc1NxUnVnOTAwR0laeWdkTVFDMFltMGFJUDFvTWpScTRIYVdGcldENFQ1cVU3aUwySis4RGZrelFDT2U5ZU1jc0xpZVlENFF0RGtEY0RTWS9HbU5qZEZuaXIzSTNCV0xzc2t0dkJucnQ4SXNIU0RMMXNGVDNuaTVZa3J5M3hIQVR1QlhUUEptLzQraW1jRjNERlEyaGxiQjRCN3VSNm91Q21PRTdva2xkeHIycEpUMDgzV1lnM1AxMzduZm9XeERQMjR4UE5OUzU3WjlQNHlFdkdTUDZPZ3pxTldIYmxtdXd5VzRnUUdYUklHYkw1b2w0VzBoM0ZKS1FMUXlqMDZBSHpkdm5raGwyWXFNcjBjcXJHeWxkM0YxaHBzQzdXMFlmd096aFRzemVoUGwvbDl0b1MrZ0I2Vyt3Tkx4MHV1K29DUHZoK1V3PT08L1NpZ25hdHVyZT48L0tleU9TQXV0aGVudGljYXRpb25YTUw+";
+//        DRMLicenseAdapter.customData = customAdapterData;
+//        final DRMLicenseAdapter licenseRequestAdapter = new DRMLicenseAdapter();
+//        localAssetsManager.setLicenseRequestAdapter(licenseRequestAdapter);
+
         //localAssetsManager.forceWidevineL3Playback(true);
 
         findViewById(R.id.download_control).setOnClickListener(v -> {
@@ -882,6 +922,14 @@ public class MainActivity extends ListActivity {
         PKMediaEntry entry = new PKMediaEntry().setId(itemId).setMediaType(type).setSources(Collections.singletonList(mediaSource));
 
         setupPlayer();
+        player.getSettings().setAllowCrossProtocolRedirect(true);
+
+// for adding headers on license url
+//        String customAdapterData = "PEtleU9TQXV0aGVudGljYXRpb25YTUw+PERhdGE+PEdlbmVyYXRpb25UaW1lPjIwMjAtMTAtMDUgMDc6MjM6MTAuNzU3PC9HZW5lcmF0aW9uVGltZT48RXhwaXJhdGlvblRpbWU+MjAyMC0xMC0wNyAwNzoyMzoxMC43NTc8L0V4cGlyYXRpb25UaW1lPjxVbmlxdWVJZD5hYzg3N2RjZmFjZDE0NjM3YWQyYjI2ODNhMTVkMmRhZjwvVW5pcXVlSWQ+PFJTQVB1YktleUlkPmIxOWQ0MjJkODkwNjQ0ZDUxMTJkMDg0NjljMmU1OTQ2PC9SU0FQdWJLZXlJZD48V2lkZXZpbmVQb2xpY3kgZmxfQ2FuUGxheT0idHJ1ZSIgZmxfQ2FuUGVyc2lzdD0idHJ1ZSI+PExpY2Vuc2VEdXJhdGlvbj4xNzI4MDA8L0xpY2Vuc2VEdXJhdGlvbj48UGxheWJhY2tEdXJhdGlvbj4xNzI4MDA8L1BsYXliYWNrRHVyYXRpb24+PC9XaWRldmluZVBvbGljeT48V2lkZXZpbmVDb250ZW50S2V5U3BlYyBUcmFja1R5cGU9IkhEIj48U2VjdXJpdHlMZXZlbD4xPC9TZWN1cml0eUxldmVsPjwvV2lkZXZpbmVDb250ZW50S2V5U3BlYz48RmFpclBsYXlQb2xpY3kgcGVyc2lzdGVudD0idHJ1ZSI+PFBlcnNpc3RlbmNlU2Vjb25kcz4xNzI4MDA8L1BlcnNpc3RlbmNlU2Vjb25kcz48L0ZhaXJQbGF5UG9saWN5PjxMaWNlbnNlIHR5cGU9InNpbXBsZSI+PFBvbGljeT48SWQ+YzRkZjNjMDUtNTk3NC00YWMwLThlZDktYTk5ZTAyMGU0ZDNiPC9JZD48L1BvbGljeT48UGxheT48SWQ+YzY1ZDhiN2EtYTkyZi00MDBhLTkyNzctYjE4YWVkYmEzODI3PC9JZD48L1BsYXk+PC9MaWNlbnNlPjxQb2xpY3kgaWQ9ImM0ZGYzYzA1LTU5NzQtNGFjMC04ZWQ5LWE5OWUwMjBlNGQzYiIgcGVyc2lzdGVudD0idHJ1ZSI+PEV4cGlyYXRpb25BZnRlckZpcnN0UGxheT4xNzI4MDA8L0V4cGlyYXRpb25BZnRlckZpcnN0UGxheT48TWluaW11bVNlY3VyaXR5TGV2ZWw+MjAwMDwvTWluaW11bVNlY3VyaXR5TGV2ZWw+PC9Qb2xpY3k+PFBsYXkgaWQ9ImM2NWQ4YjdhLWE5MmYtNDAwYS05Mjc3LWIxOGFlZGJhMzgyNyI+PE91dHB1dFByb3RlY3Rpb25zPjxPUEw+PENvbXByZXNzZWREaWdpdGFsQXVkaW8+MzAwPC9Db21wcmVzc2VkRGlnaXRhbEF1ZGlvPjxVbmNvbXByZXNzZWREaWdpdGFsQXVkaW8+MzAwPC9VbmNvbXByZXNzZWREaWdpdGFsQXVkaW8+PENvbXByZXNzZWREaWdpdGFsVmlkZW8+NTAwPC9Db21wcmVzc2VkRGlnaXRhbFZpZGVvPjxVbmNvbXByZXNzZWREaWdpdGFsVmlkZW8+MzAwPC9VbmNvbXByZXNzZWREaWdpdGFsVmlkZW8+PEFuYWxvZ1ZpZGVvPjIwMDwvQW5hbG9nVmlkZW8+PC9PUEw+PC9PdXRwdXRQcm90ZWN0aW9ucz48RW5hYmxlcnM+PElkPjc4NjYyN2Q4LWMyYTYtNDRiZS04Zjg4LTA4YWUyNTViMDFhNzwvSWQ+PElkPmQ2ODUwMzBiLTBmNGYtNDNhNi1iYmFkLTM1NmYxZWEwMDQ5YTwvSWQ+PElkPjAwMmY5NzcyLTM4YTAtNDNlNS05Zjc5LTBmNjM2MWRjYzYyYTwvSWQ+PC9FbmFibGVycz48L1BsYXk+PC9EYXRhPjxTaWduYXR1cmU+UTJMSmhmWjRMeGNNdmlKc1NxUnVnOTAwR0laeWdkTVFDMFltMGFJUDFvTWpScTRIYVdGcldENFQ1cVU3aUwySis4RGZrelFDT2U5ZU1jc0xpZVlENFF0RGtEY0RTWS9HbU5qZEZuaXIzSTNCV0xzc2t0dkJucnQ4SXNIU0RMMXNGVDNuaTVZa3J5M3hIQVR1QlhUUEptLzQraW1jRjNERlEyaGxiQjRCN3VSNm91Q21PRTdva2xkeHIycEpUMDgzV1lnM1AxMzduZm9XeERQMjR4UE5OUzU3WjlQNHlFdkdTUDZPZ3pxTldIYmxtdXd5VzRnUUdYUklHYkw1b2w0VzBoM0ZKS1FMUXlqMDZBSHpkdm5raGwyWXFNcjBjcXJHeWxkM0YxaHBzQzdXMFlmd096aFRzemVoUGwvbDl0b1MrZ0I2Vyt3Tkx4MHV1K29DUHZoK1V3PT08L1NpZ25hdHVyZT48L0tleU9TQXV0aGVudGljYXRpb25YTUw+";
+//        DRMLicenseAdapter.customData = customAdapterData;
+//        final DRMLicenseAdapter licenseRequestAdapter = new DRMLicenseAdapter();
+//        player.getSettings().setLicenseRequestAdapter(licenseRequestAdapter);
+
 
         player.prepare(new PKMediaConfig().setMediaEntry(entry));
         player.play();
@@ -953,4 +1001,68 @@ public class MainActivity extends ListActivity {
             contentManager.stop();
         }
     }
+
+    static class MediaRequestAdapter implements DownloadRequestParams.Adapter {
+
+        public static Map<String,String> customHeaders1;
+
+        @Override
+        public DownloadRequestParams adapt(DownloadRequestParams requestParams) {
+
+            if (requestParams == null) {
+                return null;
+            }
+
+            DownloadRequestParams downloadRequestParams = new DownloadRequestParams(requestParams.url, customHeaders1);
+            return downloadRequestParams;
+        }
+
+        @Override
+        public void updateParams(String playSessionId) {
+
+        }
+    }
+
+    static class ChunkRequestAdapter implements DownloadRequestParams.Adapter {
+
+        public static Map<String,String> customHeaders2;
+
+        @Override
+        public DownloadRequestParams adapt(DownloadRequestParams requestParams) {
+
+            if (requestParams == null) {
+                return null;
+            }
+
+            DownloadRequestParams downloadRequestParams = new DownloadRequestParams(requestParams.url, customHeaders2);
+            return downloadRequestParams;
+        }
+
+        @Override
+        public void updateParams(String playSessionId) {
+
+        }
+    }
+
+    static class DRMLicenseAdapter implements PKRequestParams.Adapter {
+
+        public static String customData;
+        @Override
+        public PKRequestParams adapt(PKRequestParams requestParams) {
+            requestParams.headers.put("customData", customData);
+            return requestParams;
+        }
+
+        @Override
+        public void updateParams(Player player) {
+            // TODO?
+        }
+
+        @Override
+        public String getApplicationName() {
+            return null;
+        }
+    }
+
+
 }
