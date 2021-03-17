@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.google.android.gms.security.ProviderInstaller;
 import com.kaltura.dtg.ContentManager;
 import com.kaltura.dtg.DownloadItem;
+import com.kaltura.dtg.DownloadRequestParams;
 import com.kaltura.dtg.DownloadState;
 import com.kaltura.dtg.DownloadStateListener;
 import com.kaltura.playkit.LocalAssetsManager;
@@ -31,6 +32,7 @@ import com.kaltura.playkit.PKMediaConfig;
 import com.kaltura.playkit.PKMediaEntry;
 import com.kaltura.playkit.PKMediaFormat;
 import com.kaltura.playkit.PKMediaSource;
+import com.kaltura.playkit.PKRequestParams;
 import com.kaltura.playkit.PlayKitManager;
 import com.kaltura.playkit.Player;
 import com.kaltura.playkit.PlayerEvent;
@@ -160,7 +162,8 @@ class ItemLoader {
             new PhoenixMediaProvider()
                     .setSessionProvider(sessionProvider)
                     .setAssetId(mediaId)
-                    .setProtocol(PhoenixMediaProvider.HttpProtocol.Https)
+                    .setProtocol(PhoenixMediaProvider.HttpProtocol.All)
+                    //.setProtocol(PhoenixMediaProvider.HttpProtocol.Https)
                     .setContextType(APIDefines.PlaybackContextType.Playback)
                     .setAssetType(APIDefines.KalturaAssetType.Media)
                     .setFormats(format).load(response -> {
@@ -205,9 +208,24 @@ class ItemLoader {
 
         // TODO: fill the list with Items -- each item has a single PKMediaSource with relevant DRM data.
         // Using OVP provider for simplicity
-//        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx"));
+//        List<Item> ovpList = loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx");
+//        if (ovpList != null && !ovpList.isEmpty()) {
+//            for (Item item : ovpList) {
+//                if (item != null && !TextUtils.isEmpty(item.getUrl())) {
+//                    items.add(item);
+//                }
+//            }
+//        }
+
         // Using Phoenix provider for simplicity
-        items.addAll(loadOTTItems("https://api-preprod.ott.kaltura.com/v5_1_0/api_v3/", 198, "",  "Mobile_Devices_Main_HD_Dash", "480989"));
+        List<Item> ottList = loadOTTItems("https://rest-us.ott.kaltura.com/v4_5/api_v3/", 3009, "",  "Mobile_Main", "548576");
+        if (ottList != null && !ottList.isEmpty()) {
+            for (Item item : ottList) {
+                if (item != null && !TextUtils.isEmpty(item.getUrl())) {
+                    items.add(item);
+                }
+            }
+        }
 
         // For simple cases (no DRM), no need for MediaSource.
         //noinspection CollectionAddAllCanBeReplacedWithConstructor
@@ -611,6 +629,24 @@ public class MainActivity extends ListActivity {
         contentManager.getSettings().createNoMediaFileInDownloadsDir = true;
         contentManager.getSettings().crossProtocolRedirectEnabled = true;
 
+//// for adding headers on manifest
+//        Map<String,String> headers = new HashMap<>();
+//        headers.put("aaa", "bbb");
+//        headers.put("ccc","ddd");
+//        MediaRequestAdapter mediaAdapter = new MediaRequestAdapter();
+//        mediaAdapter.customHeaders1 = headers;
+//        contentManager.getSettings().downloadRequestAdapter = mediaAdapter;
+//
+//
+
+//// for adding headers on chunks
+//        Map<String,String> chunkheaders = new HashMap<>();
+//        chunkheaders.put("zzz", "xxx");
+//        chunkheaders.put("www","vvv");
+//        ChunkRequestAdapter chunkAdapter = new ChunkRequestAdapter();
+//        chunkAdapter.customHeaders2 = chunkheaders;
+//        contentManager.getSettings().chunksUrlAdapter = chunkAdapter;
+
         contentManager.addDownloadStateListener(cmListener);
 
         try {
@@ -628,6 +664,13 @@ public class MainActivity extends ListActivity {
         }
 
         localAssetsManager = new LocalAssetsManager(context);
+
+// for adding headers on license url
+//        String customAdapterData = "your custom data";
+//        DRMLicenseAdapter.customData = customAdapterData;
+//        final DRMLicenseAdapter licenseRequestAdapter = new DRMLicenseAdapter();
+//        localAssetsManager.setLicenseRequestAdapter(licenseRequestAdapter);
+
         //localAssetsManager.forceWidevineL3Playback(true);
 
         findViewById(R.id.download_control).setOnClickListener(v -> {
@@ -882,6 +925,14 @@ public class MainActivity extends ListActivity {
         PKMediaEntry entry = new PKMediaEntry().setId(itemId).setMediaType(type).setSources(Collections.singletonList(mediaSource));
 
         setupPlayer();
+        player.getSettings().setAllowCrossProtocolRedirect(true);
+
+// for adding headers on license url
+//        String customAdapterData = "your custom data";
+//        DRMLicenseAdapter.customData = customAdapterData;
+//        final DRMLicenseAdapter licenseRequestAdapter = new DRMLicenseAdapter();
+//        player.getSettings().setLicenseRequestAdapter(licenseRequestAdapter);
+
 
         player.prepare(new PKMediaConfig().setMediaEntry(entry));
         player.play();
@@ -953,4 +1004,68 @@ public class MainActivity extends ListActivity {
             contentManager.stop();
         }
     }
+
+    static class MediaRequestAdapter implements DownloadRequestParams.Adapter {
+
+        public static Map<String,String> customHeaders1;
+
+        @Override
+        public DownloadRequestParams adapt(DownloadRequestParams requestParams) {
+
+            if (requestParams == null) {
+                return null;
+            }
+
+            DownloadRequestParams downloadRequestParams = new DownloadRequestParams(requestParams.url, customHeaders1);
+            return downloadRequestParams;
+        }
+
+        @Override
+        public void updateParams(String playSessionId) {
+
+        }
+    }
+
+    static class ChunkRequestAdapter implements DownloadRequestParams.Adapter {
+
+        public static Map<String,String> customHeaders2;
+
+        @Override
+        public DownloadRequestParams adapt(DownloadRequestParams requestParams) {
+
+            if (requestParams == null) {
+                return null;
+            }
+
+            DownloadRequestParams downloadRequestParams = new DownloadRequestParams(requestParams.url, customHeaders2);
+            return downloadRequestParams;
+        }
+
+        @Override
+        public void updateParams(String playSessionId) {
+
+        }
+    }
+
+    static class DRMLicenseAdapter implements PKRequestParams.Adapter {
+
+        public static String customData;
+        @Override
+        public PKRequestParams adapt(PKRequestParams requestParams) {
+            requestParams.headers.put("customData", customData);
+            return requestParams;
+        }
+
+        @Override
+        public void updateParams(Player player) {
+            // TODO?
+        }
+
+        @Override
+        public String getApplicationName() {
+            return null;
+        }
+    }
+
+
 }
