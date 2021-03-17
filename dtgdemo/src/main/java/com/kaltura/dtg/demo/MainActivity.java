@@ -208,10 +208,17 @@ class ItemLoader {
 
         // TODO: fill the list with Items -- each item has a single PKMediaSource with relevant DRM data.
         // Using OVP provider for simplicity
-//        items.addAll(loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx"));
-        // Using Phoenix provider for simplicity
+//        List<Item> ovpList = loadOVPItems(2222401, "1_q81a5nbp", "0_3cb7ganx");
+//        if (ovpList != null && !ovpList.isEmpty()) {
+//            for (Item item : ovpList) {
+//                if (item != null && !TextUtils.isEmpty(item.getUrl())) {
+//                    items.add(item);
+//                }
+//            }
+//        }
 
-        List<Item> ottList = getOTTMedias();
+        // Using Phoenix provider for simplicity
+        List<Item> ottList = loadOTTItems("https://rest-us.ott.kaltura.com/v4_5/api_v3/", 3009, "",  "Mobile_Main", "548576");
         if (ottList != null && !ottList.isEmpty()) {
             for (Item item : ottList) {
                 if (item != null && !TextUtils.isEmpty(item.getUrl())) {
@@ -242,10 +249,6 @@ class ItemLoader {
 //        ));
 
         return items;
-    }
-
-    private static List<Item> getOTTMedias() {
-        return loadOTTItems("https://rest-us.ott.kaltura.com/v4_5/api_v3/", 3009, "",  "Mobile_Main", "548576");
     }
 
     @NonNull
@@ -645,7 +648,7 @@ public class MainActivity extends ListActivity {
 //        contentManager.getSettings().chunksUrlAdapter = chunkAdapter;
 
         contentManager.addDownloadStateListener(cmListener);
-        
+
         try {
             contentManager.start(() -> {
                 for (DownloadItem item : contentManager.getDownloads(DownloadState.values())) {
