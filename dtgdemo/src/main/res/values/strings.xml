@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">DTGDemo</string>
+    <string name="download_control">Download Control</string>
+    <string name="player_control">Player Control</string>
 </resources>

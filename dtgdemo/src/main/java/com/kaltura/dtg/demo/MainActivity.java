@@ -342,17 +342,17 @@ class Item {
         }
         switch (downloadState) {
             case NEW:
-                return "🟠";
+                return "🧡";
             case INFO_LOADED:
-                return "🟡";
+                return "💛";
             case IN_PROGRESS:
-                return "🔵";
+                return "💙";
             case PAUSED:
-                return "🟦";
+                return "💜";
             case COMPLETED:
-                return "🟢";
+                return "💚";
             case FAILED:
-                return "🔴";
+                return "❤️";
         }
         return downloadState.toString();
     }
