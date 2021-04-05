@@ -45,5 +45,13 @@ dependencies {
 //    archives sourcesJar
 //}
 
+repositories {
+    google()
+    jcenter()
+    mavenCentral()
+    maven { url "https://jitpack.io" }
+}
+
 apply from: './gradle-mvn-push.gradle'
+
 
