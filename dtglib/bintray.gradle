@@ -1,18 +1,2 @@
 apply from: '../version.gradle'
 
-// Publish to Bintray
-//try {
-//    apply plugin: 'bintray-release'
-//
-//    publish {
-//        userOrg = 'kaltura'
-//        groupId = 'com.kaltura.dtg'
-//        repoName = 'android'
-//        artifactId = 'dtglib'
-//        publishVersion = dtglibVersion
-//        desc = 'DTG: Kaltura Download-To-Go'
-//        autoPublish = true
-//    }
-//} catch (UnknownPluginException ignored) {
-//    // Ignore - it's ok not to have this plugin - it's only used for bintray uploads.
-//}
