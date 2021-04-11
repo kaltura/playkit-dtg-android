@@ -1,6 +1,5 @@
 apply plugin: 'com.android.library'
-apply from: 'bintray.gradle'
-apply from: '../version.gradle'
+apply from: 'version.gradle'
 
 android {
     compileSdkVersion 30
@@ -32,15 +31,26 @@ tasks.withType(Javadoc) {
 }
 
 // build a jar with source files
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-}
+//task sourcesJar(type: Jar) {
+//    from android.sourceSets.main.java.srcDirs
+//    classifier = 'sources'
+//}
 
 dependencies {
-    implementation 'androidx.annotation:annotation:1.1.0'
+    implementation 'androidx.annotation:annotation:1.2.0'
 }
 
-artifacts {
-    archives sourcesJar
+//artifacts {
+//    archives sourcesJar
+//}
+
+repositories {
+    google()
+    jcenter()
+    mavenCentral()
+    maven { url "https://jitpack.io" }
 }
+
+apply from: './gradle-mvn-push.gradle'
+
+

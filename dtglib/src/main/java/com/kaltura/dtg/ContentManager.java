@@ -69,7 +69,7 @@ public abstract class ContentManager {
      * Returns the number of downloaded bytes.
      *
      * @param itemId item. If null, returns the sum from all items.
-     * @return
+     * @return long
      */
     public abstract long getDownloadedItemSize(String itemId) throws IllegalStateException;
 
@@ -78,7 +78,7 @@ public abstract class ContentManager {
      * size.
      *
      * @param itemId item. If null, returns the sum from all items.
-     * @return
+     * @return long
      */
     public abstract long getEstimatedItemSize(String itemId) throws IllegalStateException;
 
@@ -88,7 +88,7 @@ public abstract class ContentManager {
      *
      * @param itemId
      * @param contentURL
-     * @return
+     * @return DownloadItem
      */
     public abstract DownloadItem createItem(String itemId, String contentURL) throws IllegalStateException, IllegalArgumentException, IOException;
 
@@ -104,24 +104,24 @@ public abstract class ContentManager {
     /**
      * Get list of downloads in a given set of states.
      *
-     * @param states
-     * @return
+     * @param states DownloadState one or many
+     * @return List of DownloadItem
      */
     public abstract List<DownloadItem> getDownloads(DownloadState... states) throws IllegalStateException;
 
     /**
      * Get playback URL of a given item.
      *
-     * @param itemId
-     * @return
+     * @param itemId String
+     * @return String
      */
     public abstract String getPlaybackURL(String itemId) throws IllegalStateException;
 
     /**
      * Get the File that represents the locally downloaded item.
      *
-     * @param itemId
-     * @return
+     * @param itemId String
+     * @return File
      */
     public abstract File getLocalFile(String itemId);
 

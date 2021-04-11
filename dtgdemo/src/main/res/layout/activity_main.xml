@@ -14,13 +14,15 @@
             android:id="@+id/download_control"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Download Control" />
+            style="?android:attr/borderlessButtonStyle"
+            android:text="@string/download_control" />
 
         <Button
             android:id="@+id/player_control"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Player Control" />
+            style="?android:attr/borderlessButtonStyle"
+            android:text="@string/player_control" />
     </LinearLayout>
 
     <LinearLayout
