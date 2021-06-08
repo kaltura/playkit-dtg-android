@@ -51,7 +51,7 @@ repositories {
     maven { url "https://jitpack.io" }
 }
 
-if (hasProperty('VERSION_NAME')) {
+if (!ext.dtglibVersion.contains('dev')) {
     apply from: './gradle-mvn-push.gradle'
 }
 
