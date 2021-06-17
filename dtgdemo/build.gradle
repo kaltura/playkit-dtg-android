@@ -12,6 +12,7 @@ android {
         applicationId "com.kaltura.dtg.demo"
         minSdkVersion 17
         targetSdkVersion 30
+        multiDexEnabled  true
         versionCode 1
         versionName "1.0"
     }
