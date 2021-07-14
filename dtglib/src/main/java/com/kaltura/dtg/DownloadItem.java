@@ -62,6 +62,8 @@ public interface DownloadItem {
 
         Comparator<Track> widthComparator = (lhs, rhs) -> lhs.getWidth() - rhs.getWidth();
 
+        Comparator<Track> pixelComparator = (lhs, rhs) -> (lhs.getWidth() * lhs.getHeight()) - (rhs.getWidth() * rhs.getHeight());
+
         TrackType getType();
 
         String getLanguage();       // AUDIO and TEXT
