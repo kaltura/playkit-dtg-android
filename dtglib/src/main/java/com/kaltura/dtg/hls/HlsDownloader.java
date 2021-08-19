@@ -167,6 +167,7 @@ public class HlsDownloader extends AbrDownloader {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     final int lineNumber = reader.getLineNumber();
+                    // Fix URI
                     line = maybeReplaceUri(line, lineNumber);
                     writer.write(line);
                     writer.write('\n');
