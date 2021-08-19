@@ -237,8 +237,10 @@ public class HlsDownloader extends AbrDownloader {
     }
 
     private String maybeReplaceUri(@NonNull String line, int lineNum) {
-        if (line.contains("EXT-X-KEY")) {
+        if (line.contains("EXT-X-KEY") && line.contains("SAMPLE-AES")) {
             // Don't replace Widevine HLS asset's key value
+            // Only if the method is SAMPLE-AES, this logic will not exectute
+            // for NONE or AES-128
             return line;
         }
 
