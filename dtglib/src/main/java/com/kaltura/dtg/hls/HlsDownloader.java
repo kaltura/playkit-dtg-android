@@ -60,10 +60,11 @@ public class HlsDownloader extends AbrDownloader {
 
     private static void mayBeAddInitSegmentTask(LinkedHashSet<DownloadTask> tasks, HlsAsset.Track track, File trackTargetDir, int order) {
         if (track.initSegment != null && track.initSegment.size() > 0) {
-            while (track.initSegment.keySet().iterator().hasNext()) {
-                HlsAsset.Chunk initChunk = track.initSegment.values().iterator().next();
+            for (Map.Entry<String, HlsAsset.Chunk> entry : track.initSegment.entrySet()) {
+                HlsAsset.Chunk initChunk = entry.getValue();
                 maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, initChunk.lineNum, initChunk.ext, initChunk.url, order);
             }
+            track.initSegment.clear();
         }
     }
 
