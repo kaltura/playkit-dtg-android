@@ -58,6 +58,16 @@ public class HlsDownloader extends AbrDownloader {
         tasks.add(task);
     }
 
+    private static void maybeAddInitSegmentTask(LinkedHashSet<DownloadTask> tasks, HlsAsset.Track track, File trackTargetDir, int order) {
+        if (track.initSegment != null && track.initSegment.size() > 0) {
+            for (Map.Entry<String, HlsAsset.Chunk> entry : track.initSegment.entrySet()) {
+                HlsAsset.Chunk initChunk = entry.getValue();
+                maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, initChunk.lineNum, initChunk.ext, initChunk.url, order);
+            }
+            track.initSegment.clear();
+        }
+    }
+
     private static String getLocalMediaFilename(int lineNum, String type) {
         return String.format(Locale.US, "%06d.%s", lineNum, type);
     }
@@ -89,6 +99,7 @@ public class HlsDownloader extends AbrDownloader {
                 order++;
                 maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.lineNum, chunk.ext, chunk.url, order);
                 maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.encryptionKeyLineNum, chunk.keyExt, chunk.encryptionKeyUri, order);
+                maybeAddInitSegmentTask(tasks, track, trackTargetDir, order);
             }
 
             maxDuration = Math.max(maxDuration, track.durationMs);
@@ -226,6 +237,12 @@ public class HlsDownloader extends AbrDownloader {
     }
 
     private String maybeReplaceUri(@NonNull String line, int lineNum) {
+        if (line.contains("EXT-X-KEY") && line.contains("SAMPLE-AES")) {
+            // Don't replace Widevine HLS asset's key value
+            // Only if the method is SAMPLE-AES, this logic will not exectute
+            // for NONE or AES-128
+            return line;
+        }
 
         String uri = extractUri(line);
         if (uri != null) {

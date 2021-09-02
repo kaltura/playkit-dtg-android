@@ -44,7 +44,7 @@ public final class HlsMediaPlaylist extends HlsPlaylist {
      * used for all segments that share an EXT-X-MAP tag.
      */
     @Nullable
-    final Segment initializationSegment;
+    public final Segment initializationSegment;
     /** The duration of the segment in microseconds, as defined by #EXTINF. */
     final long durationUs;
     /**

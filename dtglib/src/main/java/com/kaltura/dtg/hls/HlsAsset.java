@@ -19,8 +19,10 @@ import org.json.JSONObject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class HlsAsset {
@@ -75,6 +77,7 @@ public class HlsAsset {
         long durationMs;
         String url;
         List<Chunk> chunks;
+        Map<String, Chunk> initSegment;
         private byte[] bytes;
         int firstMasterLine;
         int lastMasterLine;
@@ -104,7 +107,25 @@ public class HlsAsset {
 
             this.chunks = new ArrayList<>(mediaPlaylist.segments.size());
             for (HlsMediaPlaylist.Segment segment : mediaPlaylist.segments) {
+                if (segment.initializationSegment != null) {
+                    saveInitSegment(this.url, segment.initializationSegment);
+                }
                 this.chunks.add(new Chunk(segment, this.url));
+            }
+        }
+
+        /**
+         * Save init segment once for each track
+         * @param url Url of the track
+         * @param segment segment
+         */
+        private void saveInitSegment(String url, HlsMediaPlaylist.Segment segment) {
+            if (initSegment == null) {
+                initSegment = new HashMap<>();
+            }
+
+            if (!initSegment.containsKey(url)) {
+                initSegment.put(url, new Chunk(segment, url));
             }
         }
 
