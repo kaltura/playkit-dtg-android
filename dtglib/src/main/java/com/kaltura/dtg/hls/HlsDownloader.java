@@ -58,7 +58,7 @@ public class HlsDownloader extends AbrDownloader {
         tasks.add(task);
     }
 
-    private static void mayBeAddInitSegmentTask(LinkedHashSet<DownloadTask> tasks, HlsAsset.Track track, File trackTargetDir, int order) {
+    private static void maybeAddInitSegmentTask(LinkedHashSet<DownloadTask> tasks, HlsAsset.Track track, File trackTargetDir, int order) {
         if (track.initSegment != null && track.initSegment.size() > 0) {
             for (Map.Entry<String, HlsAsset.Chunk> entry : track.initSegment.entrySet()) {
                 HlsAsset.Chunk initChunk = entry.getValue();
@@ -99,7 +99,7 @@ public class HlsDownloader extends AbrDownloader {
                 order++;
                 maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.lineNum, chunk.ext, chunk.url, order);
                 maybeAddTask(tasks, track.getRelativeId(), trackTargetDir, chunk.encryptionKeyLineNum, chunk.keyExt, chunk.encryptionKeyUri, order);
-                mayBeAddInitSegmentTask(tasks, track, trackTargetDir, order);
+                maybeAddInitSegmentTask(tasks, track, trackTargetDir, order);
             }
 
             maxDuration = Math.max(maxDuration, track.durationMs);
