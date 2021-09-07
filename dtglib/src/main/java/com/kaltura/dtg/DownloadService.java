@@ -404,7 +404,7 @@ public class DownloadService extends Service {
                 if (item != null) {
                     String exceptionItemId = item.getItemId();
                     MetaDataFutureMap metaDataFutureMap = metaDataDownloadMap.get(exceptionItemId);
-                    if (Thread.currentThread().isInterrupted() || exception instanceof InterruptedIOException || (metaDataFutureMap != null && !metaDataFutureMap.isCancelled())) {
+                    if (Thread.currentThread().isInterrupted() || exception instanceof InterruptedIOException || (metaDataFutureMap != null && metaDataFutureMap.isCancelled())) {
                         Log.d(TAG, "Thread interrupted for Item: " + exceptionItemId);
                     } else {
                         Log.e(TAG, "IOException Failed to download metadata for " + exceptionItemId, exception);
