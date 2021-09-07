@@ -405,8 +405,12 @@ public class DownloadService extends Service {
                     String exceptionItemId = item.getItemId();
                     MetaDataFutureMap metaDataFutureMap = metaDataDownloadMap.get(exceptionItemId);
                     if (Thread.currentThread().isInterrupted() || exception instanceof InterruptedIOException || (metaDataFutureMap != null && metaDataFutureMap.isCancelled())) {
+                        // Here, we are not sending onDownloadMetaData event with exception to the app because
+                        // This came because app wanted to cancel the metadata loading {cancelMetadataLoading()}
                         Log.d(TAG, "Thread interrupted for Item: " + exceptionItemId);
                     } else {
+                        // Here, we are sending the event because there is an exception.
+                        // It could be SSL, HTTP etc exceptions.
                         Log.e(TAG, "IOException Failed to download metadata for " + exceptionItemId, exception);
                         downloadStateListener.onDownloadMetadata(item, exception);
                     }
