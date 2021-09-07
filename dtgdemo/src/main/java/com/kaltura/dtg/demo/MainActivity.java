@@ -777,6 +777,17 @@ public class MainActivity extends ListActivity {
         try {
             downloadItem = contentManager.createItem(item.getId(), item.getUrl());
             downloadItem.loadMetadata();
+            // Uncomment it to test metadat loading cancelling
+            // You can change the sleep time to make sure that this time
+            // comes before the completion of metadata downloading
+            /*runOnUiThread(() -> {
+                try {
+                    Thread.sleep(600);
+                    downloadItem.cancelMetadataLoading(item.getId());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });*/
             itemStateChanged(downloadItem);
         } catch (IllegalArgumentException e) {
             toast("Failed to add item: " + e.toString());
