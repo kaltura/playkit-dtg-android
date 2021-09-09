@@ -777,7 +777,7 @@ public class MainActivity extends ListActivity {
         try {
             downloadItem = contentManager.createItem(item.getId(), item.getUrl());
             downloadItem.loadMetadata();
-            // Uncomment it to test metadat loading cancelling
+            // Uncomment it to test metadata loading cancelling
             // You can change the sleep time to make sure that this time
             // comes before the completion of metadata downloading
             /*runOnUiThread(() -> {
