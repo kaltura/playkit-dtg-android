@@ -1008,6 +1008,25 @@ public class MainActivity extends ListActivity {
     }
 
     @Override
+    protected void onResume() {
+        Log.d(TAG,"Application onResume");
+        super.onResume();
+        if (player != null) {
+            player.onApplicationResumed();
+            player.play();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d(TAG,"Application onPause");
+        super.onPause();
+        if (player != null) {
+            player.onApplicationPaused();
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (contentManager != null) {
