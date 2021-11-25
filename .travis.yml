@@ -1,9 +1,11 @@
 language: android
 jdk:
-  - oraclejdk8
+  - oraclejdk11
 android:
   components:
   - tools
+  - build-tools-31.0.3
+  - android-31
 before_script:
   - curl https://kaltura.github.io/fe-tools/android/license.sh | sh
 script:
@@ -13,5 +15,6 @@ notifications:
     recipients:
       - noam.tamim@kaltura.com
       - gilad.nadav@kaltura.com
+      - gourav.saxena@kaltura.com
     on_success: change
     on_failure: always
