@@ -166,7 +166,7 @@ public abstract class BaseTrack implements DownloadItem.Track {
     }
 
     @Override
-    public String getAudioGroupId() {return null;};
+    public String getAudioGroupId() {return null;}
 
     @Override
     public int getHeight() {

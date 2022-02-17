@@ -21,14 +21,14 @@ import androidx.annotation.Nullable;
 import com.kaltura.dtg.exoparser.C;
 
 /**
- * Attributes for audio playback, which configure the underlying platform
- * {@link android.media.AudioTrack}.
- * <p>
- * To set the audio attributes, create an instance using the {@link Builder} and either pass it to
- * {@link com.kaltura.android.exoplayer2.SimpleExoPlayer#setAudioAttributes(AudioAttributes)} or
- * send a message of type {@link C#MSG_SET_AUDIO_ATTRIBUTES} to the audio renderers.
- * <p>
- * This class is based on {@link android.media.AudioAttributes}, but can be used on all supported
+ * Attributes for audio playback, which configure the underlying platform {@link
+ * android.media.AudioTrack}.
+ *
+ * <p>To set the audio attributes, create an instance using the {@link Builder} and either pass it
+ * to the player or send a message of type {@code Renderer#MSG_SET_AUDIO_ATTRIBUTES} to the audio
+ * renderers.
+ *
+ * <p>This class is based on {@link android.media.AudioAttributes}, but can be used on all supported
  * API versions.
  */
 public final class AudioAttributes {
