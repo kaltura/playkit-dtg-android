@@ -1,6 +1,6 @@
 
 // PlayKit Library Version
-ext.dtglibVersion = 'dev'
+ext.dtglibVersion = '2.6.14'
 
 // Append short commit hash to dev builds, i.e. "dev.a1b2c3d"
 if (dtglibVersion == 'dev') {
