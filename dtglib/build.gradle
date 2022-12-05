@@ -2,10 +2,10 @@ apply plugin: 'com.android.library'
 apply from: 'version.gradle'
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 30
+        targetSdkVersion 33
         versionName dtglibVersion  // defined in version.gradle
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String","VERSION_NAME","\"${dtglibVersion}\"")
