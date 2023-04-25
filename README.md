@@ -18,5 +18,4 @@ Add build.gradle dependency:
 		compile 'com.kaltura.dtg:dtglib:2.1.0'
 	}
 
-
-Replace `2.1.0` with the latest release.
+Replace `2.16.0` with the latest release.
