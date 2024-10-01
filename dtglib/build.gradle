@@ -2,10 +2,11 @@ apply plugin: 'com.android.library'
 apply from: 'version.gradle'
 
 android {
-    compileSdkVersion 33
+    namespace 'com.kaltura.dtg'
+    compileSdk 34
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 33
+        minSdkVersion 21
+        targetSdkVersion 34
         versionName dtglibVersion  // defined in version.gradle
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String","VERSION_NAME","\"${dtglibVersion}\"")
@@ -17,7 +18,15 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    
+    buildFeatures {
+        buildConfig true
+    }
+    publishing {
+        publishing {
+            singleVariant('release') {
+            }
+        }
+    }
     testOptions {
         unitTests.returnDefaultValues = true
     }
